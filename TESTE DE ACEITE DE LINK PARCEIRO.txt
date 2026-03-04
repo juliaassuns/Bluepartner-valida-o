@@ -1,0 +1,4 @@
+# Porta do servidor
+PORT=3000
+CORS_ORIGIN=*
+NODE_ENV=development

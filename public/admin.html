@@ -1,0 +1,1818 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BluePartner Admin — Painel de Validação</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='20' width='100' height='100' fill='%230078D4'/><path d='M25 25h20v20H25zM55 25h20v20H55zM25 55h20v20H25zM55 55h20v20H55z' fill='white'/></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --blue: #0078D4;
+            --blue-hover: #106EBE;
+            --blue-active: #005A9E;
+            --blue-light: #EBF3FB;
+            --blue-50: #F0F7FF;
+            --navy: #003F7F;
+            --navy-dark: #002B57;
+            --green: #16A34A;
+            --green-light: #DCFCE7;
+            --green-dark: #15803D;
+            --red: #DC2626;
+            --red-light: #FEE2E2;
+            --orange: #D97706;
+            --orange-light: #FEF3C7;
+            --purple: #7C3AED;
+            --purple-light: #EDE9FE;
+            --ingram-blue: #1D4ED8;
+            --ingram-bg: #DBEAFE;
+            --tds-purple: #6D28D9;
+            --tds-bg: #EDE9FE;
+            --gray-bg: #F3F6FB;
+            --gray-50: #FAFBFC;
+            --gray-100: #F1F5F9;
+            --gray-200: #D1D9E6;
+            --gray-300: #B0BCCC;
+            --gray-400: #A0ABBB;
+            --gray-500: #5B7199;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1E293B;
+            --gray-900: #0F172A;
+            --white: #FFFFFF;
+            --radius: 12px;
+            --radius-lg: 16px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+            --shadow-card: 0 1px 3px rgba(0,0,0,0.03), 0 6px 20px rgba(0,0,0,0.05);
+            --transition: all 0.2s ease;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--gray-bg);
+            color: var(--gray-900);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ===== LOGIN SCREEN ===== */
+        .login-overlay {
+            position: fixed; inset: 0; z-index: 9999;
+            background: linear-gradient(135deg, #0078D4 0%, #005A9E 100%);
+            display: flex; align-items: center; justify-content: center;
+            padding: 24px;
+        }
+        .login-overlay.hidden { display: none; }
+        .login-card {
+            background: #fff; border-radius: 16px;
+            max-width: 400px; width: 100%;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.2);
+            overflow: hidden;
+            animation: loginIn 0.3s ease-out;
+        }
+        @keyframes loginIn {
+            from { transform: scale(0.95) translateY(10px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        .login-header {
+            padding: 32px 32px 24px; text-align: center;
+        }
+        .login-logo {
+            width: 56px; height: 56px; background: #0078D4;
+            border-radius: 14px; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 16px;
+        }
+        .login-logo svg { width: 32px; height: 32px; color: white; }
+        .login-title {
+            font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 4px;
+        }
+        .login-subtitle { font-size: 13px; color: #6B7280; }
+        .login-form { padding: 0 32px 32px; }
+        .login-field { margin-bottom: 16px; }
+        .login-label {
+            display: block; font-size: 13px; font-weight: 600;
+            color: #374151; margin-bottom: 6px;
+        }
+        .login-input {
+            width: 100%; height: 42px; padding: 0 14px;
+            border: 1.5px solid #D1D5DB; border-radius: 8px;
+            font-size: 14px; font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+        .login-input:focus {
+            border-color: #0078D4;
+            box-shadow: 0 0 0 3px rgba(0,120,212,0.12);
+        }
+        .login-btn {
+            width: 100%; height: 42px;
+            background: #0078D4; color: #fff; border: none;
+            border-radius: 8px; font-size: 14px; font-weight: 600;
+            cursor: pointer; transition: background 0.2s;
+            font-family: inherit;
+        }
+        .login-btn:hover { background: #106EBE; }
+        .login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .login-error {
+            background: #FEE2E2; color: #DC2626;
+            font-size: 13px; padding: 10px 14px;
+            border-radius: 8px; margin-bottom: 16px;
+            display: none;
+        }
+        .login-error.show { display: block; }
+        .login-footer {
+            padding: 16px 32px; border-top: 1px solid #E5E7EB;
+            text-align: center;
+        }
+        .login-footer-text {
+            font-size: 11px; color: #9CA3AF;
+        }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+        /* ===== NAV ===== */
+        .nav {
+            background: var(--blue);
+            color: var(--white);
+            padding: 0 28px;
+            display: flex; align-items: center; gap: 16px;
+            position: sticky; top: 0; z-index: 50;
+            height: 56px;
+            box-shadow: 0 2px 12px rgba(0,120,212,0.3);
+        }
+        .nav-logo {
+            font-weight: 800; font-size: 17px; letter-spacing: -0.4px;
+            display: flex; align-items: center; gap: 10px;
+            text-decoration: none; color: white;
+        }
+        .nav-logo-icon {
+            width: 34px; height: 34px;
+            background: rgba(255,255,255,0.12);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            border: 1px solid rgba(255,255,255,0.15);
+            transition: var(--transition);
+        }
+        .nav-logo:hover .nav-logo-icon {
+            background: rgba(255,255,255,0.18);
+            transform: scale(1.05);
+        }
+        .nav-logo-icon svg { width: 18px; height: 18px; stroke: white; }
+        .nav-logo-text { font-weight: 800; }
+        .nav-logo-text span { color: rgba(255,255,255,0.6); font-weight: 500; }
+        .nav-sep {
+            width: 1px; height: 24px; background: rgba(255,255,255,0.15);
+        }
+        .nav-page {
+            font-size: 13px; color: rgba(255,255,255,0.8); font-weight: 500;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .nav-page svg { width: 15px; height: 15px; stroke: rgba(255,255,255,0.7); }
+        .nav-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+        .nav-link-site {
+            font-size: 12px; color: rgba(255,255,255,0.75);
+            text-decoration: none; font-weight: 500;
+            padding: 6px 12px; border-radius: 6px;
+            transition: var(--transition);
+            display: flex; align-items: center; gap: 5px;
+        }
+        .nav-link-site svg { width: 13px; height: 13px; }
+        .nav-link-site:hover { background: rgba(255,255,255,0.1); color: white; }
+        .nav-divider { width: 1px; height: 20px; background: rgba(255,255,255,0.12); }
+        .nav-avatar {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            display: flex; align-items: center; justify-content: center;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .nav-avatar svg { width: 16px; height: 16px; stroke: white; }
+
+        /* ===== LAYOUT ===== */
+        .page {
+            max-width: 1120px; margin: 0 auto;
+            padding: 24px 24px 48px;
+        }
+
+        /* ===== GDAP BANNER ===== */
+        .gdap-bar {
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 16px; border-radius: 8px;
+            margin-bottom: 24px; font-size: 14px; font-weight: 500;
+            transition: var(--transition);
+        }
+        .gdap-bar.configured {
+            background: var(--green-light); border-left: 4px solid var(--green);
+            color: var(--green-dark);
+        }
+        .gdap-bar.not-configured {
+            background: #FFFBEB; border-left: 4px solid #F59E0B;
+            color: #92400E;
+        }
+        .gdap-bar svg { width: 16px; height: 16px; flex-shrink: 0; }
+        .gdap-bar.configured svg { stroke: var(--green); }
+        .gdap-bar.not-configured svg { stroke: #F59E0B; }
+        .gdap-bar a { color: var(--blue); text-decoration: underline; font-weight: 600; }
+
+        /* ===== STATS ===== */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px; margin-bottom: 28px;
+        }
+        .stat-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid rgba(0,0,0,0.04);
+            transition: all 0.25s ease;
+            position: relative; overflow: hidden;
+        }
+        .stat-card::before {
+            content: ''; position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+        }
+        .stat-card:nth-child(1)::before { background: var(--blue); }
+        .stat-card:nth-child(2)::before { background: var(--green); }
+        .stat-card:nth-child(3)::before { background: var(--orange); }
+        .stat-card:nth-child(4)::before { background: var(--purple); }
+        .stat-card:hover {
+            box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+            transform: translateY(-3px);
+        }
+        .stat-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+        .stat-label {
+            font-size: 11px; font-weight: 700; color: var(--gray-500);
+            text-transform: uppercase; letter-spacing: 1px;
+            opacity: 0.8;
+        }
+        .stat-icon {
+            width: 48px; height: 48px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .stat-icon svg { width: 22px; height: 22px; stroke-width: 1.5; }
+        .stat-icon.blue { background: rgba(0,120,212,0.12); }
+        .stat-icon.blue svg { stroke: var(--blue); }
+        .stat-icon.green { background: rgba(22,163,74,0.12); }
+        .stat-icon.green svg { stroke: var(--green); }
+        .stat-icon.orange { background: rgba(217,119,6,0.12); }
+        .stat-icon.orange svg { stroke: var(--orange); }
+        .stat-icon.purple { background: rgba(124,58,237,0.12); }
+        .stat-icon.purple svg { stroke: var(--purple); }
+        .stat-value {
+            font-size: 36px; font-weight: 700; color: var(--gray-900);
+            letter-spacing: -1px; line-height: 1;
+            text-align: center;
+        }
+
+        /* ===== SECTION ===== */
+        .section {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-card);
+            margin-bottom: 28px;
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        .section-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--gray-200);
+            font-size: 15px; font-weight: 600;
+            display: flex; align-items: center;
+            gap: 8px; color: var(--blue);
+            background: var(--white);
+        }
+        .section-header svg { width: 16px; height: 16px; stroke: var(--blue); stroke-width: 1.5; }
+        .section-body { padding: 24px; }
+
+        /* ===== FORM ===== */
+        .form-grid {
+            display: flex;
+            gap: 16px; align-items: flex-end;
+        }
+        .form-grid .form-group { flex: 1; min-width: 0; }
+        .form-grid .form-group:last-child { flex: 0 0 220px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full { grid-column: 1 / -1; }
+        .form-label {
+            font-size: 12px; font-weight: 600; color: var(--gray-700);
+            letter-spacing: 0.1px;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .form-label-required { color: var(--red); font-size: 14px; }
+        .form-input-wrap {
+            position: relative;
+        }
+        .form-input-wrap svg {
+            position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+            width: 16px; height: 16px; stroke: var(--gray-400); stroke-width: 1.5;
+            pointer-events: none; z-index: 1;
+        }
+        .form-input-wrap .form-input,
+        .form-input-wrap .form-select {
+            padding-left: 38px;
+        }
+        .form-input, .form-select {
+            height: 42px;
+            padding: 0 14px;
+            border: 1.5px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 14px; font-family: inherit;
+            color: var(--gray-900);
+            transition: var(--transition); outline: none;
+            background: var(--white);
+            width: 100%;
+        }
+        .form-input:focus, .form-select:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(0,120,212,0.12);
+        }
+        .form-input::placeholder { color: var(--gray-400); }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            padding: 0 20px; height: 42px; border: none; border-radius: 8px;
+            font-size: 14px; font-weight: 600; font-family: inherit;
+            cursor: pointer; display: inline-flex; align-items: center;
+            gap: 8px; transition: var(--transition);
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn svg { width: 16px; height: 16px; stroke-width: 1.5; }
+        .btn-primary {
+            background: var(--blue); color: var(--white);
+        }
+        .btn-primary:hover { background: var(--blue-hover); }
+        .btn-primary:disabled {
+            background: var(--gray-300); color: var(--gray-500);
+            cursor: not-allowed; transform: none;
+        }
+        .btn-sm { padding: 0; width: 32px; height: 32px; font-size: 12px; border-radius: 6px; justify-content: center; }
+        .btn-sm svg { width: 15px; height: 15px; }
+        .btn-copy {
+            background: transparent; color: var(--gray-500);
+        }
+        .btn-copy:hover { background: var(--blue-light); color: var(--blue); }
+        .btn-danger { background: transparent; color: var(--gray-500); }
+        .btn-danger:hover { background: var(--red-light); color: var(--red); }
+        .btn-whatsapp {
+            background: #25D366; color: var(--white);
+        }
+        .btn-whatsapp:hover { background: #1DA851; }
+        .btn-outline {
+            background: transparent; border: 1.5px solid var(--blue);
+            color: var(--blue); height: 36px; font-size: 13px; width: auto; padding: 0 12px;
+        }
+        .btn-outline:hover {
+            background: var(--blue-light);
+        }
+        .btn-outline svg { stroke: var(--blue); }
+        .btn-export {
+            background: var(--green); color: var(--white);
+            height: 36px; font-size: 13px; width: auto; padding: 0 12px;
+        }
+        .btn-export:hover { background: #15803D; }
+        .btn-edit { background: transparent; color: var(--gray-500); }
+        .btn-edit:hover { background: #FEF9C3; color: var(--orange); }
+        .btn-lic { background: transparent; color: var(--gray-500); }
+        .btn-lic:hover { background: var(--blue-light); color: var(--blue); }
+        .btn-logs { background: transparent; color: var(--gray-500); }
+        .btn-logs:hover { background: var(--blue-light); color: var(--blue); }
+        .form-actions { display: flex; gap: 12px; margin-top: 20px; align-items: center; }
+
+        /* Refresh spin animation */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .btn-refreshing svg { animation: spin 0.5s ease; }
+
+        /* ===== RESULT BOX ===== */
+        .result-box {
+            display: none;
+            background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+            border: 1px solid #86efac;
+            border-radius: var(--radius);
+            padding: 20px; margin-top: 20px;
+            animation: fadeSlideIn 0.3s ease;
+        }
+        .result-box.show { display: block; }
+        .result-title {
+            font-size: 14px; font-weight: 700; color: var(--green-dark);
+            margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+        }
+        .result-title svg { width: 18px; height: 18px; stroke: var(--green); }
+        .result-link-box {
+            background: var(--white);
+            border: 1.5px solid var(--gray-200);
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-size: 12px;
+            font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+            word-break: break-all;
+            color: var(--blue);
+            margin-bottom: 12px;
+            user-select: all;
+            line-height: 1.7;
+        }
+        .result-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .result-actions .btn { height: 34px; font-size: 12px; font-weight: 600; border-radius: 6px; }
+        .result-info {
+            margin-top: 12px; font-size: 11px; color: var(--gray-500);
+            line-height: 1.6; padding: 10px 12px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 8px;
+        }
+
+        /* ===== TABLE ===== */
+        .table-wrap { overflow-x: auto; }
+        .table-toolbar {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 16px; gap: 12px; flex-wrap: wrap;
+        }
+        .table-search-wrap { position: relative; }
+        .table-search {
+            height: 38px;
+            padding: 0 14px 0 38px;
+            border: 1.5px solid var(--gray-200);
+            border-radius: 8px; font-size: 13px; font-family: inherit;
+            outline: none; width: 280px; max-width: 100%;
+            transition: var(--transition); background: var(--white);
+            color: var(--gray-900);
+        }
+        .table-search:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(0,120,212,0.12);
+        }
+        .table-search::placeholder { color: var(--gray-400); }
+        .table-search-icon {
+            position: absolute; left: 12px; top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none; color: var(--gray-400);
+            display: flex;
+        }
+        .table-search-icon svg { width: 16px; height: 16px; stroke: var(--gray-400); stroke-width: 1.5; }
+        table {
+            width: 100%; border-collapse: separate;
+            border-spacing: 0; font-size: 13px;
+        }
+        th {
+            background: var(--blue-light);
+            padding: 10px 16px; text-align: left; font-weight: 700;
+            color: var(--gray-500); border-bottom: 1px solid var(--gray-200);
+            white-space: nowrap; font-size: 11px;
+            text-transform: uppercase; letter-spacing: 0.8px;
+        }
+        th:first-child { border-radius: 8px 0 0 0; }
+        th:last-child { border-radius: 0 8px 0 0; }
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--gray-100);
+            vertical-align: middle;
+        }
+        tr { transition: background 0.15s; }
+        tr:hover td { background: var(--blue-50); }
+        tr:last-child td { border-bottom: none; }
+        .td-id {
+            font-weight: 600; color: var(--blue);
+            font-family: 'SF Mono', 'Cascadia Code', monospace;
+            font-size: 12px;
+        }
+        .td-client { font-weight: 600; color: var(--gray-800); }
+        .td-cnpj { font-size: 12px; color: var(--gray-500); font-family: monospace; }
+        .td-date { white-space: nowrap; }
+        .td-date-day { font-size: 13px; font-weight: 500; color: var(--gray-800); display: block; }
+        .td-date-time { font-size: 12px; color: var(--gray-500); opacity: 0.6; display: block; }
+        .td-actions { display: flex; gap: 6px; }
+        .badge-empty { background: #F3F4F6; color: #6B7280; }
+        .badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 0 12px; height: 24px; border-radius: 20px;
+            font-size: 12px; font-weight: 600;
+        }
+        .badge-dot {
+            width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+        }
+        .badge-pending { background: var(--orange-light); color: #B45309; }
+        .badge-pending .badge-dot { background: var(--orange); }
+        .badge-done { background: var(--green-light); color: var(--green-dark); }
+        .badge-done .badge-dot { background: var(--green); }
+        .badge-ingram { background: var(--ingram-bg); color: var(--ingram-blue); }
+        .badge-tds { background: var(--tds-bg); color: var(--tds-purple); }
+
+        .empty-state {
+            text-align: center; padding: 48px 24px; color: var(--gray-500);
+        }
+        .empty-state-icon {
+            margin-bottom: 12px; opacity: 0.4;
+            display: flex; justify-content: center;
+        }
+        .empty-state-icon svg { width: 40px; height: 40px; stroke: var(--gray-400); stroke-width: 1; }
+        .empty-state-text { font-size: 14px; font-weight: 500; }
+
+        /* ===== FILTER BAR ===== */
+        .filter-bar {
+            display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+            margin-bottom: 16px;
+        }
+        .filter-btn {
+            padding: 0 14px; height: 32px; border: none;
+            border-radius: 20px; font-size: 13px; font-weight: 500;
+            font-family: inherit; cursor: pointer;
+            color: var(--gray-500);
+            background: var(--blue-light); transition: var(--transition);
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .filter-btn:hover { background: #D6E8F7; }
+        .filter-btn.active { background: var(--blue); color: var(--white); }
+        .filter-count {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 18px; height: 18px; padding: 0 5px;
+            border-radius: 9px; font-size: 10px; font-weight: 800;
+            background: var(--blue); color: var(--white);
+        }
+        .filter-btn.active .filter-count { background: rgba(255,255,255,0.25); }
+
+        /* ===== AUTO-REFRESH ===== */
+        .auto-refresh-toggle {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 12px; color: var(--gray-500); font-weight: 500;
+            cursor: pointer; user-select: none;
+        }
+        .auto-refresh-toggle input[type=checkbox] {
+            width: 14px; height: 14px; accent-color: var(--blue); cursor: pointer;
+        }
+        .auto-refresh-indicator {
+            display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+            background: var(--green); animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; } 50% { opacity: 0.3; }
+        }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,15,40,0.5);
+            z-index: 100; align-items: center; justify-content: center;
+            padding: 24px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .modal-overlay.show { display: flex; }
+        .modal {
+            background: var(--white); border-radius: var(--radius-lg);
+            max-width: 680px; width: 100%; max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.16);
+            animation: modalIn 0.25s ease;
+        }
+        .modal-header {
+            padding: 18px 24px; border-bottom: 1px solid var(--gray-200);
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; background: var(--white); z-index: 1;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        }
+        .modal-title {
+            font-size: 16px; font-weight: 700; color: var(--blue);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .modal-title svg { width: 18px; height: 18px; stroke: var(--blue); stroke-width: 1.5; }
+        .modal-close {
+            width: 32px; height: 32px; border-radius: 8px;
+            border: none; background: var(--gray-100); cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: var(--transition); color: var(--gray-600);
+        }
+        .modal-close svg { width: 16px; height: 16px; }
+        .modal-close:hover { background: var(--red-light); color: var(--red); }
+        .modal-body { padding: 24px; }
+
+        .log-item {
+            padding: 14px 16px; border-radius: 10px;
+            background: var(--gray-50); margin-bottom: 8px;
+            border: 1px solid var(--gray-200);
+            transition: var(--transition);
+        }
+        .log-item:hover { border-color: var(--blue); background: var(--blue-50); }
+        .log-item:last-child { margin-bottom: 0; }
+        .log-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .log-status { font-weight: 700; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+        .log-status.validado { color: var(--green); }
+        .log-status-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--green);
+        }
+        .log-date { font-size: 11px; color: var(--gray-400); font-weight: 500; }
+        .log-details { font-size: 12px; color: var(--gray-500); line-height: 1.8; }
+        .log-detail-label { font-weight: 700; color: var(--gray-700); }
+
+        /* ===== LICENSES MODAL ===== */
+        .lic-item {
+            display: grid; grid-template-columns: 1fr auto auto auto auto;
+            gap: 12px; padding: 12px 14px; border-radius: 10px;
+            background: var(--gray-50); margin-bottom: 8px;
+            border: 1px solid var(--gray-200); align-items: center;
+            transition: var(--transition); font-size: 13px;
+        }
+        .lic-item:hover { border-color: var(--blue); background: var(--blue-50); }
+        .lic-produto { font-weight: 600; color: var(--gray-800); }
+        .lic-qtd, .lic-duracao { font-size: 12px; color: var(--gray-500); white-space: nowrap; }
+        .lic-preco { font-size: 12px; font-weight: 700; color: var(--green-dark); white-space: nowrap; }
+        .lic-add-form {
+            display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            gap: 10px; margin-top: 16px; padding-top: 16px;
+            border-top: 2px dashed var(--gray-200); align-items: end;
+        }
+        .lic-add-form .form-group { gap: 4px; }
+        .lic-add-form .form-label { font-size: 11px; }
+        .lic-add-form .form-input { height: 36px; font-size: 13px; }
+        .lic-summary {
+            margin-top: 12px; padding: 10px 14px; border-radius: 8px;
+            background: var(--blue-light);
+            border: 1px solid #bae6fd;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 13px; color: var(--gray-700);
+        }
+
+        /* ===== UPLOAD ZONE ===== */
+        .upload-zone {
+            margin-top: 16px; padding-top: 16px;
+            border-top: 2px dashed var(--gray-200);
+        }
+        .upload-zone-title {
+            font-size: 13px; font-weight: 600; color: var(--gray-700);
+            margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+        }
+        .upload-zone-title svg { width: 16px; height: 16px; stroke: var(--blue); }
+        .upload-dropzone {
+            border: 2px dashed var(--gray-200);
+            border-radius: 10px; padding: 24px;
+            text-align: center; cursor: pointer;
+            transition: var(--transition);
+            background: var(--gray-50);
+            position: relative;
+        }
+        .upload-dropzone:hover, .upload-dropzone.dragover {
+            border-color: var(--blue); background: var(--blue-50);
+        }
+        .upload-dropzone-icon { margin-bottom: 8px; opacity: 0.5; }
+        .upload-dropzone-icon svg { width: 32px; height: 32px; stroke: var(--gray-400); stroke-width: 1; }
+        .upload-dropzone-text { font-size: 13px; color: var(--gray-500); font-weight: 500; }
+        .upload-dropzone-text strong { color: var(--blue); }
+        .upload-dropzone-hint { font-size: 11px; color: var(--gray-400); margin-top: 4px; }
+        .upload-dropzone input[type=file] {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            opacity: 0; cursor: pointer;
+        }
+        .upload-progress {
+            margin-top: 10px; padding: 12px 14px; border-radius: 8px;
+            background: var(--blue-50); border: 1px solid var(--blue-light);
+            font-size: 12px; color: var(--gray-700);
+            display: none; align-items: center; gap: 8px;
+        }
+        .upload-progress.show { display: flex; }
+        .upload-progress svg { width: 16px; height: 16px; stroke: var(--blue); }
+        @keyframes spinLoader { to { transform: rotate(360deg); } }
+        .upload-spinner { animation: spinLoader 1s linear infinite; }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed; bottom: 24px; right: 24px;
+            background: var(--gray-900); color: var(--white);
+            padding: 12px 20px; border-radius: 10px; font-size: 13px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.18); z-index: 999;
+            animation: slideUp 0.3s ease;
+            display: none; font-weight: 500; max-width: 380px;
+        }
+        .toast.show { display: flex; align-items: center; gap: 8px; }
+
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes modalIn {
+            from { transform: scale(0.95) translateY(8px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .stats-bar { grid-template-columns: repeat(2, 1fr); }
+            .form-grid { flex-direction: column; }
+            .form-grid .form-group:last-child { flex: 1; }
+            .page { padding: 16px 16px 40px; }
+            .table-toolbar { flex-direction: column; align-items: stretch; }
+            .table-search { width: 100%; }
+            .nav { padding: 0 16px; }
+            .nav-link-site { display: none; }
+            .nav-divider { display: none; }
+            .section-body { padding: 16px; }
+            .stat-value { font-size: 28px; text-align: center; }
+            .lic-item { grid-template-columns: 1fr; gap: 6px; }
+            .lic-add-form { grid-template-columns: 1fr; }
+            .filter-bar { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
+        }
+
+        @media (max-width: 480px) {
+            .stats-bar { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .stat-card { padding: 18px; }
+            .stat-value { font-size: 24px; text-align: center; }
+            .result-actions { flex-direction: column; }
+            .result-actions .btn { width: 100%; justify-content: center; }
+        }
+
+        :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+    </style>
+</head>
+<body>
+
+    <!-- LOGIN OVERLAY -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="login-logo">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+                </div>
+                <div class="login-title">BluePartner Admin</div>
+                <div class="login-subtitle">Entre com suas credenciais</div>
+            </div>
+            <form class="login-form" onsubmit="doLogin(event)">
+                <div class="login-error" id="loginError"></div>
+                <div class="login-field">
+                    <label class="login-label">Usuário</label>
+                    <input class="login-input" type="text" id="loginUser" placeholder="admin" autocomplete="username" required>
+                </div>
+                <div class="login-field">
+                    <label class="login-label">Senha</label>
+                    <input class="login-input" type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" required>
+                </div>
+                <button class="login-btn" type="submit" id="loginBtn">Entrar</button>
+            </form>
+            <div class="login-footer">
+                <span class="login-footer-text">Acesso restrito • BluePartner © 2025</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAV -->
+    <nav class="nav">
+        <a href="/" class="nav-logo">
+            <div class="nav-logo-icon">
+                <i data-lucide="shield-check"></i>
+            </div>
+            <span class="nav-logo-text">Blue<span>Partner</span></span>
+        </a>
+        <div class="nav-sep"></div>
+        <span class="nav-page">
+            <i data-lucide="layout-dashboard"></i>
+            Painel de Validação
+        </span>
+        <div class="nav-right">
+            <a href="/" class="nav-link-site">
+                <i data-lucide="external-link"></i>
+                Ver página
+            </a>
+            <div class="nav-divider"></div>
+            <button onclick="doLogout()" class="nav-link-site" title="Sair" style="background:none;border:none;cursor:pointer;color:inherit;font:inherit;display:flex;align-items:center;gap:6px;">
+                <i data-lucide="log-out"></i>
+                Sair
+            </button>
+            <div class="nav-avatar" title="Admin">
+                <i data-lucide="user"></i>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page">
+
+        <!-- GDAP STATUS -->
+        <div class="gdap-bar not-configured" id="gdapBar">
+            <i data-lucide="triangle-alert" id="gdapIcon"></i>
+            <span id="gdapText">Verificando GDAP...</span>
+        </div>
+
+        <!-- STATS -->
+        <div class="stats-bar" id="statsBar">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-label">Total de Pedidos</div>
+                    <div class="stat-icon blue"><i data-lucide="package"></i></div>
+                </div>
+                <div class="stat-value" id="statTotal">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-label">Validados</div>
+                    <div class="stat-icon green"><i data-lucide="circle-check"></i></div>
+                </div>
+                <div class="stat-value" id="statValidados">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-label">Pendentes</div>
+                    <div class="stat-icon orange"><i data-lucide="clock"></i></div>
+                </div>
+                <div class="stat-value" id="statPendentes">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-label">Ingram / TDS</div>
+                    <div class="stat-icon purple"><i data-lucide="building-2"></i></div>
+                </div>
+                <div class="stat-value" id="statRevenda" style="font-size: 24px; letter-spacing: -0.5px;">-- / --</div>
+            </div>
+        </div>
+
+        <!-- CRIAR PEDIDO -->
+        <div class="section">
+            <div class="section-header">
+                <i data-lucide="link"></i>
+                Gerar Link de Validação
+            </div>
+            <div class="section-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">
+                            Nome da Empresa <span class="form-label-required">*</span>
+                        </label>
+                        <div class="form-input-wrap">
+                            <i data-lucide="building"></i>
+                            <input class="form-input" id="inputCliente" type="text" placeholder="Ex: Contoso Brasil Ltda">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            CNPJ <span class="form-label-required">*</span>
+                        </label>
+                        <div class="form-input-wrap">
+                            <i data-lucide="file-badge"></i>
+                            <input class="form-input" id="inputCnpj" type="text" placeholder="00.000.000/0001-00" maxlength="18">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Distribuidor</label>
+                        <div class="form-input-wrap">
+                            <i data-lucide="truck"></i>
+                            <select class="form-select" id="inputRevenda">
+                                <option value="ingram">Ingram Micro</option>
+                                <option value="tds">TD SYNNEX</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-primary" id="btnGerar" onclick="criarPedido()">
+                        <i data-lucide="link"></i>
+                        Gerar Link
+                    </button>
+                </div>
+
+                <!-- RESULTADO -->
+                <div class="result-box" id="resultBox">
+                    <div class="result-title">
+                        <i data-lucide="circle-check"></i>
+                        Link gerado com sucesso!
+                    </div>
+                    <div class="result-link-box" id="resultLink">---</div>
+                    <div class="result-actions">
+                        <button class="btn btn-copy" onclick="copiarLink()"><i data-lucide="copy"></i> Copiar Link</button>
+                        <button class="btn btn-whatsapp" onclick="enviarWhatsApp()"><i data-lucide="message-circle"></i> WhatsApp</button>
+                        <button class="btn btn-copy" onclick="copiarMensagem()"><i data-lucide="message-square"></i> Copiar Mensagem</button>
+                    </div>
+                    <div class="result-info" id="resultInfo"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PEDIDOS -->
+        <div class="section">
+            <div class="section-header">
+                <i data-lucide="clipboard-list"></i>
+                Pedidos
+            </div>
+            <div class="section-body">
+                <div class="table-toolbar">
+                    <div class="table-search-wrap">
+                        <span class="table-search-icon"><i data-lucide="search"></i></span>
+                        <input class="table-search" id="searchInput" type="text"
+                               placeholder="Buscar por cliente, CNPJ ou pedido..."
+                               oninput="filterTable()">
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <label class="auto-refresh-toggle" title="Atualizar a cada 30s">
+                            <input type="checkbox" id="autoRefreshCheck" onchange="toggleAutoRefresh()">
+                            <span id="autoRefreshLabel">Auto-refresh</span>
+                        </label>
+                        <button class="btn btn-sm btn-export" onclick="exportCSV()"><i data-lucide="download"></i> CSV</button>
+                        <button class="btn btn-outline btn-sm" id="btnRefresh" onclick="refreshClick()"><i data-lucide="refresh-cw"></i> Atualizar</button>
+                    </div>
+                </div>
+                <div class="filter-bar" id="filterBar">
+                    <button class="filter-btn active" data-filter="todos" onclick="setFilter('todos')">
+                        Todos <span class="filter-count" id="fTodos">0</span>
+                    </button>
+                    <button class="filter-btn" data-filter="PENDENTE" onclick="setFilter('PENDENTE')">
+                        Pendentes <span class="filter-count" id="fPendentes">0</span>
+                    </button>
+                    <button class="filter-btn" data-filter="VALIDADO" onclick="setFilter('VALIDADO')">
+                        Validados <span class="filter-count" id="fValidados">0</span>
+                    </button>
+                    <button class="filter-btn" data-filter="ingram" onclick="setFilter('ingram')">
+                        Ingram <span class="filter-count" id="fIngram">0</span>
+                    </button>
+                    <button class="filter-btn" data-filter="tds" onclick="setFilter('tds')">
+                        TDS <span class="filter-count" id="fTds">0</span>
+                    </button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Pedido</th>
+                                <th>Cliente</th>
+                                <th>CNPJ</th>
+                                <th>Revenda</th>
+                                <th>Status</th>
+                                <th>Licenças</th>
+                                <th>Data</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pedidosBody">
+                            <tr><td colspan="8" class="empty-state">
+                                <div class="empty-state-icon"><i data-lucide="clipboard-list"></i></div>
+                                <div class="empty-state-text">Carregando pedidos...</div>
+                            </td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGS MODAL -->
+    <div class="modal-overlay" id="logsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title" id="logsModalTitle"><i data-lucide="file-text"></i> Logs de Validação</span>
+                <button class="modal-close" onclick="closeLogsModal()"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body" id="logsModalBody">
+                <div class="empty-state">
+                    <div class="empty-state-icon"><i data-lucide="file-text"></i></div>
+                    <div class="empty-state-text">Carregando logs...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT MODAL -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title" id="editModalTitle"><i data-lucide="pencil"></i> Editar Pedido</span>
+                <button class="modal-close" onclick="closeEditModal()"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editPedidoId">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Nome da Empresa <span class="form-label-required">*</span></label>
+                        <div class="form-input-wrap">
+                            <i data-lucide="building"></i>
+                            <input class="form-input" id="editCliente" type="text">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">CNPJ <span class="form-label-required">*</span></label>
+                        <div class="form-input-wrap">
+                            <i data-lucide="file-badge"></i>
+                            <input class="form-input" id="editCnpj" type="text" maxlength="18">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Distribuidor</label>
+                        <div class="form-input-wrap">
+                            <i data-lucide="truck"></i>
+                            <select class="form-select" id="editRevenda">
+                                <option value="ingram">Ingram Micro</option>
+                                <option value="tds">TD SYNNEX</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1">
+                        <label class="form-label">Link GDAP <span style="color:#64748b;font-weight:400">(cada cliente precisa de um link exclusivo)</span></label>
+                        <div class="form-input-wrap">
+                            <i data-lucide="shield"></i>
+                            <input class="form-input" id="editGdapLink" type="url" placeholder="https://admin.microsoft.com/AdminPortal/Home#/partners/invitation/granularAdminRelationships/..." style="font-size:12px">
+                        </div>
+                        <div style="font-size:11px;color:#94a3b8;margin-top:4px">⚠️ Links GDAP são de uso único. Cole aqui o link gerado no Partner Center ou use o botão 🛡 na tabela para gerar automaticamente.</div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" onclick="saveEdit()"><i data-lucide="save"></i> Salvar Alterações</button>
+                    <button class="btn btn-outline" onclick="closeEditModal()">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LICENSES MODAL -->
+    <div class="modal-overlay" id="licModal">
+        <div class="modal" style="max-width: 780px;">
+            <div class="modal-header">
+                <span class="modal-title" id="licModalTitle"><i data-lucide="package"></i> Licenças do Pedido</span>
+                <button class="modal-close" onclick="closeLicModal()"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body" id="licModalBody">
+                <div class="empty-state">
+                    <div class="empty-state-text">Carregando...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+    const API_BASE = '';
+    let authToken = localStorage.getItem('bp_token');
+    let lastResult = null;
+    let allPedidos = [];
+    let activeFilter = 'todos';
+    let autoRefreshInterval = null;
+    let licencasCache = {};
+
+    // ===== AUTH =====
+    function showLogin() {
+        document.getElementById('loginOverlay').classList.remove('hidden');
+    }
+    function hideLogin() {
+        document.getElementById('loginOverlay').classList.add('hidden');
+    }
+
+    async function doLogin(e) {
+        e.preventDefault();
+        const btn = document.getElementById('loginBtn');
+        const errEl = document.getElementById('loginError');
+        btn.disabled = true;
+        errEl.classList.remove('show');
+        try {
+            const res = await fetch(API_BASE + '/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user: document.getElementById('loginUser').value.trim(),
+                    password: document.getElementById('loginPass').value
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Credenciais inválidas');
+            authToken = data.token;
+            localStorage.setItem('bp_token', authToken);
+            hideLogin();
+            initDashboard();
+        } catch (err) {
+            errEl.textContent = err.message;
+            errEl.classList.add('show');
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    function doLogout() {
+        authToken = null;
+        localStorage.removeItem('bp_token');
+        showLogin();
+    }
+
+    async function authFetch(url, opts = {}) {
+        if (!opts.headers) opts.headers = {};
+        if (authToken) opts.headers['Authorization'] = 'Bearer ' + authToken;
+        const res = await fetch(url, opts);
+        if (res.status === 401) {
+            doLogout();
+            throw new Error('Sessão expirada');
+        }
+        return res;
+    }
+
+    async function checkAuth() {
+        if (!authToken) { showLogin(); return; }
+        try {
+            const res = await fetch(API_BASE + '/api/auth/verify', {
+                headers: { 'Authorization': 'Bearer ' + authToken }
+            });
+            if (!res.ok) throw new Error();
+            hideLogin();
+            initDashboard();
+        } catch {
+            authToken = null;
+            localStorage.removeItem('bp_token');
+            showLogin();
+        }
+    }
+
+    function initDashboard() {
+        loadGdapStatus();
+        loadPedidos();
+        startAutoRefresh();
+    }
+
+    // Run auth check on load
+    checkAuth();
+
+    function reinitIcons() {
+        lucide.createIcons();
+    }
+
+    // ===== CNPJ MASK =====
+    function applyCnpjMask(input) {
+        input.addEventListener('input', function(e) {
+            let v = e.target.value.replace(/\D/g, '');
+            if (v.length > 14) v = v.slice(0, 14);
+            if (v.length > 12) v = v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d+)/, '$1.$2.$3/$4-$5');
+            else if (v.length > 8) v = v.replace(/(\d{2})(\d{3})(\d{3})(\d+)/, '$1.$2.$3/$4');
+            else if (v.length > 5) v = v.replace(/(\d{2})(\d{3})(\d+)/, '$1.$2.$3');
+            else if (v.length > 2) v = v.replace(/(\d{2})(\d+)/, '$1.$2');
+            e.target.value = v;
+        });
+    }
+    applyCnpjMask(document.getElementById('inputCnpj'));
+    applyCnpjMask(document.getElementById('editCnpj'));
+
+    // ===== GDAP STATUS =====
+    async function loadGdapStatus() {
+        try {
+            const res = await authFetch(API_BASE + '/api/gdap/status');
+            const data = await res.json();
+            const bar = document.getElementById('gdapBar');
+
+            if (data.poolDisponivel > 0) {
+                bar.className = 'gdap-bar configured';
+                bar.innerHTML = '<i data-lucide="circle-check"></i> <span><strong>' + data.poolDisponivel + ' link(s) GDAP disponível(is)</strong> — próximos pedidos receberão link automaticamente</span>';
+            } else if (data.configured) {
+                bar.className = 'gdap-bar configured';
+                bar.innerHTML = '<i data-lucide="circle-check"></i> <span><strong>GDAP API Configurada</strong> — ' + esc(data.partnerName) + '</span>';
+            } else {
+                bar.className = 'gdap-bar not-configured';
+                bar.innerHTML = '<i data-lucide="triangle-alert"></i> <span><strong>Sem links GDAP disponíveis</strong> — solicite ao super admin para cadastrar links</span>';
+            }
+
+            reinitIcons();
+        } catch {
+            document.getElementById('gdapText').textContent = 'Erro ao verificar GDAP';
+        }
+    }
+
+    // ===== CRIAR PEDIDO =====
+    async function criarPedido() {
+        const cliente = document.getElementById('inputCliente').value.trim();
+        const cnpj = document.getElementById('inputCnpj').value.trim();
+        const revenda = document.getElementById('inputRevenda').value;
+
+        if (!cliente || !cnpj) {
+            showToast('Preencha todos os campos obrigatórios');
+            return;
+        }
+
+        const btn = document.getElementById('btnGerar');
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Gerando...';
+        reinitIcons();
+
+        try {
+            const res = await authFetch(API_BASE + '/api/pedidos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cliente, cnpj, revenda })
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+                showToast(data.error || 'Erro ao criar pedido');
+                return;
+            }
+
+            lastResult = data;
+            const fullLink = window.location.origin + data.link;
+            document.getElementById('resultLink').textContent = fullLink;
+            document.getElementById('resultInfo').innerHTML =
+                `<strong>Pedido:</strong> ${data.pedidoId} · <strong>Token:</strong> ${data.token} · <strong>Revenda:</strong> ${data.revenda}`;
+            document.getElementById('resultBox').classList.add('show');
+            reinitIcons();
+
+            showToast('Link gerado com sucesso!');
+            loadPedidos();
+
+            document.getElementById('inputCliente').value = '';
+            document.getElementById('inputCnpj').value = '';
+        } catch (err) {
+            showToast('Erro de conexão: ' + err.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i data-lucide="link"></i> Gerar Link';
+            reinitIcons();
+        }
+    }
+
+    // ===== COPIAR LINK =====
+    function copiarLink() {
+        if (!lastResult) return;
+        const link = window.location.origin + lastResult.link;
+        navigator.clipboard.writeText(link).then(() => showToast('Link copiado!'));
+    }
+
+    // ===== WHATSAPP =====
+    function enviarWhatsApp() {
+        if (!lastResult) return;
+        const link = window.location.origin + lastResult.link;
+        const revName = lastResult.revenda === 'ingram' ? 'Ingram Micro' : 'TD SYNNEX';
+        const msg = encodeURIComponent(
+            `Olá ${lastResult.cliente}!\n\n` +
+            `Segue o link para aceitar a parceria Microsoft via ${revName}:\n\n` +
+            `${link}\n\n` +
+            `Ao abrir, siga os passos na tela para autorizar.\n\n` +
+            `Qualquer dúvida, pode chamar!\n` +
+            `– BluePartner`
+        );
+        window.open('https://wa.me/?text=' + msg, '_blank');
+    }
+
+    // ===== COPIAR MENSAGEM =====
+    function copiarMensagem() {
+        if (!lastResult) return;
+        const link = window.location.origin + lastResult.link;
+        const revName = lastResult.revenda === 'ingram' ? 'Ingram Micro' : 'TD SYNNEX';
+        const msg =
+            `Olá ${lastResult.cliente}!\n\n` +
+            `Segue o link para aceitar a parceria Microsoft via ${revName}:\n\n` +
+            `${link}\n\n` +
+            `Ao abrir, siga os passos na tela para autorizar.\n\n` +
+            `Qualquer dúvida, pode chamar!\n` +
+            `– BluePartner`;
+        navigator.clipboard.writeText(msg).then(() => showToast('Mensagem copiada!'));
+    }
+
+    // ===== REFRESH WITH ANIMATION =====
+    function refreshClick() {
+        const btn = document.getElementById('btnRefresh');
+        btn.classList.add('btn-refreshing');
+        loadPedidos().then(() => {
+            setTimeout(() => btn.classList.remove('btn-refreshing'), 500);
+        });
+    }
+
+    // ===== LOAD PEDIDOS =====
+    async function loadPedidos() {
+        try {
+            const res = await authFetch(API_BASE + '/api/pedidos');
+            const data = await res.json();
+            allPedidos = data.pedidos || [];
+
+            await loadLicencasCounts();
+
+            updateStats(allPedidos);
+            updateFilterCounts(allPedidos);
+            applyFilters();
+        } catch (err) {
+            document.getElementById('pedidosBody').innerHTML =
+                '<tr><td colspan="8" class="empty-state"><div class="empty-state-icon"><i data-lucide="alert-circle"></i></div><div class="empty-state-text">Erro ao carregar pedidos</div></td></tr>';
+            reinitIcons();
+        }
+    }
+
+    async function loadLicencasCounts() {
+        const promises = allPedidos.map(async p => {
+            try {
+                const res = await authFetch(API_BASE + '/api/licencas/' + p.pedido_id);
+                const data = await res.json();
+                licencasCache[p.pedido_id] = data.total || 0;
+            } catch { licencasCache[p.pedido_id] = 0; }
+        });
+        await Promise.all(promises);
+    }
+
+    function updateStats(pedidos) {
+        const total = pedidos.length;
+        const validados = pedidos.filter(p => p.status === 'VALIDADO').length;
+        const pendentes = total - validados;
+        const ingram = pedidos.filter(p => p.revenda === 'ingram').length;
+        const tds = pedidos.filter(p => p.revenda === 'tds').length;
+        document.getElementById('statTotal').textContent = total;
+        document.getElementById('statValidados').textContent = validados;
+        document.getElementById('statPendentes').textContent = pendentes;
+        document.getElementById('statRevenda').textContent = `${ingram} / ${tds}`;
+    }
+
+    function updateFilterCounts(pedidos) {
+        document.getElementById('fTodos').textContent = pedidos.length;
+        document.getElementById('fPendentes').textContent = pedidos.filter(p => p.status === 'PENDENTE').length;
+        document.getElementById('fValidados').textContent = pedidos.filter(p => p.status === 'VALIDADO').length;
+        document.getElementById('fIngram').textContent = pedidos.filter(p => p.revenda === 'ingram').length;
+        document.getElementById('fTds').textContent = pedidos.filter(p => p.revenda === 'tds').length;
+    }
+
+    // ===== FILTERS =====
+    function setFilter(filter) {
+        activeFilter = filter;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`.filter-btn[data-filter="${filter}"]`).classList.add('active');
+        applyFilters();
+    }
+
+    function applyFilters() {
+        let filtered = [...allPedidos];
+
+        if (activeFilter === 'PENDENTE' || activeFilter === 'VALIDADO') {
+            filtered = filtered.filter(p => p.status === activeFilter);
+        } else if (activeFilter === 'ingram' || activeFilter === 'tds') {
+            filtered = filtered.filter(p => p.revenda === activeFilter);
+        }
+
+        const q = document.getElementById('searchInput').value.toLowerCase();
+        if (q) {
+            filtered = filtered.filter(p =>
+                p.pedido_id.toLowerCase().includes(q) ||
+                p.cliente.toLowerCase().includes(q) ||
+                p.cnpj.toLowerCase().includes(q) ||
+                p.revenda.toLowerCase().includes(q) ||
+                p.status.toLowerCase().includes(q)
+            );
+        }
+
+        renderPedidos(filtered);
+    }
+
+    function filterTable() {
+        applyFilters();
+    }
+
+    function renderPedidos(pedidos) {
+        const tbody = document.getElementById('pedidosBody');
+        if (!pedidos.length) {
+            tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><div class="empty-state-icon"><i data-lucide="clipboard-list"></i></div><div class="empty-state-text">Nenhum pedido encontrado</div></td></tr>';
+            reinitIcons();
+            return;
+        }
+        tbody.innerHTML = pedidos.map(p => {
+            const statusClass = p.status === 'VALIDADO' ? 'badge-done' : 'badge-pending';
+            const statusText = p.status === 'VALIDADO' ? 'Validado' : 'Pendente';
+            const revendaClass = p.revenda === 'ingram' ? 'badge-ingram' : 'badge-tds';
+            const revendaName = p.revenda === 'ingram' ? 'Ingram' : 'TDS';
+            const dateObj = new Date(p.criado_em);
+            const dataDay = dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+            const dataTime = dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            const licCount = licencasCache[p.pedido_id] || 0;
+            const licBadge = licCount > 0
+                ? `<span class="badge badge-done" style="cursor:pointer" onclick="showLicencas('${esc(p.pedido_id)}')">${licCount} item${licCount > 1 ? 's' : ''}</span>`
+                : `<span class="badge badge-empty" style="cursor:pointer;font-size:11px" onclick="showLicencas('${esc(p.pedido_id)}')">Nenhum</span>`;
+            return `<tr>
+                <td class="td-id">${esc(p.pedido_id)}</td>
+                <td class="td-client">${esc(p.cliente)}</td>
+                <td class="td-cnpj">${esc(p.cnpj)}</td>
+                <td><span class="badge ${revendaClass}">${revendaName}</span></td>
+                <td><span class="badge ${statusClass}"><span class="badge-dot"></span> ${statusText}</span></td>
+                <td>${licBadge}</td>
+                <td class="td-date"><span class="td-date-day">${dataDay}</span><span class="td-date-time">${dataTime}</span></td>
+                <td class="td-actions">
+                    <button class="btn btn-sm btn-lic" onclick="showLicencas('${esc(p.pedido_id)}')" title="Ver detalhes"><i data-lucide="package"></i></button>
+                    <button class="btn btn-sm btn-edit" onclick="openEditModal('${esc(p.pedido_id)}')" title="Editar"><i data-lucide="pencil"></i></button>
+                    <button class="btn btn-sm btn-copy" onclick="copyPedidoLink('${esc(p.pedido_id)}')" title="Copiar link"><i data-lucide="copy"></i></button>
+                    <button class="btn btn-sm" onclick="gerarGdapLink('${esc(p.pedido_id)}')" title="Gerar/Regenerar link GDAP" style="background:#0077B6;color:#fff"><i data-lucide="shield"></i></button>
+                    <button class="btn btn-sm btn-logs" onclick="showLogs('${esc(p.pedido_id)}')" title="Visualizar"><i data-lucide="eye"></i></button>
+                    <button class="btn btn-sm btn-danger" onclick="deletePedido('${esc(p.pedido_id)}')" title="Excluir"><i data-lucide="trash-2"></i></button>
+                </td>
+            </tr>`;
+        }).join('');
+        reinitIcons();
+    }
+
+    // ===== COPY PEDIDO LINK =====
+    async function copyPedidoLink(pedidoId) {
+        try {
+            const res = await authFetch(API_BASE + '/api/pedido-completo/' + pedidoId);
+            const data = await res.json();
+            const link = window.location.origin + '/?pedidoId=' + data.pedido_id + '&token=' + data.token + '&revenda=' + data.revenda;
+            navigator.clipboard.writeText(link).then(() => showToast('Link copiado: ' + pedidoId));
+        } catch {
+            showToast('Erro ao copiar link');
+        }
+    }
+
+    // ===== EDIT MODAL =====
+    async function openEditModal(pedidoId) {
+        try {
+            const res = await authFetch(API_BASE + '/api/pedido-completo/' + pedidoId);
+            const data = await res.json();
+            document.getElementById('editPedidoId').value = data.pedido_id;
+            document.getElementById('editCliente').value = data.cliente;
+            document.getElementById('editCnpj').value = data.cnpj;
+            document.getElementById('editRevenda').value = data.revenda;
+            document.getElementById('editGdapLink').value = data.gdap_link || '';
+            document.getElementById('editModalTitle').innerHTML = '<i data-lucide="pencil"></i> Editar — ' + esc(data.pedido_id);
+            document.getElementById('editModal').classList.add('show');
+            reinitIcons();
+        } catch {
+            showToast('Erro ao carregar pedido');
+        }
+    }
+
+    function closeEditModal() {
+        document.getElementById('editModal').classList.remove('show');
+    }
+
+    async function saveEdit() {
+        const pedidoId = document.getElementById('editPedidoId').value;
+        const cliente = document.getElementById('editCliente').value.trim();
+        const cnpj = document.getElementById('editCnpj').value.trim();
+        const revenda = document.getElementById('editRevenda').value;
+        const gdapLink = document.getElementById('editGdapLink').value.trim();
+
+        if (!cliente || !cnpj) {
+            showToast('Preencha todos os campos');
+            return;
+        }
+
+        try {
+            const res = await authFetch(API_BASE + '/api/pedidos/' + pedidoId, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cliente, cnpj, revenda, gdapLink })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast('Pedido ' + pedidoId + ' atualizado!');
+                closeEditModal();
+                loadPedidos();
+            } else {
+                showToast(data.error || 'Erro ao salvar');
+            }
+        } catch {
+            showToast('Erro de conexão');
+        }
+    }
+
+    document.getElementById('editModal').addEventListener('click', function(e) {
+        if (e.target === this) closeEditModal();
+    });
+
+    // ===== LICENSES MODAL =====
+    async function showLicencas(pedidoId) {
+        document.getElementById('licModalTitle').innerHTML = '<i data-lucide="package"></i> Licenças — ' + esc(pedidoId);
+        document.getElementById('licModalBody').innerHTML = '<div class="empty-state"><div class="empty-state-text">Carregando...</div></div>';
+        document.getElementById('licModal').classList.add('show');
+        reinitIcons();
+        await renderLicencas(pedidoId);
+    }
+
+    async function renderLicencas(pedidoId) {
+        try {
+            const res = await authFetch(API_BASE + '/api/licencas/' + pedidoId);
+            const data = await res.json();
+            const lics = data.licencas || [];
+
+            let html = '';
+
+            if (lics.length) {
+                html += lics.map(l => `
+                    <div class="lic-item">
+                        <span class="lic-produto">${esc(l.produto)}</span>
+                        <span class="lic-qtd">Qtd: <strong>${l.qtd}</strong></span>
+                        <span class="lic-duracao">${esc(l.duracao)}</span>
+                        <span class="lic-preco">${esc(l.preco)}</span>
+                        <button class="btn btn-sm btn-danger" onclick="removeLicenca(${l.id}, '${esc(pedidoId)}')" title="Remover licença"><i data-lucide="trash-2"></i></button>
+                    </div>
+                `).join('');
+
+                html += `<div class="lic-summary">
+                    <span>Total de itens: <strong>${lics.length}</strong> · Qtd total: <strong>${lics.reduce((s, l) => s + l.qtd, 0)}</strong> licenças</span>
+                </div>`;
+            } else {
+                html += '<div class="empty-state" style="padding: 24px"><div class="empty-state-icon"><i data-lucide="package"></i></div><div class="empty-state-text">Nenhuma licença adicionada a este pedido</div></div>';
+            }
+
+            html += `
+                <div class="lic-add-form">
+                    <div class="form-group">
+                        <label class="form-label">Produto <span class="form-label-required">*</span></label>
+                        <input class="form-input" id="licProduto" type="text" placeholder="Ex: Microsoft 365 Business Premium">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Qtd</label>
+                        <input class="form-input" id="licQtd" type="number" value="1" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Duração</label>
+                        <input class="form-input" id="licDuracao" type="text" value="12 meses NCE">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Preço <span class="form-label-required">*</span></label>
+                        <input class="form-input" id="licPreco" type="text" placeholder="R$ 0,00/ano">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">&nbsp;</label>
+                        <button class="btn btn-primary btn-sm" style="width:auto;padding:0 14px" onclick="addLicenca('${esc(pedidoId)}')"><i data-lucide="plus"></i> Adicionar</button>
+                    </div>
+                </div>
+
+                <div class="upload-zone">
+                    <div class="upload-zone-title"><i data-lucide="file-up"></i> Importar Proposta</div>
+                    <div class="upload-dropzone" id="uploadDropzone">
+                        <input type="file" accept=".pdf,.csv,.xlsx,.xls" onchange="uploadProposta('${esc(pedidoId)}', this.files[0])">
+                        <div class="upload-dropzone-icon"><i data-lucide="upload-cloud"></i></div>
+                        <div class="upload-dropzone-text">Arraste o arquivo ou <strong>clique para selecionar</strong></div>
+                        <div class="upload-dropzone-hint">Formatos aceitos: PDF, CSV, XLSX, XLS (máx 10MB)</div>
+                    </div>
+                    <div class="upload-progress" id="uploadProgress">
+                        <i data-lucide="loader-2" class="upload-spinner"></i>
+                        <span id="uploadProgressText">Processando proposta...</span>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('licModalBody').innerHTML = html;
+            reinitIcons();
+        } catch {
+            document.getElementById('licModalBody').innerHTML = '<div class="empty-state"><div class="empty-state-icon"><i data-lucide="alert-circle"></i></div><div class="empty-state-text">Erro ao carregar licenças</div></div>';
+            reinitIcons();
+        }
+    }
+
+    async function addLicenca(pedidoId) {
+        const produto = document.getElementById('licProduto').value.trim();
+        const qtd = parseInt(document.getElementById('licQtd').value) || 1;
+        const duracao = document.getElementById('licDuracao').value.trim() || '12 meses NCE';
+        const preco = document.getElementById('licPreco').value.trim();
+
+        if (!produto || !preco) {
+            showToast('Produto e preço são obrigatórios');
+            return;
+        }
+
+        try {
+            const res = await authFetch(API_BASE + '/api/licencas/' + pedidoId, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ produto, qtd, duracao, preco })
+            });
+            if (res.ok) {
+                showToast('Licença adicionada!');
+                await renderLicencas(pedidoId);
+                licencasCache[pedidoId] = (licencasCache[pedidoId] || 0) + 1;
+                applyFilters();
+            } else {
+                const data = await res.json();
+                showToast(data.error || 'Erro');
+            }
+        } catch {
+            showToast('Erro de conexão');
+        }
+    }
+
+    async function removeLicenca(licId, pedidoId) {
+        if (!confirm('Remover esta licença?')) return;
+        try {
+            const res = await authFetch(API_BASE + '/api/licencas/' + licId, { method: 'DELETE' });
+            if (res.ok) {
+                showToast('Licença removida');
+                await renderLicencas(pedidoId);
+                licencasCache[pedidoId] = Math.max(0, (licencasCache[pedidoId] || 1) - 1);
+                applyFilters();
+            }
+        } catch {
+            showToast('Erro de conexão');
+        }
+    }
+
+    function closeLicModal() {
+        document.getElementById('licModal').classList.remove('show');
+    }
+
+    document.getElementById('licModal').addEventListener('click', function(e) {
+        if (e.target === this) closeLicModal();
+    });
+
+    // ===== UPLOAD PROPOSTA =====
+    async function uploadProposta(pedidoId, file) {
+        if (!file) return;
+
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (!['pdf', 'csv', 'xlsx', 'xls'].includes(ext)) {
+            showToast('Formato não suportado. Use PDF, CSV, XLSX ou XLS.');
+            return;
+        }
+
+        const progress = document.getElementById('uploadProgress');
+        const progressText = document.getElementById('uploadProgressText');
+        if (progress) {
+            progress.classList.add('show');
+            progressText.textContent = `Processando ${file.name}...`;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('arquivo', file);
+
+            const res = await authFetch(API_BASE + '/api/proposta/' + pedidoId, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                showToast(`${data.imported} itens importados da proposta!`);
+                licencasCache[pedidoId] = (licencasCache[pedidoId] || 0) + data.imported;
+                await renderLicencas(pedidoId);
+                applyFilters();
+            } else {
+                showToast(data.error || 'Erro ao processar proposta');
+                if (progress) progress.classList.remove('show');
+            }
+        } catch (err) {
+            showToast('Erro de conexão: ' + err.message);
+            if (progress) progress.classList.remove('show');
+        }
+    }
+
+    // ===== LOGS =====
+    async function showLogs(pedidoId) {
+        document.getElementById('logsModalTitle').innerHTML = '<i data-lucide="file-text"></i> Logs — ' + esc(pedidoId);
+        document.getElementById('logsModalBody').innerHTML = '<div class="empty-state"><div class="empty-state-text">Carregando...</div></div>';
+        document.getElementById('logsModal').classList.add('show');
+        reinitIcons();
+
+        try {
+            const res = await authFetch(API_BASE + '/api/logs/' + pedidoId);
+            const data = await res.json();
+
+            if (!data.logs || !data.logs.length) {
+                document.getElementById('logsModalBody').innerHTML = '<div class="empty-state"><div class="empty-state-icon"><i data-lucide="file-text"></i></div><div class="empty-state-text">Nenhum log de validação para este pedido</div></div>';
+                reinitIcons();
+                return;
+            }
+
+            document.getElementById('logsModalBody').innerHTML = data.logs.map(l => {
+                const dt = new Date(l.criado_em).toLocaleString('pt-BR');
+                return `<div class="log-item">
+                    <div class="log-header">
+                        <span class="log-status validado"><span class="log-status-dot"></span> ${esc(l.status)}</span>
+                        <span class="log-date">${dt}</span>
+                    </div>
+                    <div class="log-details">
+                        <span class="log-detail-label">Revenda:</span> ${esc(l.revenda || '—')} ·
+                        <span class="log-detail-label">IP:</span> ${esc(l.ip || '—')}<br>
+                        <span class="log-detail-label">User Agent:</span> ${esc(l.user_agent || '—')}
+                    </div>
+                </div>`;
+            }).join('');
+            reinitIcons();
+        } catch {
+            document.getElementById('logsModalBody').innerHTML = '<div class="empty-state"><div class="empty-state-icon"><i data-lucide="alert-circle"></i></div><div class="empty-state-text">Erro ao carregar logs</div></div>';
+            reinitIcons();
+        }
+    }
+
+    function closeLogsModal() {
+        document.getElementById('logsModal').classList.remove('show');
+    }
+
+    // ===== GERAR/REGENERAR GDAP LINK =====
+    async function gerarGdapLink(pedidoId) {
+        if (!confirm(`Gerar um novo link GDAP para o pedido ${pedidoId}?\n\nIsso cria uma nova relação GDAP exclusiva para este cliente. O link anterior (se existir) será substituído.`)) return;
+        showToast('Gerando link GDAP...');
+        try {
+            const res = await authFetch(API_BASE + '/api/gdap/gerar-link/' + pedidoId, { method: 'POST' });
+            const data = await res.json();
+            if (res.ok) {
+                showToast('Link GDAP gerado para ' + pedidoId + '!');
+                // Copiar o link para a área de transferência
+                if (data.gdapLink) {
+                    navigator.clipboard.writeText(data.gdapLink).then(() => {
+                        showToast('Link GDAP copiado para a área de transferência!');
+                    }).catch(() => {});
+                }
+            } else {
+                showToast(data.error || data.message || 'Erro ao gerar link GDAP');
+            }
+        } catch (err) {
+            showToast('Erro de conexão: ' + err.message);
+        }
+    }
+
+    // ===== DELETE =====
+    async function deletePedido(pedidoId) {
+        if (!confirm(`Remover pedido ${pedidoId}? Esta ação não pode ser desfeita.`)) return;
+        try {
+            const res = await authFetch(API_BASE + '/api/pedidos/' + pedidoId, { method: 'DELETE' });
+            const data = await res.json();
+            if (res.ok) {
+                showToast('Pedido ' + pedidoId + ' removido');
+                loadPedidos();
+            } else {
+                showToast(data.error || 'Erro ao remover');
+            }
+        } catch {
+            showToast('Erro de conexão');
+        }
+    }
+
+    // ===== EXPORT CSV =====
+    function exportCSV() {
+        if (!allPedidos.length) {
+            showToast('Nenhum pedido para exportar');
+            return;
+        }
+
+        const headers = ['Pedido', 'Cliente', 'CNPJ', 'Revenda', 'Status', 'Licenças', 'Criado em', 'Atualizado em'];
+        const rows = allPedidos.map(p => [
+            p.pedido_id,
+            `"${(p.cliente || '').replace(/"/g, '""')}"`,
+            p.cnpj,
+            p.revenda === 'ingram' ? 'Ingram Micro' : 'TD SYNNEX',
+            p.status,
+            licencasCache[p.pedido_id] || 0,
+            p.criado_em ? new Date(p.criado_em).toLocaleString('pt-BR') : '',
+            p.atualizado_em ? new Date(p.atualizado_em).toLocaleString('pt-BR') : ''
+        ]);
+
+        const csv = '\uFEFF' + headers.join(';') + '\n' + rows.map(r => r.join(';')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `bluepartner-pedidos-${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('CSV exportado com ' + allPedidos.length + ' pedidos');
+    }
+
+    // ===== AUTO-REFRESH =====
+    function toggleAutoRefresh() {
+        const checked = document.getElementById('autoRefreshCheck').checked;
+        const label = document.getElementById('autoRefreshLabel');
+        if (checked) {
+            autoRefreshInterval = setInterval(loadPedidos, 30000);
+            label.innerHTML = 'Auto-refresh <span class="auto-refresh-indicator"></span>';
+            showToast('Auto-refresh ativado (30s)');
+        } else {
+            clearInterval(autoRefreshInterval);
+            autoRefreshInterval = null;
+            label.textContent = 'Auto-refresh';
+            showToast('Auto-refresh desativado');
+        }
+    }
+
+    // ===== UTILS =====
+    function esc(str) {
+        const div = document.createElement('div');
+        div.textContent = str || '';
+        return div.innerHTML;
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    function startAutoRefresh() {
+        const checked = document.getElementById('autoRefreshCheck');
+        if (checked && checked.checked) {
+            autoRefreshInterval = setInterval(loadPedidos, 30000);
+        }
+    }
+
+    // ===== INIT =====
+    document.addEventListener('DOMContentLoaded', () => {
+        lucide.createIcons();
+        // Auth check already triggers initDashboard if token valid
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeLogsModal();
+            closeEditModal();
+            closeLicModal();
+        }
+    });
+    </script>
+</body>
+</html>

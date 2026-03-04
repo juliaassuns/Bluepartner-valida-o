@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BluePartner — Super Admin</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='20' width='100' height='100' fill='%237C3AED'/><path d='M25 25h20v20H25zM55 25h20v20H55zM25 55h20v20H25zM55 55h20v20H55z' fill='white'/></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --purple: #7C3AED;
+            --purple-hover: #6D28D9;
+            --purple-active: #5B21B6;
+            --purple-light: #EDE9FE;
+            --purple-50: #F5F3FF;
+            --navy: #1E1B4B;
+            --green: #16A34A;
+            --green-light: #DCFCE7;
+            --green-dark: #15803D;
+            --red: #DC2626;
+            --red-light: #FEE2E2;
+            --orange: #D97706;
+            --orange-light: #FEF3C7;
+            --blue: #0078D4;
+            --gray-bg: #F3F4F6;
+            --gray-50: #FAFBFC;
+            --gray-100: #F1F5F9;
+            --gray-200: #D1D9E6;
+            --gray-300: #B0BCCC;
+            --gray-400: #A0ABBB;
+            --gray-500: #5B7199;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1E293B;
+            --gray-900: #0F172A;
+            --white: #FFFFFF;
+            --radius: 12px;
+            --radius-lg: 16px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+            --transition: all 0.2s ease;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--gray-bg);
+            color: var(--gray-900);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ===== LOGIN ===== */
+        .login-overlay {
+            position: fixed; inset: 0; z-index: 9999;
+            background: linear-gradient(135deg, #7C3AED 0%, #4C1D95 100%);
+            display: flex; align-items: center; justify-content: center;
+            padding: 24px;
+        }
+        .login-overlay.hidden { display: none; }
+        .login-card {
+            background: #fff; border-radius: 16px;
+            max-width: 400px; width: 100%;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.25);
+            overflow: hidden;
+            animation: loginIn 0.3s ease-out;
+        }
+        @keyframes loginIn {
+            from { transform: scale(0.95) translateY(10px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        .login-header { padding: 32px 32px 24px; text-align: center; }
+        .login-logo {
+            width: 56px; height: 56px; background: #7C3AED;
+            border-radius: 14px; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 16px;
+        }
+        .login-logo svg { width: 32px; height: 32px; color: white; }
+        .login-title { font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 4px; }
+        .login-subtitle { font-size: 13px; color: #6B7280; }
+        .login-form { padding: 0 32px 32px; }
+        .login-field { margin-bottom: 16px; }
+        .login-label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+        .login-input {
+            width: 100%; height: 42px; padding: 0 14px;
+            border: 1.5px solid #D1D5DB; border-radius: 8px;
+            font-size: 14px; font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+        .login-input:focus { border-color: #7C3AED; box-shadow: 0 0 0 3px rgba(124,58,237,0.12); }
+        .login-btn {
+            width: 100%; height: 42px;
+            background: #7C3AED; color: #fff; border: none;
+            border-radius: 8px; font-size: 14px; font-weight: 600;
+            cursor: pointer; transition: background 0.2s; font-family: inherit;
+        }
+        .login-btn:hover { background: #6D28D9; }
+        .login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .login-error {
+            background: #FEE2E2; color: #DC2626;
+            font-size: 13px; padding: 10px 14px;
+            border-radius: 8px; margin-bottom: 16px; display: none;
+        }
+        .login-error.show { display: block; }
+        .login-footer { padding: 16px 32px; border-top: 1px solid #E5E7EB; text-align: center; }
+        .login-footer-text { font-size: 11px; color: #9CA3AF; }
+
+        /* ===== NAV ===== */
+        .nav {
+            background: linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%);
+            color: var(--white);
+            padding: 0 28px;
+            display: flex; align-items: center; gap: 16px;
+            position: sticky; top: 0; z-index: 50;
+            height: 56px;
+            box-shadow: 0 2px 12px rgba(124,58,237,0.3);
+        }
+        .nav-logo {
+            font-weight: 800; font-size: 17px; letter-spacing: -0.4px;
+            display: flex; align-items: center; gap: 10px;
+            text-decoration: none; color: white;
+        }
+        .nav-logo-icon {
+            width: 34px; height: 34px;
+            background: rgba(255,255,255,0.12);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        .nav-logo-icon svg { width: 18px; height: 18px; stroke: white; }
+        .nav-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+        .nav-link {
+            font-size: 12px; color: rgba(255,255,255,0.75);
+            text-decoration: none; font-weight: 500;
+            padding: 6px 12px; border-radius: 6px;
+            transition: var(--transition);
+            display: flex; align-items: center; gap: 5px;
+        }
+        .nav-link svg { width: 13px; height: 13px; }
+        .nav-link:hover { background: rgba(255,255,255,0.1); color: white; }
+        .nav-divider { width: 1px; height: 20px; background: rgba(255,255,255,0.12); }
+        .nav-avatar {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            display: flex; align-items: center; justify-content: center;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .nav-avatar svg { width: 16px; height: 16px; stroke: white; }
+
+        /* ===== LAYOUT ===== */
+        .page { max-width: 900px; margin: 0 auto; padding: 24px 24px 48px; }
+
+        /* ===== CARDS ===== */
+        .section {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid rgba(0,0,0,0.04);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .section-header {
+            display: flex; align-items: center; gap: 10px;
+            padding: 18px 24px;
+            font-weight: 700; font-size: 15px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .section-header svg { width: 18px; height: 18px; stroke: var(--purple); }
+        .section-body { padding: 20px 24px; }
+
+        /* ===== STATS ===== */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px; margin-bottom: 24px;
+        }
+        .stat-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid rgba(0,0,0,0.04);
+            position: relative; overflow: hidden;
+        }
+        .stat-card::before {
+            content: ''; position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+        }
+        .stat-card:nth-child(1)::before { background: var(--green); }
+        .stat-card:nth-child(2)::before { background: var(--orange); }
+        .stat-card:nth-child(3)::before { background: var(--purple); }
+        .stat-label { font-size: 12px; color: var(--gray-500); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .stat-value { font-size: 28px; font-weight: 800; color: var(--gray-800); }
+
+        /* ===== BADGES ===== */
+        .badge {
+            display: inline-flex; padding: 3px 10px;
+            border-radius: 20px; font-size: 11px; font-weight: 600;
+        }
+        .badge-done { background: var(--green-light); color: var(--green-dark); }
+        .badge-pending { background: var(--orange-light); color: var(--orange); }
+        .badge-error { background: var(--red-light); color: var(--red); }
+
+        /* ===== FORMS ===== */
+        .form-input-wrap {
+            display: flex; align-items: center; gap: 8px;
+            border: 1.5px solid #e2e8f0; border-radius: 10px;
+            padding: 0 12px; transition: var(--transition);
+            background: var(--white);
+        }
+        .form-input-wrap:focus-within {
+            border-color: var(--purple);
+            box-shadow: 0 0 0 3px rgba(124,58,237,0.08);
+        }
+        .form-input-wrap svg { width: 16px; height: 16px; stroke: var(--gray-400); flex-shrink: 0; }
+        .form-input {
+            border: none; outline: none; background: transparent;
+            font-size: 14px; font-family: inherit;
+            height: 40px; width: 100%;
+        }
+        textarea.form-input {
+            height: auto; padding: 10px 0;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 16px; border-radius: 8px;
+            font-size: 13px; font-weight: 600; font-family: inherit;
+            cursor: pointer; border: none; transition: var(--transition);
+        }
+        .btn-primary { background: var(--purple); color: var(--white); }
+        .btn-primary:hover { background: var(--purple-hover); }
+        .btn-sm { padding: 5px 10px; font-size: 12px; }
+        .btn-danger { background: var(--red-light); color: var(--red); }
+        .btn-danger:hover { background: #FECACA; }
+        .btn-outline {
+            background: transparent; color: var(--gray-600);
+            border: 1.5px solid #e2e8f0;
+        }
+        .btn-outline:hover { background: var(--gray-50); border-color: var(--gray-300); }
+        .btn svg { width: 14px; height: 14px; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* ===== POOL LIST ===== */
+        .pool-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 13px;
+        }
+        .pool-item:last-child { border-bottom: none; }
+        .pool-link {
+            flex: 1; color: var(--gray-700);
+            word-break: break-all; font-size: 12px;
+        }
+        .pool-date { color: var(--gray-400); white-space: nowrap; font-size: 11px; }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed; bottom: 24px; left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: var(--gray-800); color: var(--white);
+            padding: 12px 24px; border-radius: 10px;
+            font-size: 14px; font-weight: 500;
+            box-shadow: var(--shadow-lg);
+            transition: transform 0.3s ease;
+            z-index: 9999;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center; padding: 40px 20px; color: var(--gray-400);
+        }
+        .empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; stroke: var(--gray-300); }
+        .empty-state p { font-size: 14px; margin-top: 8px; }
+
+        /* ===== TABS ===== */
+        .tabs {
+            display: flex; gap: 4px; padding: 4px;
+            background: var(--gray-100); border-radius: 10px;
+            margin-bottom: 16px;
+        }
+        .tab {
+            padding: 8px 16px; border-radius: 8px;
+            font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: var(--transition);
+            color: var(--gray-500); border: none; background: none;
+            font-family: inherit;
+        }
+        .tab.active { background: var(--white); color: var(--purple); box-shadow: var(--shadow-sm); }
+        .tab:hover:not(.active) { color: var(--gray-700); }
+
+        @media (max-width: 640px) {
+            .stats-bar { grid-template-columns: 1fr; }
+            .page { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LOGIN -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="login-logo">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <div class="login-title">Super Admin</div>
+                <div class="login-subtitle">Acesso restrito — BluePartner</div>
+            </div>
+            <form class="login-form" onsubmit="doLogin(event)">
+                <div class="login-error" id="loginError"></div>
+                <div class="login-field">
+                    <label class="login-label">Usuário</label>
+                    <input class="login-input" id="loginUser" type="text" placeholder="Usuário super admin" required autocomplete="username">
+                </div>
+                <div class="login-field">
+                    <label class="login-label">Senha</label>
+                    <input class="login-input" id="loginPass" type="password" placeholder="Senha" required autocomplete="current-password">
+                </div>
+                <button class="login-btn" type="submit" id="loginBtn">Entrar</button>
+            </form>
+            <div class="login-footer">
+                <span class="login-footer-text">Painel de controle avançado</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAV -->
+    <nav class="nav">
+        <a class="nav-logo" href="/superadmin">
+            <div class="nav-logo-icon"><i data-lucide="shield"></i></div>
+            <span>BluePartner <span style="color:rgba(255,255,255,0.6);font-weight:500">Super Admin</span></span>
+        </a>
+        <div class="nav-right">
+            <a class="nav-link" href="/admin">
+                <i data-lucide="layout-dashboard"></i> Painel Admin
+            </a>
+            <div class="nav-divider"></div>
+            <div class="nav-avatar"><i data-lucide="shield-check"></i></div>
+            <a class="nav-link" href="#" onclick="doLogout()">
+                <i data-lucide="log-out"></i> Sair
+            </a>
+        </div>
+    </nav>
+
+    <!-- PAGE -->
+    <div class="page">
+
+        <!-- STATS -->
+        <div class="stats-bar" id="statsBar">
+            <div class="stat-card">
+                <div class="stat-label">Links Disponíveis</div>
+                <div class="stat-value" id="statDisponivel" style="color:var(--green)">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Links Usados</div>
+                <div class="stat-value" id="statUsados" style="color:var(--orange)">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total no Banco</div>
+                <div class="stat-value" id="statTotal" style="color:var(--purple)">--</div>
+            </div>
+        </div>
+
+        <!-- ADD LINKS -->
+        <div class="section" style="border-left: 3px solid var(--purple)">
+            <div class="section-header">
+                <i data-lucide="plus-circle"></i>
+                Adicionar Links GDAP
+            </div>
+            <div class="section-body">
+                <div style="margin-bottom:14px;font-size:13px;color:#64748b">
+                    Cadastre links GDAP gerados no <a href="https://partner.microsoft.com/dashboard/commerce2/granularadminaccess/list" target="_blank" style="color:var(--purple);font-weight:600">Partner Center</a>.
+                    Cada novo pedido consome automaticamente o próximo link disponível. Links expiram em <strong>90 dias</strong> se não aceitos pelo cliente.
+                </div>
+
+                <!-- Single link -->
+                <div style="display:flex;gap:8px;margin-bottom:12px">
+                    <div class="form-input-wrap" style="flex:1">
+                        <i data-lucide="link"></i>
+                        <input class="form-input" id="poolLinkInput" type="url" placeholder="Cole o link GDAP aqui (https://admin.microsoft.com/AdminPortal/Home#/partners/invitation/granularAdminRelationships/...)">
+                    </div>
+                    <button class="btn btn-primary" onclick="addPoolLink()" style="white-space:nowrap"><i data-lucide="plus"></i> Adicionar</button>
+                </div>
+
+                <!-- Bulk -->
+                <details style="margin-top:8px">
+                    <summary style="cursor:pointer;font-size:13px;color:var(--purple);font-weight:600;user-select:none">
+                        Adicionar vários links de uma vez
+                    </summary>
+                    <div style="margin-top:10px">
+                        <textarea class="form-input" id="poolBulkInput" placeholder="Cole vários links (um por linha)" rows="4" style="font-size:12px;resize:vertical;width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px"></textarea>
+                        <button class="btn btn-primary btn-sm" onclick="addPoolBulk()" style="margin-top:8px"><i data-lucide="upload"></i> Importar Lote</button>
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <!-- POOL LIST -->
+        <div class="section">
+            <div class="section-header">
+                <i data-lucide="database"></i>
+                Banco de Links GDAP
+                <span class="badge badge-done" id="poolBadge" style="margin-left:8px">0 disponíveis</span>
+                <div style="margin-left:auto;display:flex;gap:8px">
+                    <div class="tabs" id="poolTabs">
+                        <button class="tab active" onclick="filterPool('todos')">Todos</button>
+                        <button class="tab" onclick="filterPool('disponivel')">Disponíveis</button>
+                        <button class="tab" onclick="filterPool('usado')">Usados</button>
+                    </div>
+                </div>
+            </div>
+            <div class="section-body">
+                <div id="poolList"></div>
+            </div>
+        </div>
+
+        <!-- DANGER ZONE -->
+        <div class="section" style="border-left: 3px solid var(--red)">
+            <div class="section-header">
+                <i data-lucide="alert-triangle" style="stroke:var(--red)"></i>
+                <span style="color:var(--red)">Zona de Risco</span>
+            </div>
+            <div class="section-body">
+                <div style="display:flex;align-items:center;gap:16px">
+                    <div style="flex:1">
+                        <div style="font-size:14px;font-weight:600;color:var(--gray-800)">Limpar links usados</div>
+                        <div style="font-size:12px;color:var(--gray-500);margin-top:2px">Remove todos os links com status "usado" do banco. Links disponíveis não serão afetados.</div>
+                    </div>
+                    <button class="btn btn-danger" onclick="clearUsedLinks()"><i data-lucide="trash-2"></i> Limpar Usados</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+    const API_BASE = '';
+    const TOKEN_KEY = 'bp_superadmin_token';
+    let authToken = localStorage.getItem(TOKEN_KEY);
+    let allPoolLinks = [];
+    let currentFilter = 'todos';
+
+    // ===== AUTH =====
+    function showLogin() {
+        document.getElementById('loginOverlay').classList.remove('hidden');
+    }
+    function hideLogin() {
+        document.getElementById('loginOverlay').classList.add('hidden');
+    }
+
+    async function doLogin(e) {
+        e.preventDefault();
+        const btn = document.getElementById('loginBtn');
+        const errEl = document.getElementById('loginError');
+        btn.disabled = true;
+        errEl.classList.remove('show');
+        try {
+            const res = await fetch(API_BASE + '/api/auth/superlogin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user: document.getElementById('loginUser').value.trim(),
+                    password: document.getElementById('loginPass').value
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Credenciais inválidas');
+            authToken = data.token;
+            localStorage.setItem(TOKEN_KEY, authToken);
+            hideLogin();
+            initDashboard();
+        } catch (err) {
+            errEl.textContent = err.message;
+            errEl.classList.add('show');
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    function doLogout() {
+        authToken = null;
+        localStorage.removeItem(TOKEN_KEY);
+        showLogin();
+    }
+
+    async function authFetch(url, opts = {}) {
+        if (!opts.headers) opts.headers = {};
+        if (authToken) opts.headers['Authorization'] = 'Bearer ' + authToken;
+        const res = await fetch(url, opts);
+        if (res.status === 401) {
+            doLogout();
+            throw new Error('Sessão expirada');
+        }
+        return res;
+    }
+
+    async function checkAuth() {
+        if (!authToken) { showLogin(); return; }
+        try {
+            const res = await fetch(API_BASE + '/api/auth/superverify', {
+                headers: { 'Authorization': 'Bearer ' + authToken }
+            });
+            if (!res.ok) throw new Error();
+            hideLogin();
+            initDashboard();
+        } catch {
+            authToken = null;
+            localStorage.removeItem(TOKEN_KEY);
+            showLogin();
+        }
+    }
+
+    function initDashboard() {
+        loadPool();
+    }
+
+    checkAuth();
+
+    function reinitIcons() { lucide.createIcons(); }
+
+    // ===== POOL =====
+    async function loadPool() {
+        try {
+            const res = await authFetch(API_BASE + '/api/gdap/pool');
+            const data = await res.json();
+            allPoolLinks = data.links || [];
+
+            // Update stats
+            document.getElementById('statDisponivel').textContent = data.disponiveis || 0;
+            document.getElementById('statUsados').textContent = data.usados || 0;
+            document.getElementById('statTotal').textContent = data.total || 0;
+
+            // Update badge
+            const badge = document.getElementById('poolBadge');
+            badge.textContent = (data.disponiveis || 0) + ' disponíve' + ((data.disponiveis || 0) === 1 ? 'l' : 'is');
+            badge.className = 'badge ' + ((data.disponiveis || 0) > 0 ? 'badge-done' : 'badge-pending');
+
+            renderPool();
+        } catch {
+            document.getElementById('poolList').innerHTML = '<div style="color:red;font-size:13px;padding:12px">Erro ao carregar pool</div>';
+        }
+    }
+
+    function renderPool() {
+        const list = document.getElementById('poolList');
+        let filtered = allPoolLinks;
+
+        if (currentFilter === 'disponivel') filtered = allPoolLinks.filter(l => l.status === 'disponivel');
+        if (currentFilter === 'usado') filtered = allPoolLinks.filter(l => l.status === 'usado');
+
+        if (!filtered.length) {
+            const msg = currentFilter === 'todos'
+                ? 'Nenhum link no banco. Adicione links GDAP acima.'
+                : currentFilter === 'disponivel'
+                    ? 'Nenhum link disponível.'
+                    : 'Nenhum link usado.';
+            list.innerHTML = `<div class="empty-state"><i data-lucide="inbox"></i><p>${msg}</p></div>`;
+            reinitIcons();
+            return;
+        }
+
+        list.innerHTML = filtered.map(l => {
+            const isUsed = l.status === 'usado';
+            const statusBadge = isUsed
+                ? `<span class="badge badge-pending" style="font-size:10px">Usado${l.pedido_id ? ' — Pedido ' + esc(String(l.pedido_id)) : ''}</span>`
+                : `<span class="badge badge-done" style="font-size:10px">Disponível</span>`;
+            const date = new Date(l.criado_em).toLocaleDateString('pt-BR');
+            const usedDate = l.usado_em ? ' | Usado em: ' + new Date(l.usado_em).toLocaleDateString('pt-BR') : '';
+            const shortLink = l.link.length > 90 ? l.link.slice(0, 90) + '...' : l.link;
+            return `<div class="pool-item">
+                ${statusBadge}
+                <span class="pool-link" title="${esc(l.link)}">${esc(shortLink)}</span>
+                <span class="pool-date">${date}${usedDate}</span>
+                ${!isUsed ? `<button class="btn btn-sm btn-danger" onclick="removePoolLink(${l.id})" title="Remover"><i data-lucide="trash-2" style="width:12px;height:12px"></i></button>` : ''}
+            </div>`;
+        }).join('');
+        reinitIcons();
+    }
+
+    function filterPool(filter) {
+        currentFilter = filter;
+        document.querySelectorAll('#poolTabs .tab').forEach(t => t.classList.remove('active'));
+        event.target.classList.add('active');
+        renderPool();
+    }
+
+    async function addPoolLink() {
+        const input = document.getElementById('poolLinkInput');
+        const link = input.value.trim();
+        if (!link) { showToast('Cole um link GDAP'); return; }
+        if (!link.includes('granularAdminRelationships')) {
+            showToast('Link não parece ser um convite GDAP válido');
+            return;
+        }
+        try {
+            const res = await authFetch(API_BASE + '/api/gdap/pool', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ link })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast(data.message || 'Link adicionado!');
+                input.value = '';
+                loadPool();
+            } else {
+                showToast(data.error || 'Erro');
+            }
+        } catch { showToast('Erro de conexão'); }
+    }
+
+    async function addPoolBulk() {
+        const textarea = document.getElementById('poolBulkInput');
+        const lines = textarea.value.split('\n').map(l => l.trim()).filter(l => l && l.includes('granularAdminRelationships'));
+        if (!lines.length) { showToast('Nenhum link válido encontrado'); return; }
+        try {
+            const res = await authFetch(API_BASE + '/api/gdap/pool', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ links: lines })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast(data.message || `${data.added} links adicionados!`);
+                textarea.value = '';
+                loadPool();
+            } else {
+                showToast(data.error || 'Erro');
+            }
+        } catch { showToast('Erro de conexão'); }
+    }
+
+    async function removePoolLink(id) {
+        if (!confirm('Remover este link do banco?')) return;
+        try {
+            const res = await authFetch(API_BASE + '/api/gdap/pool/' + id, { method: 'DELETE' });
+            if (res.ok) {
+                showToast('Link removido');
+                loadPool();
+            }
+        } catch { showToast('Erro de conexão'); }
+    }
+
+    async function clearUsedLinks() {
+        if (!confirm('Tem certeza que deseja remover todos os links usados do banco?')) return;
+        try {
+            const res = await authFetch(API_BASE + '/api/gdap/pool/clear-used', { method: 'DELETE' });
+            const data = await res.json();
+            if (res.ok) {
+                showToast(data.message || 'Links usados removidos');
+                loadPool();
+            } else {
+                showToast(data.error || 'Erro');
+            }
+        } catch { showToast('Erro de conexão'); }
+    }
+
+    // ===== UTILS =====
+    function esc(str) {
+        const div = document.createElement('div');
+        div.textContent = str || '';
+        return div.innerHTML;
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => { lucide.createIcons(); });
+    </script>
+</body>
+</html>

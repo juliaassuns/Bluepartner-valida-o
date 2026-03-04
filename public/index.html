@@ -1,0 +1,1831 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BluePartner — Aceite de Parceria Microsoft</title>
+    <meta name="description" content="Aceite de parceria Microsoft — BluePartner, consultoria especialista no Microsoft AI Cloud Partner Program.">
+    <meta property="og:title" content="BluePartner — Aceite de Parceria Microsoft">
+    <meta property="og:description" content="Autorize os links de parceria Microsoft em poucos passos.">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='20' width='100' height='100' fill='%2300AEEF'/><path d='M25 25h20v20H25zM55 25h20v20H55zM25 55h20v20H25zM55 55h20v20H55z' fill='white'/></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --blue-primary: #00AEEF;
+            --blue-dark: #0090C8;
+            --blue-darker: #006B96;
+            --blue-light: #E6F7FF;
+            --blue-50: #F0FAFF;
+            --blue-accent: #33C1FF;
+            --blue-glow: rgba(0, 174, 239, 0.15);
+            --gray-bg: #f4f6f9;
+            --gray-50: #fafbfc;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --green: #10b981;
+            --green-light: #d1fae5;
+            --green-dark: #059669;
+            --red: #ef4444;
+            --red-light: #fee2e2;
+            --amber: #f59e0b;
+            --white: #ffffff;
+            --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.08), 0 8px 10px -6px rgba(0,0,0,0.04);
+            --shadow-glow: 0 0 30px rgba(0,174,239,0.12);
+            --shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06);
+            --radius: 14px;
+            --radius-lg: 18px;
+            --radius-xl: 22px;
+            --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-spring: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--gray-bg);
+            color: var(--gray-900);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ===== ANIMATED BACKGROUND ===== */
+        .page-bg {
+            position: fixed; inset: 0; z-index: -1; overflow: hidden;
+            background: linear-gradient(145deg, #eaf6fd 0%, #f4f6f9 25%, #f0ecff 55%, #f4f6f9 100%);
+        }
+        .page-bg .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.5;
+        }
+        .page-bg .orb-1 {
+            width: 500px; height: 500px;
+            background: rgba(0,174,239,0.08);
+            top: -150px; right: -80px;
+            animation: orbDrift1 22s ease-in-out infinite;
+        }
+        .page-bg .orb-2 {
+            width: 400px; height: 400px;
+            background: rgba(139,92,246,0.06);
+            bottom: -100px; left: -60px;
+            animation: orbDrift2 28s ease-in-out infinite;
+        }
+        .page-bg .orb-3 {
+            width: 300px; height: 300px;
+            background: rgba(16,185,129,0.05);
+            top: 40%; left: 50%;
+            animation: orbDrift3 25s ease-in-out infinite;
+        }
+        @keyframes orbDrift1 { 0%,100%{transform:translate(0,0)} 33%{transform:translate(-40px,30px)} 66%{transform:translate(20px,-20px)} }
+        @keyframes orbDrift2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(50px,-40px)} }
+        @keyframes orbDrift3 { 0%,100%{transform:translate(0,0)} 40%{transform:translate(-30px,25px)} 80%{transform:translate(25px,-35px)} }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: rgba(255,255,255,0.72);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            position: sticky;
+            top: 0; z-index: 100;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            transition: box-shadow 0.3s;
+        }
+        .header.scrolled { box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+        .header-inner {
+            display: flex; align-items: center; justify-content: space-between;
+            max-width: 720px; margin: 0 auto; padding: 14px 24px;
+        }
+        .header-logo {
+            display: flex; align-items: center; gap: 11px;
+            text-decoration: none; color: var(--gray-900);
+        }
+        .logo-icon {
+            width: 38px; height: 38px;
+            background: linear-gradient(135deg, #00AEEF 0%, #0077B6 100%);
+            border-radius: 11px;
+            display: flex; align-items: center; justify-content: center;
+            transition: var(--transition-spring);
+            box-shadow: 0 2px 10px rgba(0,174,239,0.25);
+        }
+        .header-logo:hover .logo-icon {
+            transform: scale(1.08) rotate(-3deg);
+            box-shadow: 0 4px 16px rgba(0,174,239,0.35);
+        }
+        .logo-icon svg { width: 18px; height: 18px; fill: white; }
+        .logo-text {
+            font-size: 18px; font-weight: 800; letter-spacing: -0.6px;
+            color: var(--gray-900);
+        }
+        .logo-text span { color: var(--blue-primary); }
+        .header-badges { display: flex; align-items: center; gap: 8px; }
+        .header-badge {
+            font-size: 10px; padding: 5px 13px; border-radius: 20px;
+            font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase;
+            border: 1px solid var(--gray-200); color: var(--gray-500);
+            background: var(--white);
+        }
+        .header-badge.secure {
+            background: linear-gradient(135deg, #d1fae5, #ecfdf5);
+            border-color: #a7f3d0; color: var(--green-dark);
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            background: linear-gradient(135deg, #0068A0 0%, #0090C8 30%, #00AEEF 60%, #44D0FF 100%);
+            padding: 44px 24px 60px;
+            text-align: center; color: white;
+            position: relative; overflow: hidden;
+        }
+        .hero::before {
+            content: ''; position: absolute; inset: 0;
+            background:
+                radial-gradient(ellipse at 20% 80%, rgba(255,255,255,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.06) 0%, transparent 40%);
+        }
+        .hero-grid {
+            position: absolute; inset: 0; opacity: 0.035;
+            background-image:
+                linear-gradient(rgba(255,255,255,1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px);
+            background-size: 44px 44px;
+        }
+        .hero-particles {
+            position: absolute; inset: 0; overflow: hidden;
+        }
+        .hero-particle {
+            position: absolute; width: 4px; height: 4px;
+            background: rgba(255,255,255,0.2); border-radius: 50%;
+        }
+        .hero-particle:nth-child(1) { top: 20%; left: 15%; animation: particleFloat 6s ease-in-out infinite; }
+        .hero-particle:nth-child(2) { top: 60%; left: 80%; animation: particleFloat 8s ease-in-out infinite 1s; width: 6px; height: 6px; }
+        .hero-particle:nth-child(3) { top: 40%; left: 50%; animation: particleFloat 7s ease-in-out infinite 2s; width: 3px; height: 3px; }
+        .hero-particle:nth-child(4) { top: 75%; left: 30%; animation: particleFloat 9s ease-in-out infinite 0.5s; width: 5px; height: 5px; }
+        .hero-particle:nth-child(5) { top: 15%; left: 70%; animation: particleFloat 7s ease-in-out infinite 1.5s; }
+        @keyframes particleFloat {
+            0%,100% { transform: translate(0,0); opacity: 0.2; }
+            25% { transform: translate(10px,-15px); opacity: 0.5; }
+            50% { transform: translate(-5px,10px); opacity: 0.3; }
+            75% { transform: translate(15px,5px); opacity: 0.6; }
+        }
+        .hero > * { position: relative; z-index: 1; }
+        .hero-icon-wrap {
+            display: inline-flex;
+            background: rgba(255,255,255,0.12);
+            backdrop-filter: blur(12px);
+            border-radius: 18px; padding: 14px;
+            margin-bottom: 18px;
+            border: 1px solid rgba(255,255,255,0.18);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+        }
+        .hero-icon-wrap svg { width: 28px; height: 28px; fill: white; }
+        .hero h1 {
+            font-size: 28px; font-weight: 900; margin-bottom: 10px;
+            letter-spacing: -1px; line-height: 1.15;
+        }
+        .hero p {
+            font-size: 15px; opacity: 0.88; max-width: 460px;
+            margin: 0 auto; line-height: 1.7; font-weight: 400;
+        }
+        .hero-chips {
+            margin-top: 18px;
+            display: inline-flex; align-items: center; gap: 6px;
+            flex-wrap: wrap; justify-content: center;
+        }
+        .hero-chip {
+            font-size: 11px; font-weight: 600; letter-spacing: 0.2px;
+            background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.9);
+            padding: 5px 14px; border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.15);
+            backdrop-filter: blur(8px);
+        }
+
+        /* ===== PROGRESS BAR ===== */
+        .progress-bar-wrap {
+            max-width: 720px; margin: -30px auto 0;
+            padding: 0 24px; position: relative; z-index: 10;
+        }
+        .progress-bar {
+            background: var(--white);
+            border-radius: 16px; padding: 18px 28px;
+            box-shadow: var(--shadow-card), var(--shadow-glow);
+            display: flex; align-items: center; gap: 0;
+            border: 1px solid rgba(0,174,239,0.06);
+        }
+        .progress-step {
+            flex: 1; display: flex; align-items: center; gap: 10px;
+            position: relative;
+        }
+        .progress-step:not(:last-child)::after {
+            content: ''; flex: 1; height: 2px;
+            background: var(--gray-200); margin: 0 10px;
+            border-radius: 2px; transition: background 0.6s ease;
+        }
+        .progress-step.done:not(:last-child)::after {
+            background: linear-gradient(90deg, var(--green), var(--green-dark));
+        }
+        .progress-step.active:not(:last-child)::after {
+            background: linear-gradient(90deg, var(--blue-primary), var(--gray-200));
+        }
+        .progress-dot {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: var(--gray-100); color: var(--gray-400);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 800; flex-shrink: 0;
+            transition: all 0.4s ease; border: 2px solid var(--gray-200);
+        }
+        .progress-step.active .progress-dot {
+            background: linear-gradient(135deg, #00AEEF, #0077B6);
+            color: white; border-color: transparent;
+            box-shadow: 0 0 0 4px rgba(0,174,239,0.15), 0 3px 10px rgba(0,174,239,0.3);
+            animation: dotPulse 2.5s ease-in-out infinite;
+        }
+        .progress-step.done .progress-dot {
+            background: var(--green); color: white;
+            border-color: transparent;
+            box-shadow: 0 2px 8px rgba(16,185,129,0.3);
+        }
+        @keyframes dotPulse {
+            0%,100% { box-shadow: 0 0 0 4px rgba(0,174,239,0.15), 0 3px 10px rgba(0,174,239,0.3); }
+            50% { box-shadow: 0 0 0 7px rgba(0,174,239,0.08), 0 3px 14px rgba(0,174,239,0.4); }
+        }
+        .progress-label {
+            font-size: 11px; font-weight: 700; color: var(--gray-400);
+            white-space: nowrap; transition: color 0.3s;
+            text-transform: uppercase; letter-spacing: 0.3px;
+        }
+        .progress-step.active .progress-label { color: var(--blue-dark); }
+        .progress-step.done .progress-label { color: var(--green-dark); }
+
+        /* ===== CONTAINER ===== */
+        .container {
+            max-width: 720px; margin: 24px auto 0;
+            padding: 0 24px 48px; flex: 1;
+            position: relative; z-index: 10;
+        }
+
+        /* ===== LOADING STATE ===== */
+        .loading-container {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; min-height: 50vh; gap: 0;
+            padding: 48px 24px;
+        }
+        .loading-orb-wrap {
+            position: relative; margin-bottom: 32px;
+        }
+        .loading-orb {
+            width: 88px; height: 88px; border-radius: 26px;
+            background: linear-gradient(135deg, #00AEEF, #0077B6);
+            display: flex; align-items: center; justify-content: center;
+            position: relative; z-index: 1;
+            animation: orbFloat 3s ease-in-out infinite;
+            box-shadow: 0 8px 32px rgba(0,174,239,0.25);
+        }
+        .loading-orb-ring {
+            position: absolute; inset: -8px;
+            border-radius: 32px;
+            border: 2px solid rgba(0,174,239,0.15);
+            animation: ringPulse 2s ease-in-out infinite;
+        }
+        .loading-orb-ring:nth-child(2) {
+            inset: -16px; border-radius: 36px;
+            border-color: rgba(0,174,239,0.08);
+            animation-delay: 0.4s;
+        }
+        @keyframes orbFloat {
+            0%,100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+        }
+        @keyframes ringPulse {
+            0%,100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+        .loading-orb svg { width: 40px; height: 40px; fill: white; }
+        .loading-title {
+            font-size: 22px; font-weight: 800; color: var(--gray-900);
+            margin-bottom: 6px; letter-spacing: -0.6px;
+        }
+        .loading-subtitle {
+            font-size: 14px; color: var(--gray-500); margin-bottom: 36px;
+            font-weight: 500;
+        }
+        .loading-track {
+            width: 100%; max-width: 300px; height: 4px;
+            background: var(--gray-200); border-radius: 4px;
+            overflow: hidden; margin-bottom: 36px;
+        }
+        .loading-track-bar {
+            height: 100%; width: 30%;
+            background: linear-gradient(90deg, var(--blue-primary), var(--blue-accent));
+            border-radius: 4px;
+            animation: trackSlide 1.8s ease-in-out infinite;
+        }
+        @keyframes trackSlide {
+            0% { width: 0%; margin-left: 0%; }
+            50% { width: 50%; margin-left: 25%; }
+            100% { width: 0%; margin-left: 100%; }
+        }
+        .loading-steps {
+            display: flex; flex-direction: column; gap: 8px;
+            width: 100%; max-width: 320px;
+        }
+        .loading-step {
+            display: flex; align-items: center; gap: 14px;
+            font-size: 13px; color: var(--gray-400); font-weight: 500;
+            padding: 12px 16px; border-radius: 12px;
+            background: transparent; transition: all 0.4s ease;
+        }
+        .loading-step.active {
+            color: var(--gray-800); background: var(--white);
+            box-shadow: var(--shadow-sm); border: 1px solid var(--gray-100);
+        }
+        .loading-step.done { color: var(--green); }
+        .loading-step-icon {
+            width: 28px; height: 28px; border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; font-size: 12px;
+            background: var(--gray-100); color: var(--gray-400);
+            transition: all 0.4s ease;
+        }
+        .loading-step.active .loading-step-icon {
+            background: var(--blue-50); color: var(--blue-primary);
+        }
+        .loading-step.done .loading-step-icon {
+            background: var(--green-light); color: var(--green);
+        }
+        .loading-step-spinner {
+            width: 14px; height: 14px;
+            border: 2px solid var(--blue-light);
+            border-top-color: var(--blue-primary);
+            border-radius: 50%; animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== ERROR STATE ===== */
+        .error-container {
+            display: none; flex-direction: column; align-items: center;
+            justify-content: center; min-height: 50vh; gap: 12px;
+            text-align: center; padding: 48px 24px;
+        }
+        .error-visual {
+            width: 96px; height: 96px;
+            background: linear-gradient(135deg, #fee2e2, #fef2f2);
+            border-radius: 28px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 12px; border: 1px solid #fecaca;
+            box-shadow: 0 4px 16px rgba(239,68,68,0.08);
+        }
+        .error-visual-icon { font-size: 40px; }
+        .error-title { font-size: 22px; font-weight: 800; color: var(--gray-900); letter-spacing: -0.5px; }
+        .error-msg { color: var(--gray-500); font-size: 14px; max-width: 400px; line-height: 1.7; }
+        .error-actions {
+            margin-top: 20px; display: flex; gap: 10px;
+            flex-wrap: wrap; justify-content: center;
+        }
+        .error-btn {
+            font-size: 13px; font-weight: 600; font-family: inherit;
+            text-decoration: none; padding: 11px 22px; border-radius: 12px;
+            transition: all 0.2s; display: inline-flex;
+            align-items: center; gap: 6px; border: none; cursor: pointer;
+        }
+        .error-btn-primary {
+            background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
+            color: white; box-shadow: 0 3px 12px rgba(0,174,239,0.3);
+        }
+        .error-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(0,174,239,0.35); }
+        .error-btn-secondary { background: var(--gray-100); color: var(--gray-700); }
+        .error-btn-secondary:hover { background: var(--gray-200); }
+
+        /* ===== TIMEOUT ===== */
+        .timeout-banner {
+            display: none; background: linear-gradient(135deg, #fffbeb, #fef9c3);
+            border: 1px solid #fcd34d;
+            border-radius: var(--radius); padding: 14px 18px; margin-bottom: 16px;
+            align-items: center; gap: 10px; font-size: 13px; color: #92400e;
+            animation: fadeIn 0.3s ease;
+            box-shadow: 0 2px 12px rgba(251,191,36,0.1);
+        }
+        .timeout-banner.show { display: flex; }
+        .timeout-btn {
+            background: none; border: 1.5px solid #92400e; border-radius: 10px;
+            padding: 7px 16px; color: #92400e; cursor: pointer;
+            font-size: 12px; font-family: inherit; white-space: nowrap; margin-left: auto;
+            font-weight: 600; transition: var(--transition);
+        }
+        .timeout-btn:hover { background: rgba(146,64,14,0.08); }
+
+        /* ===== CONTENT TRANSITION ===== */
+        .content { display: none; }
+        .content.show { display: block; animation: fadeSlideIn 0.6s cubic-bezier(0.16,1,0.3,1); }
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== MAIN CARD ===== */
+        .main-card {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-card);
+            overflow: hidden; margin-bottom: 16px;
+            border: 1px solid rgba(0,0,0,0.04);
+            transition: box-shadow 0.3s, transform 0.3s;
+        }
+        .main-card:hover { box-shadow: var(--shadow-xl); }
+
+        /* Card Header */
+        .card-header {
+            padding: 24px 28px 20px;
+            border-bottom: 1px solid var(--gray-100);
+            background: linear-gradient(180deg, var(--gray-50) 0%, var(--white) 100%);
+        }
+        .card-header-row {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 12px; flex-wrap: wrap;
+        }
+        .pedido-tag {
+            display: inline-flex; align-items: center; gap: 10px;
+            background: linear-gradient(135deg, var(--blue-50), #e0f4ff);
+            color: var(--blue-darker);
+            padding: 8px 18px; border-radius: 12px;
+            font-size: 14px; font-weight: 700; letter-spacing: -0.2px;
+            border: 1px solid rgba(0,174,239,0.1);
+        }
+        .pedido-tag-icon {
+            width: 28px; height: 28px; border-radius: 8px;
+            background: linear-gradient(135deg, #00AEEF, #0077B6);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 6px rgba(0,174,239,0.2);
+        }
+        .pedido-tag-icon svg { width: 14px; height: 14px; fill: white; }
+        .revenda-tag {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 7px 16px; border-radius: 10px;
+            font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .revenda-tag.ingram { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .revenda-tag.tds { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+
+        /* ===== CNPJ SECTION ===== */
+        .cnpj-section {
+            padding: 28px; border-bottom: 1px solid var(--gray-100);
+        }
+        .cnpj-label {
+            font-size: 14px; font-weight: 700; color: var(--gray-800);
+            margin-bottom: 12px; display: flex; align-items: center; gap: 10px;
+        }
+        .cnpj-label-icon {
+            width: 28px; height: 28px; border-radius: 8px;
+            background: linear-gradient(135deg, var(--blue-50), var(--blue-light));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; flex-shrink: 0;
+        }
+        .cnpj-label-badge {
+            font-size: 9px; background: var(--red-light); color: var(--red);
+            padding: 3px 10px; border-radius: 6px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px; margin-left: auto;
+        }
+        .cnpj-input-wrap { position: relative; }
+        .cnpj-input {
+            width: 100%; padding: 16px 20px 16px 52px;
+            border: 2px solid var(--gray-200); border-radius: 16px;
+            font-size: 18px; font-weight: 600; color: var(--gray-900);
+            font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+            background: var(--gray-50); transition: all 0.3s ease;
+            outline: none; letter-spacing: 1.5px;
+        }
+        .cnpj-input::placeholder { color: var(--gray-400); font-weight: 400; letter-spacing: 0; font-size: 15px; }
+        .cnpj-input:focus {
+            border-color: var(--blue-primary); background: white;
+            box-shadow: 0 0 0 4px var(--blue-glow), 0 4px 12px rgba(0,174,239,0.08);
+        }
+        .cnpj-input.valid {
+            border-color: var(--green); background: #f0fdf4;
+            box-shadow: 0 0 0 4px rgba(16,185,129,0.1);
+        }
+        .cnpj-input.invalid {
+            border-color: var(--red); background: #fef2f2;
+            box-shadow: 0 0 0 4px rgba(239,68,68,0.08);
+        }
+        .cnpj-icon {
+            position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+            width: 28px; height: 28px; border-radius: 8px;
+            background: var(--gray-200);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; pointer-events: none;
+            transition: all 0.3s;
+        }
+        .cnpj-input:focus ~ .cnpj-icon {
+            background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
+            color: white;
+        }
+        .cnpj-input.valid ~ .cnpj-icon {
+            background: linear-gradient(135deg, var(--green), var(--green-dark));
+            color: white;
+        }
+        .cnpj-input.invalid ~ .cnpj-icon {
+            background: linear-gradient(135deg, var(--red), #dc2626);
+            color: white;
+        }
+        .cnpj-hint {
+            font-size: 12px; color: var(--gray-400); margin-top: 10px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .cnpj-error {
+            font-size: 12px; color: var(--red); margin-top: 10px;
+            display: none; font-weight: 600; animation: shake 0.4s ease;
+        }
+        .cnpj-error.show { display: flex; align-items: center; gap: 6px; }
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .cnpj-success {
+            font-size: 12px; color: var(--green); margin-top: 10px;
+            display: none; font-weight: 600;
+        }
+        .cnpj-success.show { display: flex; align-items: center; gap: 6px; }
+
+        /* ===== STEPS ===== */
+        .card-body { padding: 28px; }
+        .section-title {
+            font-size: 15px; font-weight: 700; color: var(--gray-800);
+            margin-bottom: 22px; display: flex; align-items: center; gap: 10px;
+            letter-spacing: -0.3px;
+        }
+        .section-title-icon {
+            width: 28px; height: 28px; border-radius: 8px;
+            background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px;
+        }
+        .section-title-line { flex: 1; height: 1px; background: var(--gray-200); }
+        .steps-list { list-style: none; display: flex; flex-direction: column; }
+        .step-item { display: flex; gap: 16px; }
+        .step-indicator { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+        .step-dot {
+            width: 40px; height: 40px; border-radius: 13px;
+            background: linear-gradient(135deg, #00AEEF, #0077B6);
+            color: white; display: flex; align-items: center; justify-content: center;
+            font-size: 15px; font-weight: 800; flex-shrink: 0;
+            box-shadow: 0 3px 12px rgba(0,174,239,0.2);
+        }
+        .step-line {
+            width: 2px; flex: 1;
+            background: linear-gradient(180deg, rgba(0,174,239,0.25), var(--gray-200));
+            min-height: 16px;
+        }
+        .step-item:last-child .step-line { display: none; }
+        .step-content { padding-bottom: 24px; }
+        .step-item:last-child .step-content { padding-bottom: 0; }
+        .step-label {
+            font-size: 14px; font-weight: 700; line-height: 40px;
+            color: var(--gray-900); letter-spacing: -0.2px;
+        }
+        .step-desc {
+            font-size: 13px; color: var(--gray-500); margin-top: 2px; line-height: 1.7;
+        }
+
+        /* ===== INFO BOXES ===== */
+        .info-box {
+            border-radius: 16px; padding: 18px 20px; margin-top: 20px;
+            display: flex; align-items: flex-start; gap: 14px;
+        }
+        .info-box-icon {
+            width: 36px; height: 36px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; font-size: 16px;
+        }
+        .info-box-text { font-size: 13px; line-height: 1.8; flex: 1; }
+        .info-box-text strong { font-weight: 700; }
+        .info-box.security {
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+            border: 1px solid #a7f3d0;
+        }
+        .info-box.security .info-box-icon { background: #a7f3d0; }
+        .info-box.security .info-box-text { color: #065f46; }
+        .info-box.security .info-box-text strong { color: #064e3b; }
+        .info-box.info {
+            background: linear-gradient(135deg, var(--blue-50), var(--blue-light));
+            border: 1px solid rgba(0,174,239,0.12);
+        }
+        .info-box.info .info-box-icon { background: rgba(0,174,239,0.12); }
+        .info-box.info .info-box-text { color: var(--blue-darker); }
+
+        /* ===== AGREEMENT CARD ===== */
+        .agreement-card {
+            background: var(--white);
+            border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+            padding: 24px 28px; margin-bottom: 16px;
+            border: 2px solid transparent;
+            transition: all 0.35s ease; cursor: pointer;
+        }
+        .agreement-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+        .agreement-card.checked {
+            border-color: var(--blue-primary);
+            box-shadow: var(--shadow-md), 0 0 0 3px var(--blue-glow);
+            background: linear-gradient(135deg, var(--blue-50), #f0f9ff);
+        }
+        .checkbox-row {
+            display: flex; align-items: flex-start; gap: 16px; user-select: none;
+        }
+        .custom-check {
+            width: 26px; height: 26px;
+            border: 2px solid var(--gray-300); border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; margin-top: 1px;
+            transition: all 0.25s ease; background: var(--white);
+        }
+        .custom-check svg {
+            width: 14px; height: 14px; fill: white;
+            opacity: 0; transform: scale(0.5);
+            transition: all 0.25s ease;
+        }
+        .checkbox-row input[type="checkbox"] { position: absolute; opacity: 0; width: 0; height: 0; }
+        .checkbox-row input:checked + .custom-check {
+            background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
+            border-color: var(--blue-primary);
+            box-shadow: 0 3px 10px rgba(0,174,239,0.3);
+            transform: scale(1.08);
+        }
+        .checkbox-row input:checked + .custom-check svg { opacity: 1; transform: scale(1); }
+        .checkbox-row input:focus-visible + .custom-check {
+            outline: 2px solid var(--blue-primary); outline-offset: 2px;
+        }
+        .checkbox-text {
+            font-size: 14px; color: var(--gray-700); line-height: 1.75;
+        }
+        .checkbox-text strong { color: var(--blue-primary); font-weight: 700; }
+
+        /* ===== CTA BUTTON ===== */
+        .cta-button {
+            width: 100%; padding: 18px 24px;
+            font-size: 16px; font-weight: 700; font-family: inherit;
+            color: var(--white);
+            background: linear-gradient(135deg, #00AEEF 0%, #0077B6 100%);
+            border: none; border-radius: 16px; cursor: pointer;
+            box-shadow: 0 4px 16px rgba(0,174,239,0.3);
+            transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+            display: flex; align-items: center; justify-content: center;
+            gap: 10px; margin-bottom: 20px;
+            letter-spacing: -0.2px; position: relative; overflow: hidden;
+        }
+        .cta-button::before {
+            content: ''; position: absolute;
+            top: 0; left: -100%; width: 200%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+            transition: left 0.7s ease;
+        }
+        .cta-button:hover:not(:disabled)::before { left: 100%; }
+        .cta-button:hover:not(:disabled) {
+            background: linear-gradient(135deg, #0090C8, #005B8E);
+            box-shadow: 0 8px 28px rgba(0,174,239,0.35);
+            transform: translateY(-2px);
+        }
+        .cta-button:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(0,174,239,0.3);
+        }
+        .cta-button:disabled {
+            background: var(--gray-300); cursor: not-allowed;
+            box-shadow: none; color: var(--gray-500);
+        }
+        .cta-button svg { width: 20px; height: 20px; fill: white; flex-shrink: 0; }
+        .cta-button .spinner-sm {
+            width: 20px; height: 20px;
+            border: 2.5px solid rgba(255,255,255,0.3);
+            border-top-color: white; border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        /* ===== TRUST BAR ===== */
+        .trust-bar {
+            display: flex; align-items: center; justify-content: center;
+            gap: 24px; padding: 16px 0; flex-wrap: wrap;
+        }
+        .trust-item {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 12px; color: var(--gray-500); font-weight: 500;
+        }
+        .trust-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 6px rgba(16,185,129,0.3);
+        }
+
+        /* ===== SUCCESS OVERLAY ===== */
+        .success-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 200; align-items: center; justify-content: center;
+            padding: 24px;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+        .success-overlay.show { display: flex; }
+
+        .success-card {
+            background: #FFFFFF;
+            border-radius: 16px;
+            max-width: 480px; width: 100%;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.05);
+            animation: successIn 0.25s ease-out;
+            position: relative; overflow: hidden;
+        }
+        @keyframes successIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* Header */
+        .success-header {
+            display: flex; align-items: center; gap: 10px;
+            padding: 20px 28px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+        .success-header-icon { color: #0078D4; flex-shrink: 0; }
+        .success-header-brand {
+            font-size: 16px; font-weight: 700; color: #0078D4;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+        }
+
+        /* Body */
+        .success-body {
+            padding: 28px 28px 24px;
+            text-align: center;
+        }
+
+        /* Success icon */
+        .success-icon-circle {
+            width: 72px; height: 72px;
+            background: #EBF3FB;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px;
+            animation: fadeInIcon 0.3s ease;
+        }
+        .success-icon-circle i[data-lucide] { width: 36px; height: 36px; color: #0078D4; }
+        @keyframes fadeInIcon {
+            from { opacity: 0; } to { opacity: 1; }
+        }
+
+        .success-title {
+            font-size: 22px; font-weight: 700; color: #111827;
+            margin-bottom: 6px; letter-spacing: -0.3px;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+        }
+        .success-subtitle {
+            font-size: 14px; color: #6B7280; line-height: 1.6;
+            max-width: 340px; margin: 0 auto 24px;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+        }
+
+        /* Progress bar */
+        .success-progress {
+            width: 100%; height: 4px;
+            background: #E5E7EB; border-radius: 2px;
+            margin-bottom: 24px; overflow: hidden;
+        }
+        .success-progress-fill {
+            height: 100%; width: 0%;
+            background: #0078D4; border-radius: 2px;
+            transition: width 0.4s ease, background 0.4s ease;
+        }
+        .success-progress-fill.half { width: 50%; }
+        .success-progress-fill.full { width: 100%; background: #107C10; }
+
+        /* Step cards */
+        .success-steps {
+            display: flex; flex-direction: column; gap: 12px;
+            text-align: left;
+        }
+        .success-step {
+            background: #F8FAFF;
+            border: 1.5px solid #BFDBFE;
+            border-radius: 12px;
+            padding: 18px 20px;
+            transition: border-color 0.3s, background 0.3s;
+        }
+        .success-step.done {
+            border-color: #A7F3D0;
+            background: #F0FDF4;
+        }
+
+        .success-step-top {
+            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 6px;
+        }
+        .success-step-badge {
+            font-size: 11px; font-weight: 700;
+            padding: 2px 10px; border-radius: 20px;
+            text-transform: uppercase; letter-spacing: 0.3px;
+        }
+        .success-step-badge.blue {
+            background: #DBEAFE; color: #1D4ED8;
+        }
+        .success-step-badge.purple {
+            background: #EDE9FE; color: #6D28D9;
+        }
+        .success-step-label {
+            font-size: 15px; font-weight: 600; color: #111827;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+        }
+
+        .success-step-body {
+            display: flex; align-items: flex-start; gap: 12px;
+        }
+        .success-step-icon-wrap {
+            flex-shrink: 0; margin-top: 1px;
+        }
+        .success-step-icon-wrap i[data-lucide] { width: 18px; height: 18px; }
+        .success-step-icon-wrap.blue i[data-lucide] { color: #0078D4; }
+        .success-step-icon-wrap.purple i[data-lucide] { color: #6D28D9; }
+
+        .success-step-text {
+            flex: 1; min-width: 0;
+        }
+        .success-step-desc {
+            font-size: 13px; color: #6B7280; line-height: 1.5;
+            margin-bottom: 12px;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+        }
+
+        /* Step buttons */
+        .success-step-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 0 20px; height: 38px;
+            border: none; border-radius: 8px;
+            font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+            text-decoration: none; color: #FFFFFF;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+        }
+        .success-step-btn.btn-blue { background: #0078D4; }
+        .success-step-btn.btn-blue:hover { background: #106EBE; }
+        .success-step-btn.btn-purple { background: #6D28D9; }
+        .success-step-btn.btn-purple:hover { background: #5B21B6; }
+        .success-step-btn.btn-done {
+            background: #107C10; cursor: default;
+        }
+        .success-step-btn:disabled {
+            opacity: 0.4; cursor: not-allowed;
+        }
+        .success-step-btn:disabled:hover { background: #6D28D9; }
+
+        /* All-done message */
+        .success-all-done {
+            display: none; align-items: center; justify-content: center; gap: 8px;
+            margin-top: 20px;
+            font-size: 15px; font-weight: 600; color: #107C10;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            animation: fadeInDone 0.5s ease;
+        }
+        .success-all-done.show { display: flex; }
+        .success-all-done i[data-lucide] { width: 20px; height: 20px; color: #107C10; }
+        @keyframes fadeInDone {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Footer */
+        .success-footer {
+            border-top: 1px solid #E5E7EB;
+            padding: 16px 28px;
+            text-align: center;
+        }
+        .success-footer-line1 {
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            font-size: 12px; color: #9CA3AF;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+        }
+        .success-footer-line1 i[data-lucide] { width: 14px; height: 14px; color: #6B7280; }
+        .success-footer-line2 {
+            font-size: 11px; color: #C4C9D4; margin-top: 4px;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+        }
+
+        /* ===== CONFETTI ===== */
+        .confetti-container {
+            position: fixed; inset: 0; z-index: 250;
+            pointer-events: none; overflow: hidden;
+        }
+        .confetti-piece {
+            position: absolute; top: -20px;
+            animation: confettiFall linear forwards;
+        }
+        @keyframes confettiFall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            background: var(--white);
+            border-top: 1px solid var(--gray-200);
+            padding: 36px 24px;
+            text-align: center; margin-top: auto;
+        }
+        .footer-brand {
+            font-size: 17px; font-weight: 800; letter-spacing: -0.5px;
+            margin-bottom: 8px; color: var(--gray-900);
+        }
+        .footer-brand span { color: var(--blue-primary); }
+        .footer-desc {
+            font-size: 13px; color: var(--gray-500); margin-bottom: 24px;
+            line-height: 1.7; max-width: 500px; margin-left: auto; margin-right: auto;
+        }
+        .footer-links {
+            display: flex; align-items: center; justify-content: center;
+            gap: 8px; flex-wrap: wrap; margin-bottom: 24px;
+        }
+        .footer-link {
+            font-size: 12px; color: var(--gray-600);
+            text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+            padding: 9px 16px; border-radius: 11px;
+            background: var(--gray-50); font-weight: 500;
+            border: 1px solid var(--gray-200); transition: all 0.2s;
+        }
+        .footer-link:hover {
+            background: var(--blue-50); border-color: rgba(0,174,239,0.15);
+            color: var(--blue-dark); transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,174,239,0.08);
+        }
+        .footer-copy { font-size: 11px; color: var(--gray-400); }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 640px) {
+            .hero { padding: 36px 20px 52px; }
+            .hero h1 { font-size: 24px; }
+            .hero p { font-size: 14px; }
+            .progress-bar-wrap { padding: 0 16px; }
+            .progress-bar { padding: 14px 18px; flex-wrap: wrap; gap: 4px; }
+            .progress-label { display: none; }
+            .progress-dot { width: 28px; height: 28px; font-size: 11px; }
+            .container { padding: 0 16px 40px; }
+            .card-header { padding: 20px; }
+            .card-body { padding: 20px; }
+            .cnpj-section { padding: 20px; }
+            .cnpj-input { font-size: 16px; padding: 14px 16px 14px 48px; }
+            .agreement-card { padding: 20px; }
+            .header-inner { padding: 12px 16px; }
+            .header-badges .header-badge:not(.secure) { display: none; }
+            .hero-chips { gap: 4px; }
+            .hero-chip { font-size: 10px; padding: 4px 10px; }
+            .trust-bar { gap: 14px; }
+            .footer-links { gap: 6px; }
+            .footer-link { padding: 8px 12px; font-size: 11px; }
+            .success-card { padding: 32px 24px 24px; }
+            .success-step { padding: 14px; }
+            .step-dot { width: 36px; height: 36px; font-size: 13px; }
+            .step-label { line-height: 36px; }
+        }
+
+        @media (max-width: 380px) {
+            .progress-bar { justify-content: center; }
+            .progress-step:not(:last-child)::after { display: none; }
+            .hero h1 { font-size: 22px; }
+        }
+
+        :focus-visible { outline: 2px solid var(--blue-primary); outline-offset: 2px; }
+
+        .animate-in { animation: slideUp 0.5s ease both; }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .stagger-1 { animation-delay: 0.05s; }
+        .stagger-2 { animation-delay: 0.12s; }
+        .stagger-3 { animation-delay: 0.2s; }
+        .stagger-4 { animation-delay: 0.28s; }
+
+        /* ===== DARK MODE TOGGLE ===== */
+        .theme-toggle {
+            width: 38px; height: 38px; border-radius: 11px;
+            border: 1px solid var(--gray-200); background: var(--white);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 18px; transition: all 0.3s; flex-shrink: 0;
+        }
+        .theme-toggle:hover { background: var(--gray-100); transform: scale(1.08); }
+
+        /* ===== DARK MODE ===== */
+        [data-theme="dark"] {
+            --gray-bg: #0f1117;
+            --gray-50: #1a1d27;
+            --gray-100: #22252f;
+            --gray-200: #2e323e;
+            --gray-300: #3d4251;
+            --gray-400: #6b7280;
+            --gray-500: #9ca3af;
+            --gray-600: #d1d5db;
+            --gray-700: #e5e7eb;
+            --gray-800: #f3f4f6;
+            --gray-900: #f9fafb;
+            --white: #161820;
+            --blue-50: #0c2a3e;
+            --blue-light: #0a2233;
+            --blue-glow: rgba(0, 174, 239, 0.25);
+            --green-light: #052e16;
+            --red-light: #450a0a;
+        }
+        [data-theme="dark"] .page-bg {
+            background: linear-gradient(145deg, #0a0e1a 0%, #0f1117 25%, #110e1f 55%, #0f1117 100%);
+        }
+        [data-theme="dark"] .header {
+            background: rgba(22, 24, 32, 0.85);
+            border-bottom-color: rgba(255,255,255,0.06);
+        }
+        [data-theme="dark"] .header-badge {
+            border-color: var(--gray-200); background: var(--gray-50);
+        }
+        [data-theme="dark"] .header-badge.secure {
+            background: #052e16; border-color: #14532d; color: #4ade80;
+        }
+        [data-theme="dark"] .logo-text { color: #f3f4f6; }
+        [data-theme="dark"] .footer {
+            background: var(--gray-50); border-top-color: var(--gray-200);
+        }
+        [data-theme="dark"] .footer-link {
+            background: var(--gray-100); border-color: var(--gray-200); color: var(--gray-600);
+        }
+        [data-theme="dark"] .footer-link:hover {
+            background: #0c2a3e; border-color: rgba(0,174,239,0.2); color: #33c1ff;
+        }
+        [data-theme="dark"] .main-card {
+            background: var(--gray-50); border-color: var(--gray-200);
+        }
+        [data-theme="dark"] .card-header {
+            background: linear-gradient(180deg, var(--gray-100) 0%, var(--gray-50) 100%);
+            border-bottom-color: var(--gray-200);
+        }
+        [data-theme="dark"] .agreement-card {
+            background: var(--gray-50); border-color: var(--gray-200);
+        }
+        [data-theme="dark"] .agreement-card.checked {
+            background: linear-gradient(135deg, #0c2a3e, #0a2233);
+            border-color: var(--blue-primary);
+        }
+        [data-theme="dark"] .cnpj-section { border-bottom-color: var(--gray-200); }
+        [data-theme="dark"] .cnpj-input {
+            background: var(--gray-100); border-color: var(--gray-300);
+            color: #f3f4f6;
+        }
+        [data-theme="dark"] .cnpj-input:focus {
+            background: var(--gray-50); border-color: var(--blue-primary);
+        }
+        [data-theme="dark"] .cnpj-icon { background: var(--gray-300); }
+        [data-theme="dark"] .cnpj-input.valid {
+            background: #052e16; border-color: var(--green);
+        }
+        [data-theme="dark"] .cnpj-input.invalid {
+            background: #450a0a; border-color: var(--red);
+        }
+        [data-theme="dark"] .info-box.security {
+            background: linear-gradient(135deg, #052e16, #064e3b20);
+            border-color: #14532d;
+        }
+        [data-theme="dark"] .info-box.security .info-box-text { color: #86efac; }
+        [data-theme="dark"] .info-box.security .info-box-text strong { color: #4ade80; }
+        [data-theme="dark"] .info-box.security .info-box-icon { background: #14532d; }
+        [data-theme="dark"] .info-box.info {
+            background: linear-gradient(135deg, #0c2a3e, #0a223320);
+            border-color: rgba(0,174,239,0.2);
+        }
+        [data-theme="dark"] .info-box.info .info-box-text { color: #7dd3fc; }
+        [data-theme="dark"] .info-box.info .info-box-icon { background: rgba(0,174,239,0.2); }
+        [data-theme="dark"] .step-label { color: #e5e7eb; }
+        [data-theme="dark"] .section-title { color: #e5e7eb; }
+        [data-theme="dark"] .section-title-icon { background: var(--gray-200); }
+        [data-theme="dark"] .section-title-line { background: var(--gray-200); }
+        [data-theme="dark"] .checkbox-text { color: #d1d5db; }
+        [data-theme="dark"] .custom-check { border-color: var(--gray-300); background: var(--gray-100); }
+        [data-theme="dark"] .cta-button:disabled {
+            background: var(--gray-300); color: var(--gray-500);
+        }
+        [data-theme="dark"] .progress-bar {
+            background: var(--gray-50); border-color: var(--gray-200);
+        }
+        [data-theme="dark"] .loading-step.active {
+            background: var(--gray-50); border-color: var(--gray-200);
+        }
+        [data-theme="dark"] .success-card {
+            background: #1a1d27;
+        }
+        [data-theme="dark"] .success-step {
+            background: var(--gray-100);
+        }
+        [data-theme="dark"] .success-step.active {
+            background: #0c2a3e; border-color: rgba(0,174,239,0.2);
+        }
+        [data-theme="dark"] .success-step.done {
+            background: #052e16; border-color: #14532d;
+        }
+        [data-theme="dark"] .theme-toggle {
+            background: var(--gray-100); border-color: var(--gray-300);
+        }
+        [data-theme="dark"] .theme-toggle:hover { background: var(--gray-200); }
+        [data-theme="dark"] .timeout-banner {
+            background: linear-gradient(135deg, #422006, #451a03);
+            border-color: #92400e; color: #fbbf24;
+        }
+        [data-theme="dark"] .error-visual {
+            background: linear-gradient(135deg, #450a0a, #7f1d1d20);
+            border-color: #991b1b;
+        }
+        [data-theme="dark"] .pedido-tag {
+            background: linear-gradient(135deg, #0c2a3e, #0a2233);
+            border-color: rgba(0,174,239,0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- HEADER -->
+    <header class="header" id="pageHeader" role="banner">
+        <div class="header-inner">
+            <a href="https://bluepartner.com.br" target="_blank" rel="noopener noreferrer" class="header-logo" aria-label="BluePartner — Ir para o site">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24"><path d="M21 3H3v18h18V3zM11 19H5v-6h6v6zm0-8H5V5h6v6zm8 8h-6v-6h6v6zm0-8h-6V5h6v6z"/></svg>
+                </div>
+                <span class="logo-text">Blue<span>Partner</span></span>
+            </a>
+            <div class="header-badges">
+                <span class="header-badge secure">🔒 Seguro</span>
+                <span class="header-badge">Microsoft CSP</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-grid"></div>
+        <div class="hero-particles">
+            <div class="hero-particle"></div>
+            <div class="hero-particle"></div>
+            <div class="hero-particle"></div>
+            <div class="hero-particle"></div>
+            <div class="hero-particle"></div>
+        </div>
+        <div class="hero-icon-wrap">
+            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+        </div>
+        <h1>Aceite de Parceria Microsoft</h1>
+        <p>Confirme seus dados e autorize os links de parceria para ativar seu licenciamento Microsoft.</p>
+        <div class="hero-chips">
+            <span class="hero-chip">BluePartner</span>
+            <span class="hero-chip">Microsoft AI Cloud Partner Program</span>
+        </div>
+    </section>
+
+    <!-- PROGRESS BAR -->
+    <div class="progress-bar-wrap" id="progressBarWrap" style="display:none;">
+        <div class="progress-bar">
+            <div class="progress-step active" id="progStep1">
+                <div class="progress-dot">1</div>
+                <span class="progress-label">CNPJ</span>
+            </div>
+            <div class="progress-step" id="progStep2">
+                <div class="progress-dot">2</div>
+                <span class="progress-label">Autorizar</span>
+            </div>
+            <div class="progress-step" id="progStep3">
+                <div class="progress-dot">3</div>
+                <span class="progress-label">Concluído</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN -->
+    <main class="container" role="main">
+
+        <!-- LOADING -->
+        <div class="loading-container" id="loadingState" aria-live="polite">
+            <div class="loading-orb-wrap">
+                <div class="loading-orb">
+                    <svg viewBox="0 0 24 24"><path d="M21 3H3v18h18V3zM11 19H5v-6h6v6zm0-8H5V5h6v6zm8 8h-6v-6h6v6zm0-8h-6V5h6v6z"/></svg>
+                </div>
+                <div class="loading-orb-ring"></div>
+                <div class="loading-orb-ring"></div>
+            </div>
+            <div class="loading-title">Verificando seu pedido</div>
+            <div class="loading-subtitle">Aguarde enquanto validamos as informações</div>
+            <div class="loading-track">
+                <div class="loading-track-bar"></div>
+            </div>
+            <div class="loading-steps">
+                <div class="loading-step active" id="loadStep1">
+                    <div class="loading-step-icon"><div class="loading-step-spinner"></div></div>
+                    <span>Conectando ao servidor seguro</span>
+                </div>
+                <div class="loading-step" id="loadStep2">
+                    <div class="loading-step-icon">🔒</div>
+                    <span>Validando token de acesso</span>
+                </div>
+                <div class="loading-step" id="loadStep3">
+                    <div class="loading-step-icon">📋</div>
+                    <span>Carregando dados do pedido</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ERROR -->
+        <div class="error-container" id="errorState" role="alert">
+            <div class="error-visual">
+                <div class="error-visual-icon">⚠️</div>
+            </div>
+            <h2 class="error-title" id="errorTitle">Link inválido</h2>
+            <p class="error-msg" id="errorMessage">Este link de validação não é válido ou já expirou.</p>
+            <div class="error-actions">
+                <a class="error-btn error-btn-primary" href="https://wa.me/5547988321879?text=Olá%20BluePartner!%20Preciso%20de%20ajuda%20com%20validação." target="_blank" rel="noopener">📱 WhatsApp</a>
+                <a class="error-btn error-btn-secondary" href="mailto:contato@bluepartner.com.br">📧 E-mail</a>
+            </div>
+        </div>
+
+        <!-- TIMEOUT -->
+        <div class="timeout-banner" id="timeoutBanner" role="alert">
+            <span>⏰</span>
+            <span>Sessão inativa há 5 minutos.</span>
+            <button class="timeout-btn" onclick="resetTimeout()">Continuar</button>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="content" id="mainContent">
+
+            <div class="main-card animate-in stagger-1">
+                <div class="card-header">
+                    <div class="card-header-row">
+                        <span class="pedido-tag">
+                            <span class="pedido-tag-icon">
+                                <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/></svg>
+                            </span>
+                            <span id="pedidoIdDisplay">---</span>
+                        </span>
+                        <span class="revenda-tag" id="revendaTag">---</span>
+                    </div>
+                    <div class="card-client-row" id="clientRow" style="display:none; margin-top: 14px;">
+                        <span style="font-size:14px; color:var(--gray-600); font-weight:500;">🏢 <strong id="clienteDisplay" style="color:var(--gray-900);">---</strong></span>
+                    </div>
+                    </div>
+                </div>
+
+                <!-- CNPJ -->
+                <div class="cnpj-section">
+                    <label class="cnpj-label" for="cnpjInput">
+                        <span class="cnpj-label-icon">🏢</span>
+                        Informe o CNPJ da sua empresa
+                        <span class="cnpj-label-badge">Obrigatório</span>
+                    </label>
+                    <div class="cnpj-input-wrap">
+                        <input type="text" class="cnpj-input" id="cnpjInput"
+                               placeholder="00.000.000/0000-00"
+                               maxlength="18" inputmode="numeric"
+                               autocomplete="off" aria-describedby="cnpjHint">
+                        <span class="cnpj-icon">🏢</span>
+                    </div>
+                    <div class="cnpj-hint" id="cnpjHint">💡 Digite os 14 números do CNPJ para continuar</div>
+                    <div class="cnpj-hint" id="cnpjExpectedHint" style="display:none; margin-top:4px; color:var(--blue-dark); font-weight:600;">📋 CNPJ cadastrado: <span id="cnpjPartial"></span></div>
+                    <div class="cnpj-error" id="cnpjError">⚠️ O CNPJ informado não corresponde ao cadastrado neste pedido.</div>
+                    <div class="cnpj-success" id="cnpjSuccess">✅ CNPJ verificado com sucesso!</div>
+                </div>
+
+                <!-- STEPS -->
+                <div class="card-body">
+                    <div class="section-title">
+                        <span class="section-title-icon">📝</span>
+                        O que vai acontecer
+                        <div class="section-title-line"></div>
+                    </div>
+                    <ol class="steps-list">
+                        <li class="step-item">
+                            <div class="step-indicator">
+                                <div class="step-dot">1</div>
+                                <div class="step-line"></div>
+                            </div>
+                            <div class="step-content">
+                                <div class="step-label">Informe seu CNPJ</div>
+                                <div class="step-desc">Digite o CNPJ da sua empresa no campo acima para identificação.</div>
+                            </div>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-indicator">
+                                <div class="step-dot">2</div>
+                                <div class="step-line"></div>
+                            </div>
+                            <div class="step-content">
+                                <div class="step-label">Autorize a BluePartner (GDAP)</div>
+                                <div class="step-desc">Uma nova aba será aberta no painel Microsoft para você autorizar a BluePartner como visualizadora das suas licenças (acesso somente leitura).</div>
+                            </div>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-indicator">
+                                <div class="step-dot">3</div>
+                            </div>
+                            <div class="step-content">
+                                <div class="step-label">Aceite a parceria com o distribuidor</div>
+                                <div class="step-desc">Você será redirecionado para aceitar a parceria com a BluePartner e a <strong id="revendaName">---</strong>, responsável pela distribuição das suas licenças.</div>
+                            </div>
+                        </li>
+                    </ol>
+
+                    <div class="info-box security">
+                        <div class="info-box-icon">🔒</div>
+                        <div class="info-box-text">
+                            Processo 100% seguro via portal oficial Microsoft. A BluePartner atua como <strong>visualizadora de licenças</strong>, sem acesso aos dados ou configurações da sua organização.
+                        </div>
+                    </div>
+
+                    <div class="info-box info" style="margin-top: 10px;">
+                        <div class="info-box-icon">ℹ️</div>
+                        <div class="info-box-text">
+                            <strong>Por que estamos nos adicionando como visualizador?</strong><br>
+                            Precisamos acompanhar suas licenças para garantir o correto provisionamento, renovação e suporte. Como visualizadores, <strong>não temos permissão para alterar, excluir ou gerenciar</strong> nenhum recurso da sua organização — apenas consultar as licenças ativas.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AGREEMENT -->
+            <div class="agreement-card animate-in stagger-2" id="agreementSection" onclick="toggleCheckbox()">
+                <label class="checkbox-row">
+                    <input type="checkbox" id="agreementCheckbox" onchange="toggleButton()">
+                    <span class="custom-check" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                    </span>
+                    <span class="checkbox-text">
+                        <strong>Autorizo a BluePartner como visualizadora de licenças</strong> e aceito o link de parceria com o distribuidor indicado para ativação do meu licenciamento Microsoft.
+                    </span>
+                </label>
+            </div>
+
+            <!-- CTA -->
+            <button class="cta-button animate-in stagger-3" id="ctaButton" disabled onclick="handleConfirm()" aria-label="Confirmar validação e prosseguir">
+                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                Confirmar e Prosseguir
+            </button>
+
+            <!-- TRUST -->
+            <div class="trust-bar animate-in stagger-4">
+                <div class="trust-item"><div class="trust-dot"></div> Conexão segura</div>
+                <div class="trust-item"><div class="trust-dot"></div> Portal Microsoft oficial</div>
+                <div class="trust-item"><div class="trust-dot"></div> Parceiro certificado</div>
+            </div>
+        </div>
+    </main>
+
+    <!-- SUCCESS OVERLAY -->
+    <div class="success-overlay" id="successOverlay" role="dialog" aria-modal="true" aria-label="Validação realizada">
+        <div class="success-card">
+            <!-- Header -->
+            <div class="success-header">
+                <i data-lucide="shield-check" class="success-header-icon" style="width:28px;height:28px;"></i>
+                <span class="success-header-brand">BluePartner</span>
+            </div>
+
+            <!-- Body -->
+            <div class="success-body">
+                <div class="success-icon-circle">
+                    <i data-lucide="circle-check"></i>
+                </div>
+                <h2 class="success-title">Validação Confirmada</h2>
+                <p class="success-subtitle">Complete os dois passos abaixo para finalizar a parceria.</p>
+
+                <!-- Progress bar -->
+                <div class="success-progress">
+                    <div class="success-progress-fill" id="successProgressFill"></div>
+                </div>
+
+                <!-- Step cards -->
+                <div class="success-steps">
+                    <!-- Passo 1 - GDAP -->
+                    <div class="success-step" id="successStep1">
+                        <div class="success-step-top">
+                            <span class="success-step-badge blue">Passo 1</span>
+                            <span class="success-step-label">Autorizar BluePartner</span>
+                        </div>
+                        <div class="success-step-body">
+                            <div class="success-step-icon-wrap blue">
+                                <i data-lucide="eye"></i>
+                            </div>
+                            <div class="success-step-text">
+                                <div class="success-step-desc">Concede permissão de leitura de licenças. Nenhuma alteração pode ser feita.</div>
+                                <button class="success-step-btn btn-blue" id="btnGdap" onclick="openGdapLink()">Abrir Partner Center →</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Passo 2 - Revenda -->
+                    <div class="success-step" id="successStep2">
+                        <div class="success-step-top">
+                            <span class="success-step-badge purple">Passo 2</span>
+                            <span class="success-step-label" id="revendaStepLabel">Aceitar Parceria</span>
+                        </div>
+                        <div class="success-step-body">
+                            <div class="success-step-icon-wrap purple">
+                                <i data-lucide="handshake"></i>
+                            </div>
+                            <div class="success-step-text">
+                                <div class="success-step-desc" id="revendaStepDesc">Vincula sua empresa ao distribuidor Microsoft autorizado.</div>
+                                <button class="success-step-btn btn-purple" id="btnRevenda" disabled onclick="openRevendaLink()">Abrir <span id="revendaStepName"></span> →</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- All done -->
+                <div class="success-all-done" id="allDoneText">
+                    <i data-lucide="check-circle"></i>
+                    Tudo pronto! Obrigado por aceitar a parceria.
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="success-footer">
+                <div class="success-footer-line1">
+                    <i data-lucide="shield"></i>
+                    Todos os links redirecionam para o portal oficial Microsoft
+                </div>
+                <div class="success-footer-line2">Microsoft Partner ID verificado · BluePartner LTDA</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFETTI -->
+    <div class="confetti-container" id="confettiContainer"></div>
+
+    <!-- FOOTER -->
+    <footer class="footer" role="contentinfo">
+        <div class="footer-brand">Blue<span>Partner</span></div>
+        <div class="footer-desc">Única consultoria do Brasil especialista no Microsoft AI Cloud Partner Program.<br>Parceiro Certificado Microsoft Solutions — Modern Work SMB.</div>
+        <div class="footer-links">
+            <a class="footer-link" href="https://bluepartner.com.br" target="_blank" rel="noopener">🌐 Site</a>
+            <a class="footer-link" href="https://wa.me/5547988321879?text=Olá%20BluePartner!" target="_blank" rel="noopener">📱 WhatsApp</a>
+            <a class="footer-link" href="mailto:contato@bluepartner.com.br">📧 E-mail</a>
+            <a class="footer-link" href="https://www.linkedin.com/company/bluepartnerit/" target="_blank" rel="noopener">💼 LinkedIn</a>
+            <a class="footer-link" href="https://www.instagram.com/bluepartner.it/" target="_blank" rel="noopener">📷 Instagram</a>
+        </div>
+        <div class="footer-copy">© 2026 BluePartner · Rua São Paulo, 600 – Sala 5 · Blumenau, SC · Todos os direitos reservados</div>
+    </footer>
+
+    <script>
+    const CONFIG = {
+        REVENDA_LINKS: {
+            ingram: 'https://admin.microsoft.com/Adminportal/Home?invType=IndirectResellerRelationship&partnerId=fd711286-496a-49d4-a9e7-056fe461f9db&msppId=4817772&indirectCSPId=4e3ecce0-5bc3-42d1-a51e-3357bbbf721e#/BillingAccounts/partner-invitation',
+            tds: 'https://admin.microsoft.com/Adminportal/Home?invType=IndirectResellerRelationship&partnerId=fd711286-496a-49d4-a9e7-056fe461f9db&msppId=4817772&indirectCSPId=34851c42-87d2-423d-8fac-537b0e6f133b#/BillingAccounts/partner-invitation'
+        },
+        REVENDA_NAMES: { ingram: 'Ingram Micro', tds: 'TD SYNNEX' },
+        API_BASE: '',
+        INACTIVITY_TIMEOUT: 5 * 60 * 1000,
+        REDIRECT_DELAY: 3000
+    };
+
+    let pedidoId = null, tokenUnico = null, revenda = null;
+    let inactivityTimer = null, pedidoData = null;
+
+    // Header scroll effect
+    window.addEventListener('scroll', () => {
+        document.getElementById('pageHeader').classList.toggle('scrolled', window.scrollY > 10);
+    }, { passive: true });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        parseURL();
+        if (!pedidoId || !tokenUnico || !revenda) {
+            showError('Link incompleto', 'Verifique se copiou o endereço completo do link de validação.');
+            return;
+        }
+        if (!CONFIG.REVENDA_LINKS[revenda]) {
+            showError('Distribuidor não reconhecido', 'O distribuidor informado não é suportado. Use o link original enviado a você.');
+            return;
+        }
+        loadPedido();
+        startInactivityTimer();
+        setupActivityListeners();
+    });
+
+    function parseURL() {
+        const params = new URLSearchParams(window.location.search);
+        revenda = (params.get('revenda') || '').toLowerCase();
+        const path = window.location.pathname.replace(/\/$/, '');
+        const segments = path.split('/').filter(Boolean);
+        if (segments.length >= 2) {
+            if (segments[0] === 'validar' && segments.length >= 3) {
+                pedidoId = segments[1]; tokenUnico = segments[2];
+            } else {
+                pedidoId = segments[segments.length - 2]; tokenUnico = segments[segments.length - 1];
+            }
+        }
+        if (!pedidoId) pedidoId = params.get('pedidoId');
+        if (!tokenUnico) tokenUnico = params.get('token');
+        if (!revenda) revenda = 'ingram';
+    }
+
+    async function loadPedido() {
+        function completeStep(stepId) {
+            const step = document.getElementById(stepId);
+            if (!step) return;
+            step.classList.remove('active'); step.classList.add('done');
+            step.querySelector('.loading-step-icon').innerHTML = '✓';
+        }
+        function activateStep(stepId) {
+            const step = document.getElementById(stepId);
+            if (!step) return;
+            step.classList.add('active');
+            step.querySelector('.loading-step-icon').innerHTML = '<div class="loading-step-spinner"></div>';
+        }
+
+        try {
+            await new Promise(r => setTimeout(r, 600));
+            completeStep('loadStep1'); activateStep('loadStep2');
+
+            const res = await fetch(`${CONFIG.API_BASE}/api/pedido/${encodeURIComponent(pedidoId)}/${encodeURIComponent(tokenUnico)}`);
+            await new Promise(r => setTimeout(r, 500));
+            completeStep('loadStep2'); activateStep('loadStep3');
+
+            if (res.ok) {
+                pedidoData = await res.json();
+            } else {
+                showError('Pedido não encontrado', 'O pedido informado não existe ou o link já expirou.');
+                return;
+            }
+
+            await new Promise(r => setTimeout(r, 400));
+            completeStep('loadStep3');
+            await new Promise(r => setTimeout(r, 300));
+        } catch {
+            showError('Erro de conexão', 'Não foi possível carregar os dados. Verifique sua conexão e tente novamente.');
+            return;
+        }
+        renderContent();
+    }
+
+    function renderContent() {
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('mainContent').classList.add('show');
+        document.getElementById('progressBarWrap').style.display = 'block';
+        document.getElementById('pedidoIdDisplay').textContent = pedidoId;
+
+        // Show client name
+        if (pedidoData && pedidoData.cliente) {
+            document.getElementById('clienteDisplay').textContent = pedidoData.cliente;
+            document.getElementById('clientRow').style.display = 'block';
+        }
+
+        // Show partial CNPJ hint
+        if (pedidoData && pedidoData.cnpj) {
+            const raw = pedidoData.cnpj.replace(/\D/g, '');
+            if (raw.length >= 6) {
+                const partial = raw.slice(0, 2) + '.' + raw.slice(2, 5) + '.***/**** -**';
+                document.getElementById('cnpjPartial').textContent = partial;
+                document.getElementById('cnpjExpectedHint').style.display = 'flex';
+            }
+        }
+
+        const rn = CONFIG.REVENDA_NAMES[revenda] || revenda;
+        document.getElementById('revendaName').textContent = rn;
+        const tag = document.getElementById('revendaTag');
+        tag.textContent = rn;
+        tag.className = 'revenda-tag ' + revenda;
+
+        setupCnpjInput();
+        updateProgressBar();
+    }
+
+    function setupCnpjInput() {
+        const input = document.getElementById('cnpjInput');
+        const error = document.getElementById('cnpjError');
+        const success = document.getElementById('cnpjSuccess');
+
+        input.addEventListener('input', function(e) {
+            let v = e.target.value.replace(/\D/g, '');
+            if (v.length > 14) v = v.slice(0, 14);
+            if (v.length > 12) v = v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d+)/, '$1.$2.$3/$4-$5');
+            else if (v.length > 8) v = v.replace(/(\d{2})(\d{3})(\d{3})(\d+)/, '$1.$2.$3/$4');
+            else if (v.length > 5) v = v.replace(/(\d{2})(\d{3})(\d+)/, '$1.$2.$3');
+            else if (v.length > 2) v = v.replace(/(\d{2})(\d+)/, '$1.$2');
+            e.target.value = v;
+
+            const digits = v.replace(/\D/g, '');
+            input.classList.remove('valid', 'invalid');
+            error.classList.remove('show');
+            success.classList.remove('show');
+
+            if (digits.length === 14) {
+                const expected = pedidoData && pedidoData.cnpj ? pedidoData.cnpj.replace(/\D/g, '') : '';
+                if (digits === expected) {
+                    input.classList.add('valid');
+                    success.classList.add('show');
+                    toggleButton();
+                    updateProgressBar();
+                } else {
+                    input.classList.add('invalid');
+                    error.classList.add('show');
+                    toggleButton();
+                }
+            } else {
+                toggleButton();
+            }
+        });
+    }
+
+    function toggleCheckbox() {
+        const cb = document.getElementById('agreementCheckbox');
+        cb.checked = !cb.checked;
+        toggleButton();
+    }
+
+    function toggleButton() {
+        const checked = document.getElementById('agreementCheckbox').checked;
+        const cnpjDigits = document.getElementById('cnpjInput').value.replace(/\D/g, '');
+        const expected = pedidoData && pedidoData.cnpj ? pedidoData.cnpj.replace(/\D/g, '') : '';
+        const cnpjValid = cnpjDigits.length === 14 && cnpjDigits === expected;
+        document.getElementById('ctaButton').disabled = !(checked && cnpjValid);
+        document.getElementById('agreementSection').classList.toggle('checked', checked);
+        updateProgressBar();
+    }
+
+    function updateProgressBar() {
+        const cnpjDigits = document.getElementById('cnpjInput')?.value.replace(/\D/g, '') || '';
+        const expected = pedidoData && pedidoData.cnpj ? pedidoData.cnpj.replace(/\D/g, '') : '';
+        const cnpjOk = cnpjDigits.length === 14 && cnpjDigits === expected;
+        const checked = document.getElementById('agreementCheckbox')?.checked || false;
+
+        const s1 = document.getElementById('progStep1');
+        const s2 = document.getElementById('progStep2');
+        const s3 = document.getElementById('progStep3');
+        if (!s1) return;
+
+        s1.className = 'progress-step ' + (cnpjOk ? 'done' : 'active');
+        s1.querySelector('.progress-dot').innerHTML = cnpjOk ? '✓' : '1';
+
+        s2.className = 'progress-step ' + (cnpjOk && checked ? 'done' : (cnpjOk ? 'active' : ''));
+        s2.querySelector('.progress-dot').innerHTML = cnpjOk && checked ? '✓' : '2';
+
+        s3.className = 'progress-step' + (cnpjOk && checked ? ' active' : '');
+    }
+
+    function launchConfetti() {
+        const container = document.getElementById('confettiContainer');
+        const colors = ['#00AEEF', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#0077B6'];
+        for (let i = 0; i < 80; i++) {
+            const piece = document.createElement('div');
+            piece.className = 'confetti-piece';
+            piece.style.left = Math.random() * 100 + '%';
+            piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+            const size = 6 + Math.random() * 10;
+            piece.style.width = size + 'px';
+            piece.style.height = size + 'px';
+            piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '3px';
+            piece.style.animationDuration = (2 + Math.random() * 2.5) + 's';
+            piece.style.animationDelay = Math.random() * 1 + 's';
+            container.appendChild(piece);
+        }
+        setTimeout(() => { container.innerHTML = ''; }, 6000);
+    }
+
+    let gdapDone = false, revendaDone = false;
+
+    async function handleConfirm() {
+        if (!document.getElementById('agreementCheckbox').checked) return;
+        const cnpjValue = document.getElementById('cnpjInput').value;
+
+        const btn = document.getElementById('ctaButton');
+        btn.disabled = true;
+        btn.innerHTML = '<div class="spinner-sm"></div> Processando...';
+
+        try {
+            fetch(CONFIG.API_BASE + '/api/validar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    pedidoId, token: tokenUnico, revenda,
+                    cnpj: cnpjValue,
+                    timestamp: new Date().toISOString(),
+                    status: 'VALIDADO'
+                })
+            }).catch(() => {});
+
+            // Preenche nome da revenda nos elementos
+            const rn = CONFIG.REVENDA_NAMES[revenda] || revenda;
+            document.getElementById('revendaStepName').textContent = rn;
+            document.getElementById('revendaStepLabel').textContent = `Aceitar Parceria ${rn}`;
+            document.getElementById('revendaStepDesc').textContent = `Vincula sua empresa ao distribuidor ${rn} (Microsoft autorizado).`;
+
+            document.getElementById('successOverlay').classList.add('show');
+            // Render Lucide icons inside modal
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            launchConfetti();
+        } catch {
+            btn.disabled = false;
+            btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="white"/></svg> Confirmar e Prosseguir';
+        }
+    }
+
+    function openGdapLink() {
+        // Usa o link GDAP exclusivo deste pedido (gerado na criação)
+        const gdapUrl = pedidoData && pedidoData.gdapLink;
+        if (!gdapUrl) {
+            alert('Link GDAP não disponível para este pedido. Entre em contato com a BluePartner.');
+            return;
+        }
+        window.open(gdapUrl, '_blank');
+        gdapDone = true;
+
+        const step1 = document.getElementById('successStep1');
+        step1.classList.add('done');
+
+        const gdapBtn = document.getElementById('btnGdap');
+        gdapBtn.disabled = true;
+        gdapBtn.className = 'success-step-btn btn-done';
+        gdapBtn.innerHTML = '<i data-lucide="check" style="width:14px;height:14px;"></i> Autorizado';
+
+        // Progress bar → 50%
+        document.getElementById('successProgressFill').classList.add('half');
+
+        // Enable step 2
+        document.getElementById('btnRevenda').disabled = false;
+
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+        checkAllDone();
+    }
+
+    function openRevendaLink() {
+        window.open(CONFIG.REVENDA_LINKS[revenda], '_blank');
+        revendaDone = true;
+
+        const step2 = document.getElementById('successStep2');
+        step2.classList.add('done');
+
+        const revendaBtn = document.getElementById('btnRevenda');
+        revendaBtn.disabled = true;
+        revendaBtn.className = 'success-step-btn btn-done';
+        const rn = CONFIG.REVENDA_NAMES[revenda] || revenda;
+        revendaBtn.innerHTML = '<i data-lucide="check" style="width:14px;height:14px;"></i> Parceria ' + rn + ' Aceita';
+
+        // Progress bar → 100% green
+        const fill = document.getElementById('successProgressFill');
+        fill.classList.remove('half');
+        fill.classList.add('full');
+
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+        checkAllDone();
+    }
+
+    function checkAllDone() {
+        if (gdapDone && revendaDone) {
+            document.getElementById('allDoneText').classList.add('show');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            launchConfetti();
+        }
+    }
+
+    function showError(title, msg) {
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('errorTitle').textContent = title;
+        document.getElementById('errorMessage').textContent = msg;
+        document.getElementById('errorState').style.display = 'flex';
+    }
+
+    function startInactivityTimer() {
+        clearTimeout(inactivityTimer);
+        document.getElementById('timeoutBanner').classList.remove('show');
+        inactivityTimer = setTimeout(() => document.getElementById('timeoutBanner').classList.add('show'), CONFIG.INACTIVITY_TIMEOUT);
+    }
+    function resetTimeout() { startInactivityTimer(); }
+    function setupActivityListeners() {
+        ['click','mousemove','keydown','scroll','touchstart'].forEach(e => {
+            document.addEventListener(e, () => {
+                if (!document.getElementById('timeoutBanner').classList.contains('show')) startInactivityTimer();
+            }, { passive: true });
+        });
+    }
+    </script>
+</body>
+</html>
