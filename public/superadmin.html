@@ -176,7 +176,7 @@
         /* ===== STATS ===== */
         .stats-bar {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 16px; margin-bottom: 24px;
         }
         .stat-card {
@@ -194,6 +194,7 @@
         .stat-card:nth-child(1)::before { background: var(--green); }
         .stat-card:nth-child(2)::before { background: var(--orange); }
         .stat-card:nth-child(3)::before { background: var(--purple); }
+        .stat-card:nth-child(4)::before { background: var(--blue); }
         .stat-label { font-size: 12px; color: var(--gray-500); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
         .stat-value { font-size: 28px; font-weight: 800; color: var(--gray-800); }
 
@@ -304,9 +305,27 @@
         .tab:hover:not(.active) { color: var(--gray-700); }
 
         @media (max-width: 640px) {
-            .stats-bar { grid-template-columns: 1fr; }
+            .stats-bar { grid-template-columns: 1fr 1fr; }
             .page { padding: 16px; }
         }
+
+        /* ===== REVENDAS TABLE ===== */
+        .rvd-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .rvd-table th { 
+            background: var(--purple-50); padding: 10px 14px; text-align: left;
+            font-weight: 700; color: var(--gray-500); font-size: 11px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        .rvd-table td { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; }
+        .rvd-table tr:hover td { background: var(--purple-50); }
+        .rvd-bar {
+            height: 6px; border-radius: 3px; background: var(--gray-100);
+            overflow: hidden; min-width: 60px;
+        }
+        .rvd-bar-fill { height: 100%; border-radius: 3px; background: var(--purple); transition: width 0.3s; }
+        .rvd-badge-active { background: var(--green-light); color: var(--green-dark); }
+        .rvd-badge-inactive { background: var(--red-light); color: var(--red); }
     </style>
 </head>
 <body>
@@ -374,7 +393,89 @@
                 <div class="stat-label">Total no Banco</div>
                 <div class="stat-value" id="statTotal" style="color:var(--purple)">--</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-label">Revendas Ativas</div>
+                <div class="stat-value" id="statRevendas" style="color:var(--blue)">--</div>
+            </div>
         </div>
+
+        <!-- MAIN TABS -->
+        <div class="tabs" id="mainTabs" style="margin-bottom:20px">
+            <button class="tab active" onclick="switchMainTab('gdap')">Links GDAP</button>
+            <button class="tab" onclick="switchMainTab('revendas')">Revendas</button>
+        </div>
+
+        <!-- ===== REVENDAS TAB ===== -->
+        <div id="revendasTab" style="display:none">
+
+            <!-- ADD REVENDA -->
+            <div class="section" style="border-left: 3px solid var(--blue)">
+                <div class="section-header">
+                    <i data-lucide="store" style="stroke:var(--blue)"></i>
+                    Cadastrar Revenda
+                </div>
+                <div class="section-body">
+                    <div style="margin-bottom:14px;font-size:13px;color:#64748b">
+                        Cadastre as revendas parceiras. Ao gerar um link de validação, o admin escolhe a revenda associada (essa informação fica oculta para o cliente final).
+                    </div>
+                    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+                        <div class="form-input-wrap" style="flex:2;min-width:200px">
+                            <i data-lucide="building-2"></i>
+                            <input class="form-input" id="revendaNomeInput" type="text" placeholder="Nome da revenda">
+                        </div>
+                        <div class="form-input-wrap" style="flex:1;min-width:150px">
+                            <i data-lucide="user"></i>
+                            <input class="form-input" id="revendaContatoInput" type="text" placeholder="Contato (opcional)">
+                        </div>
+                        <div class="form-input-wrap" style="flex:1;min-width:150px">
+                            <i data-lucide="mail"></i>
+                            <input class="form-input" id="revendaEmailInput" type="email" placeholder="E-mail (opcional)">
+                        </div>
+                        <button class="btn btn-primary" onclick="addRevenda()" style="white-space:nowrap"><i data-lucide="plus"></i> Adicionar</button>
+                    </div>
+
+                    <!-- Bulk import -->
+                    <details style="margin-top:8px">
+                        <summary style="cursor:pointer;font-size:13px;color:var(--blue);font-weight:600;user-select:none">
+                            Importar várias revendas de uma vez
+                        </summary>
+                        <div style="margin-top:10px">
+                            <textarea class="form-input" id="revendaBulkInput" placeholder="Cole os nomes das revendas (um por linha)" rows="4" style="font-size:12px;resize:vertical;width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px"></textarea>
+                            <button class="btn btn-primary btn-sm" onclick="importRevendas()" style="margin-top:8px"><i data-lucide="upload"></i> Importar Lote</button>
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+            <!-- REVENDAS DASHBOARD -->
+            <div class="section">
+                <div class="section-header">
+                    <i data-lucide="bar-chart-3" style="stroke:var(--purple)"></i>
+                    Dashboard de Revendas
+                    <span class="badge badge-done" id="revendasBadge" style="margin-left:8px">0 revendas</span>
+                    <div style="margin-left:auto;display:flex;gap:8px">
+                        <div class="tabs" id="revendasTabs">
+                            <button class="tab active" onclick="filterRevendas('todas')">Todas</button>
+                            <button class="tab" onclick="filterRevendas('ativas')">Ativas</button>
+                            <button class="tab" onclick="filterRevendas('inativas')">Inativas</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <div style="margin-bottom:12px">
+                        <div class="form-input-wrap" style="max-width:300px">
+                            <i data-lucide="search"></i>
+                            <input class="form-input" id="revendaSearchInput" type="text" placeholder="Buscar revenda..." oninput="renderRevendas()">
+                        </div>
+                    </div>
+                    <div id="revendasList"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ===== GDAP TAB ===== -->
+        <div id="gdapTab">
 
         <!-- ADD LINKS -->
         <div class="section" style="border-left: 3px solid var(--purple)">
@@ -430,6 +531,8 @@
         </div>
 
         <!-- DANGER ZONE -->
+        </div> <!-- end gdapTab -->
+
         <div class="section" style="border-left: 3px solid var(--red)">
             <div class="section-header">
                 <i data-lucide="alert-triangle" style="stroke:var(--red)"></i>
@@ -456,6 +559,8 @@
     let authToken = localStorage.getItem(TOKEN_KEY);
     let allPoolLinks = [];
     let currentFilter = 'todos';
+    let allRevendas = [];
+    let revendasFilter = 'todas';
 
     // ===== AUTH =====
     function showLogin() {
@@ -529,6 +634,7 @@
 
     function initDashboard() {
         loadPool();
+        loadRevendasDashboard();
     }
 
     checkAuth();
@@ -666,6 +772,178 @@
             if (res.ok) {
                 showToast(data.message || 'Links usados removidos');
                 loadPool();
+            } else {
+                showToast(data.error || 'Erro');
+            }
+        } catch { showToast('Erro de conexão'); }
+    }
+
+    // ===== TAB SWITCHING =====
+    function switchMainTab(tab) {
+        document.querySelectorAll('#mainTabs .tab').forEach(t => t.classList.remove('active'));
+        event.target.classList.add('active');
+        document.getElementById('gdapTab').style.display = tab === 'gdap' ? 'block' : 'none';
+        document.getElementById('revendasTab').style.display = tab === 'revendas' ? 'block' : 'none';
+    }
+
+    // ===== REVENDAS =====
+    async function loadRevendasDashboard() {
+        try {
+            const res = await authFetch(API_BASE + '/api/revendas/dashboard');
+            const data = await res.json();
+            allRevendas = data.revendas || [];
+
+            document.getElementById('statRevendas').textContent = data.ativas || 0;
+
+            const badge = document.getElementById('revendasBadge');
+            badge.textContent = (data.totalRevendas || 0) + ' revenda' + ((data.totalRevendas || 0) !== 1 ? 's' : '');
+
+            renderRevendas();
+        } catch (err) {
+            document.getElementById('revendasList').innerHTML = '<div style="color:red;font-size:13px;padding:12px">Erro ao carregar revendas</div>';
+        }
+    }
+
+    function filterRevendas(filter) {
+        revendasFilter = filter;
+        document.querySelectorAll('#revendasTabs .tab').forEach(t => t.classList.remove('active'));
+        event.target.classList.add('active');
+        renderRevendas();
+    }
+
+    function renderRevendas() {
+        const list = document.getElementById('revendasList');
+        let filtered = [...allRevendas];
+        
+        if (revendasFilter === 'ativas') filtered = filtered.filter(r => r.ativo);
+        if (revendasFilter === 'inativas') filtered = filtered.filter(r => !r.ativo);
+
+        const search = (document.getElementById('revendaSearchInput')?.value || '').toLowerCase();
+        if (search) {
+            filtered = filtered.filter(r => 
+                r.nome.toLowerCase().includes(search) || 
+                (r.contato || '').toLowerCase().includes(search) ||
+                (r.email || '').toLowerCase().includes(search)
+            );
+        }
+
+        if (!filtered.length) {
+            list.innerHTML = '<div class="empty-state"><i data-lucide="store"></i><p>Nenhuma revenda encontrada.</p></div>';
+            reinitIcons();
+            return;
+        }
+
+        const maxPedidos = Math.max(1, ...filtered.map(r => r.total_pedidos || 0));
+
+        list.innerHTML = `<table class="rvd-table">
+            <thead><tr>
+                <th>Revenda</th>
+                <th>Contato</th>
+                <th>E-mail</th>
+                <th>Pedidos</th>
+                <th>Validados</th>
+                <th>Pendentes</th>
+                <th></th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr></thead>
+            <tbody>
+            ${filtered.map(r => {
+                const pct = maxPedidos > 0 ? Math.round(((r.total_pedidos || 0) / maxPedidos) * 100) : 0;
+                const statusBadge = r.ativo 
+                    ? '<span class="badge rvd-badge-active">Ativa</span>'
+                    : '<span class="badge rvd-badge-inactive">Inativa</span>';
+                return `<tr>
+                    <td style="font-weight:600;color:var(--gray-800)">${esc(r.nome)}</td>
+                    <td style="font-size:12px;color:var(--gray-500)">${esc(r.contato || '—')}</td>
+                    <td style="font-size:12px;color:var(--gray-500)">${esc(r.email || '—')}</td>
+                    <td style="font-weight:700;color:var(--purple)">${r.total_pedidos || 0}</td>
+                    <td style="font-size:12px;color:var(--green)">${r.validados || 0}</td>
+                    <td style="font-size:12px;color:var(--orange)">${r.pendentes || 0}</td>
+                    <td><div class="rvd-bar"><div class="rvd-bar-fill" style="width:${pct}%"></div></div></td>
+                    <td>${statusBadge}</td>
+                    <td style="display:flex;gap:4px">
+                        <button class="btn btn-sm btn-outline" onclick="toggleRevenda(${r.id}, ${r.ativo ? 0 : 1})" title="${r.ativo ? 'Desativar' : 'Ativar'}">
+                            <i data-lucide="${r.ativo ? 'eye-off' : 'eye'}" style="width:12px;height:12px"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteRevenda(${r.id}, '${esc(r.nome)}')" title="Remover">
+                            <i data-lucide="trash-2" style="width:12px;height:12px"></i>
+                        </button>
+                    </td>
+                </tr>`;
+            }).join('')}
+            </tbody>
+        </table>`;
+        reinitIcons();
+    }
+
+    async function addRevenda() {
+        const nome = document.getElementById('revendaNomeInput').value.trim();
+        const contato = document.getElementById('revendaContatoInput').value.trim();
+        const email = document.getElementById('revendaEmailInput').value.trim();
+        if (!nome) { showToast('Informe o nome da revenda'); return; }
+        try {
+            const res = await authFetch(API_BASE + '/api/revendas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome, contato, email })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast('Revenda adicionada: ' + nome);
+                document.getElementById('revendaNomeInput').value = '';
+                document.getElementById('revendaContatoInput').value = '';
+                document.getElementById('revendaEmailInput').value = '';
+                loadRevendasDashboard();
+            } else {
+                showToast(data.error || 'Erro ao adicionar');
+            }
+        } catch { showToast('Erro de conexão'); }
+    }
+
+    async function importRevendas() {
+        const text = document.getElementById('revendaBulkInput').value;
+        const nomes = text.split('\n').map(l => l.trim()).filter(l => l);
+        if (!nomes.length) { showToast('Nenhum nome informado'); return; }
+        try {
+            const res = await authFetch(API_BASE + '/api/revendas/importar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nomes })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast(data.message || 'Revendas importadas!');
+                document.getElementById('revendaBulkInput').value = '';
+                loadRevendasDashboard();
+            } else {
+                showToast(data.error || 'Erro');
+            }
+        } catch { showToast('Erro de conexão'); }
+    }
+
+    async function toggleRevenda(id, ativo) {
+        try {
+            const res = await authFetch(API_BASE + '/api/revendas/' + id, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ativo: !!ativo })
+            });
+            if (res.ok) {
+                showToast(ativo ? 'Revenda ativada' : 'Revenda desativada');
+                loadRevendasDashboard();
+            }
+        } catch { showToast('Erro de conexão'); }
+    }
+
+    async function deleteRevenda(id, nome) {
+        if (!confirm('Remover a revenda "' + nome + '"?')) return;
+        try {
+            const res = await authFetch(API_BASE + '/api/revendas/' + id, { method: 'DELETE' });
+            const data = await res.json();
+            if (res.ok) {
+                showToast('Revenda removida');
+                loadRevendasDashboard();
             } else {
                 showToast(data.error || 'Erro');
             }

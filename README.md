@@ -249,3 +249,5 @@ Todos os aceites são logados permanentemente com:
 - `status` - VALIDADO
 
 Consulte logs via API (`GET /api/logs/:pedidoId`) ou terminal (`npm run logs`).
+
+Add revendas cada revenda e nova permissão de semelhante ao leitor global(estudar qual é!!).

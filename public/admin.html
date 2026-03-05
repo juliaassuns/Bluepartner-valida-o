@@ -831,7 +831,7 @@
             </div>
             <div class="stat-card">
                 <div class="stat-header">
-                    <div class="stat-label">Ingram / TDS</div>
+                    <div class="stat-label">Distribuidores</div>
                     <div class="stat-icon purple"><i data-lucide="building-2"></i></div>
                 </div>
                 <div class="stat-value" id="statRevenda" style="font-size: 24px; letter-spacing: -0.5px;">-- / --</div>
@@ -871,6 +871,15 @@
                             <select class="form-select" id="inputRevenda">
                                 <option value="ingram">Ingram Micro</option>
                                 <option value="tds">TD SYNNEX</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Revenda</label>
+                        <div class="form-input-wrap">
+                            <i data-lucide="store"></i>
+                            <select class="form-select" id="inputRevendaNome">
+                                <option value="">-- Selecione --</option>
                             </select>
                         </div>
                     </div>
@@ -947,6 +956,7 @@
                                 <th>Pedido</th>
                                 <th>Cliente</th>
                                 <th>CNPJ</th>
+                                <th>Distribuidor</th>
                                 <th>Revenda</th>
                                 <th>Status</th>
                                 <th>Licenças</th>
@@ -955,7 +965,7 @@
                             </tr>
                         </thead>
                         <tbody id="pedidosBody">
-                            <tr><td colspan="8" class="empty-state">
+                            <tr><td colspan="9" class="empty-state">
                                 <div class="empty-state-icon"><i data-lucide="clipboard-list"></i></div>
                                 <div class="empty-state-text">Carregando pedidos...</div>
                             </td></tr>
@@ -1013,6 +1023,15 @@
                             <select class="form-select" id="editRevenda">
                                 <option value="ingram">Ingram Micro</option>
                                 <option value="tds">TD SYNNEX</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Revenda</label>
+                        <div class="form-input-wrap">
+                            <i data-lucide="store"></i>
+                            <select class="form-select" id="editRevendaNome">
+                                <option value="">-- Selecione --</option>
                             </select>
                         </div>
                     </div>
@@ -1131,6 +1150,7 @@
 
     function initDashboard() {
         loadGdapStatus();
+        loadRevendasDropdown();
         loadPedidos();
         startAutoRefresh();
     }
@@ -1181,11 +1201,29 @@
         }
     }
 
+    // ===== LOAD REVENDAS DROPDOWN =====
+    async function loadRevendasDropdown() {
+        try {
+            const res = await authFetch(API_BASE + '/api/revendas/ativas');
+            const data = await res.json();
+            const revendas = data.revendas || [];
+
+            const options = '<option value="">-- Selecione --</option>' +
+                revendas.map(r => `<option value="${esc(r.nome)}">${esc(r.nome)}</option>`).join('');
+
+            document.getElementById('inputRevendaNome').innerHTML = options;
+            document.getElementById('editRevendaNome').innerHTML = options;
+        } catch (err) {
+            console.error('Erro ao carregar revendas:', err);
+        }
+    }
+
     // ===== CRIAR PEDIDO =====
     async function criarPedido() {
         const cliente = document.getElementById('inputCliente').value.trim();
         const cnpj = document.getElementById('inputCnpj').value.trim();
         const revenda = document.getElementById('inputRevenda').value;
+        const revenda_nome = document.getElementById('inputRevendaNome').value;
 
         if (!cliente || !cnpj) {
             showToast('Preencha todos os campos obrigatórios');
@@ -1201,7 +1239,7 @@
             const res = await authFetch(API_BASE + '/api/pedidos', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ cliente, cnpj, revenda })
+                body: JSON.stringify({ cliente, cnpj, revenda, revenda_nome })
             });
             const data = await res.json();
 
@@ -1353,6 +1391,7 @@
                 p.cliente.toLowerCase().includes(q) ||
                 p.cnpj.toLowerCase().includes(q) ||
                 p.revenda.toLowerCase().includes(q) ||
+                (p.revenda_nome || '').toLowerCase().includes(q) ||
                 p.status.toLowerCase().includes(q)
             );
         }
@@ -1425,6 +1464,7 @@
             document.getElementById('editCliente').value = data.cliente;
             document.getElementById('editCnpj').value = data.cnpj;
             document.getElementById('editRevenda').value = data.revenda;
+            document.getElementById('editRevendaNome').value = data.revenda_nome || '';
             document.getElementById('editGdapLink').value = data.gdap_link || '';
             document.getElementById('editModalTitle').innerHTML = '<i data-lucide="pencil"></i> Editar — ' + esc(data.pedido_id);
             document.getElementById('editModal').classList.add('show');
@@ -1443,6 +1483,7 @@
         const cliente = document.getElementById('editCliente').value.trim();
         const cnpj = document.getElementById('editCnpj').value.trim();
         const revenda = document.getElementById('editRevenda').value;
+        const revenda_nome = document.getElementById('editRevendaNome').value;
         const gdapLink = document.getElementById('editGdapLink').value.trim();
 
         if (!cliente || !cnpj) {
@@ -1454,7 +1495,7 @@
             const res = await authFetch(API_BASE + '/api/pedidos/' + pedidoId, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ cliente, cnpj, revenda, gdapLink })
+                body: JSON.stringify({ cliente, cnpj, revenda, revenda_nome, gdapLink })
             });
             const data = await res.json();
             if (res.ok) {
@@ -1740,12 +1781,13 @@
             return;
         }
 
-        const headers = ['Pedido', 'Cliente', 'CNPJ', 'Revenda', 'Status', 'Licenças', 'Criado em', 'Atualizado em'];
+        const headers = ['Pedido', 'Cliente', 'CNPJ', 'Distribuidor', 'Revenda', 'Status', 'Licenças', 'Criado em', 'Atualizado em'];
         const rows = allPedidos.map(p => [
             p.pedido_id,
             `"${(p.cliente || '').replace(/"/g, '""')}"`,
             p.cnpj,
             p.revenda === 'ingram' ? 'Ingram Micro' : 'TD SYNNEX',
+            `"${(p.revenda_nome || '').replace(/"/g, '""')}"`,
             p.status,
             licencasCache[p.pedido_id] || 0,
             p.criado_em ? new Date(p.criado_em).toLocaleString('pt-BR') : '',

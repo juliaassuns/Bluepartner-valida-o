@@ -332,7 +332,7 @@ app.post('/api/validar', async (req, res) => {
  */
 app.post('/api/pedidos', requireAuth, async (req, res) => {
     try {
-        const { cliente, cnpj, revenda } = req.body;
+        const { cliente, cnpj, revenda, revenda_nome } = req.body;
 
         if (!cliente || !cnpj) {
             return res.status(400).json({ error: 'Nome do cliente e CNPJ são obrigatórios' });
@@ -340,8 +340,10 @@ app.post('/api/pedidos', requireAuth, async (req, res) => {
 
         const revendaVal = (revenda || 'ingram').toLowerCase();
         if (!['ingram', 'tds'].includes(revendaVal)) {
-            return res.status(400).json({ error: 'Revenda deve ser "ingram" ou "tds"' });
+            return res.status(400).json({ error: 'Distribuidor deve ser "ingram" ou "tds"' });
         }
+
+        const revendaNome = (revenda_nome || '').trim();
 
         // Gera pedidoId com componente aleatório (não sequencial)
         const ts = Date.now().toString(36);
@@ -388,11 +390,11 @@ app.post('/api/pedidos', requireAuth, async (req, res) => {
         }
 
         await dbRun(
-            'INSERT INTO pedidos (pedido_id, token, cliente, cnpj, revenda, gdap_link, gdap_relationship_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [pedidoId, token, cliente.trim(), cnpj.trim(), revendaVal, gdapLink, gdapRelationshipId]
+            'INSERT INTO pedidos (pedido_id, token, cliente, cnpj, revenda, revenda_nome, gdap_link, gdap_relationship_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [pedidoId, token, cliente.trim(), cnpj.trim(), revendaVal, revendaNome, gdapLink, gdapRelationshipId]
         );
 
-        console.log(`📋 Novo pedido criado: ${pedidoId} → ${cliente} (${revendaVal})`);
+        console.log(`📋 Novo pedido criado: ${pedidoId} → ${cliente} (${revendaVal}) [Revenda: ${revendaNome || 'N/A'}]`);
 
         res.json({
             success: true,
@@ -401,6 +403,7 @@ app.post('/api/pedidos', requireAuth, async (req, res) => {
             cliente: cliente.trim(),
             cnpj: cnpj.trim(),
             revenda: revendaVal,
+            revenda_nome: revendaNome,
             gdapLink,
             link: `/?pedidoId=${pedidoId}&token=${token}&revenda=${revendaVal}`
         });
@@ -417,7 +420,7 @@ app.post('/api/pedidos', requireAuth, async (req, res) => {
 app.get('/api/pedido-completo/:pedidoId', requireAuth, async (req, res) => {
     try {
         const pedido = await dbGet(
-            'SELECT pedido_id, token, cliente, cnpj, revenda, status, gdap_link FROM pedidos WHERE pedido_id = ?',
+            'SELECT pedido_id, token, cliente, cnpj, revenda, revenda_nome, status, gdap_link FROM pedidos WHERE pedido_id = ?',
             [req.params.pedidoId]
         );
         if (!pedido) return res.status(404).json({ error: 'Não encontrado' });
@@ -434,7 +437,7 @@ app.get('/api/pedido-completo/:pedidoId', requireAuth, async (req, res) => {
 app.put('/api/pedidos/:pedidoId', requireAuth, async (req, res) => {
     try {
         const { pedidoId } = req.params;
-        const { cliente, cnpj, revenda, gdapLink } = req.body;
+        const { cliente, cnpj, revenda, revenda_nome, gdapLink } = req.body;
 
         const pedido = await dbGet('SELECT * FROM pedidos WHERE pedido_id = ?', [pedidoId]);
         if (!pedido) return res.status(404).json({ error: 'Pedido não encontrado' });
@@ -442,21 +445,22 @@ app.put('/api/pedidos/:pedidoId', requireAuth, async (req, res) => {
         const newCliente = (cliente || pedido.cliente).trim();
         const newCnpj = (cnpj || pedido.cnpj).trim();
         const newRevenda = (revenda || pedido.revenda).toLowerCase();
+        const newRevendaNome = revenda_nome !== undefined ? (revenda_nome || '').trim() : (pedido.revenda_nome || '');
 
         if (!['ingram', 'tds'].includes(newRevenda)) {
-            return res.status(400).json({ error: 'Revenda deve ser "ingram" ou "tds"' });
+            return res.status(400).json({ error: 'Distribuidor deve ser "ingram" ou "tds"' });
         }
 
         // Atualiza link GDAP se fornecido (permite inserção/edição manual)
         const newGdapLink = gdapLink !== undefined ? (gdapLink || null) : pedido.gdap_link;
 
         await dbRun(
-            'UPDATE pedidos SET cliente = ?, cnpj = ?, revenda = ?, gdap_link = ?, atualizado_em = CURRENT_TIMESTAMP WHERE pedido_id = ?',
-            [newCliente, newCnpj, newRevenda, newGdapLink, pedidoId]
+            'UPDATE pedidos SET cliente = ?, cnpj = ?, revenda = ?, revenda_nome = ?, gdap_link = ?, atualizado_em = CURRENT_TIMESTAMP WHERE pedido_id = ?',
+            [newCliente, newCnpj, newRevenda, newRevendaNome, newGdapLink, pedidoId]
         );
 
         console.log(`✏️ Pedido editado: ${pedidoId}`);
-        res.json({ success: true, pedidoId, cliente: newCliente, cnpj: newCnpj, revenda: newRevenda, gdapLink: newGdapLink });
+        res.json({ success: true, pedidoId, cliente: newCliente, cnpj: newCnpj, revenda: newRevenda, revenda_nome: newRevendaNome, gdapLink: newGdapLink });
     } catch (err) {
         console.error('Erro ao editar pedido:', err);
         res.status(500).json({ error: 'Erro interno ao editar pedido' });
@@ -770,12 +774,210 @@ app.get('/api/logs/:pedidoId', requireAuth, async (req, res) => {
 app.get('/api/pedidos', requireAuth, async (req, res) => {
     try {
         const pedidos = await dbAll(
-            'SELECT pedido_id, cliente, cnpj, revenda, status, criado_em, atualizado_em FROM pedidos ORDER BY criado_em DESC'
+            'SELECT pedido_id, cliente, cnpj, revenda, revenda_nome, status, criado_em, atualizado_em FROM pedidos ORDER BY criado_em DESC'
         );
         res.json({ total: pedidos.length, pedidos });
     } catch (err) {
         console.error('Erro ao listar pedidos:', err);
         res.status(500).json({ error: 'Erro ao listar pedidos' });
+    }
+});
+
+// ===== ROTAS REVENDAS =====
+
+/**
+ * GET /api/revendas
+ * Lista todas as revendas cadastradas
+ */
+app.get('/api/revendas', requireAuthOrSuper, async (req, res) => {
+    try {
+        const revendas = await dbAll('SELECT * FROM revendas ORDER BY nome ASC');
+        // Conta pedidos por revenda
+        const counts = await dbAll(
+            `SELECT revenda_nome, COUNT(*) as total FROM pedidos WHERE revenda_nome != '' GROUP BY revenda_nome`
+        );
+        const countMap = {};
+        counts.forEach(c => { countMap[c.revenda_nome] = c.total; });
+
+        const result = revendas.map(r => ({
+            ...r,
+            pedidos_count: countMap[r.nome] || 0
+        }));
+
+        res.json({ total: result.length, revendas: result });
+    } catch (err) {
+        console.error('Erro ao listar revendas:', err);
+        res.status(500).json({ error: 'Erro ao listar revendas' });
+    }
+});
+
+/**
+ * GET /api/revendas/ativas
+ * Lista apenas revendas ativas (para uso no dropdown do admin)
+ */
+app.get('/api/revendas/ativas', requireAuth, async (req, res) => {
+    try {
+        const revendas = await dbAll('SELECT id, nome FROM revendas WHERE ativo = 1 ORDER BY nome ASC');
+        res.json({ revendas });
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao listar revendas ativas' });
+    }
+});
+
+/**
+ * POST /api/revendas
+ * Cria uma nova revenda
+ */
+app.post('/api/revendas', requireSuperAdmin, async (req, res) => {
+    try {
+        const { nome, contato, email } = req.body;
+        if (!nome || !nome.trim()) {
+            return res.status(400).json({ error: 'Nome da revenda é obrigatório' });
+        }
+
+        // Verifica duplicata
+        const existing = await dbGet('SELECT id FROM revendas WHERE LOWER(nome) = LOWER(?)', [nome.trim()]);
+        if (existing) {
+            return res.status(409).json({ error: 'Revenda com este nome já existe' });
+        }
+
+        const result = await dbRun(
+            'INSERT INTO revendas (nome, contato, email) VALUES (?, ?, ?)',
+            [nome.trim(), (contato || '').trim(), (email || '').trim()]
+        );
+
+        console.log(`🏪 Nova revenda criada: ${nome.trim()}`);
+        res.json({ success: true, id: result.lastID, nome: nome.trim() });
+    } catch (err) {
+        console.error('Erro ao criar revenda:', err);
+        res.status(500).json({ error: 'Erro ao criar revenda' });
+    }
+});
+
+/**
+ * PUT /api/revendas/:id
+ * Edita uma revenda
+ */
+app.put('/api/revendas/:id', requireSuperAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nome, contato, email, ativo } = req.body;
+
+        const revenda = await dbGet('SELECT * FROM revendas WHERE id = ?', [id]);
+        if (!revenda) return res.status(404).json({ error: 'Revenda não encontrada' });
+
+        const newNome = (nome || revenda.nome).trim();
+        const newContato = contato !== undefined ? (contato || '').trim() : revenda.contato;
+        const newEmail = email !== undefined ? (email || '').trim() : revenda.email;
+        const newAtivo = ativo !== undefined ? (ativo ? 1 : 0) : revenda.ativo;
+
+        // Se mudou o nome, atualiza nos pedidos também
+        if (newNome !== revenda.nome) {
+            await dbRun(
+                'UPDATE pedidos SET revenda_nome = ? WHERE revenda_nome = ?',
+                [newNome, revenda.nome]
+            );
+        }
+
+        await dbRun(
+            'UPDATE revendas SET nome = ?, contato = ?, email = ?, ativo = ? WHERE id = ?',
+            [newNome, newContato, newEmail, newAtivo, id]
+        );
+
+        console.log(`✏️ Revenda editada: ${newNome}`);
+        res.json({ success: true, id: parseInt(id), nome: newNome });
+    } catch (err) {
+        console.error('Erro ao editar revenda:', err);
+        res.status(500).json({ error: 'Erro ao editar revenda' });
+    }
+});
+
+/**
+ * DELETE /api/revendas/:id
+ * Remove uma revenda
+ */
+app.delete('/api/revendas/:id', requireSuperAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const revenda = await dbGet('SELECT * FROM revendas WHERE id = ?', [id]);
+        if (!revenda) return res.status(404).json({ error: 'Revenda não encontrada' });
+
+        // Verifica se tem pedidos associados
+        const pedidosCount = await dbGet(
+            'SELECT COUNT(*) as total FROM pedidos WHERE revenda_nome = ?',
+            [revenda.nome]
+        );
+        if (pedidosCount && pedidosCount.total > 0) {
+            return res.status(400).json({ 
+                error: `Revenda tem ${pedidosCount.total} pedido(s) associado(s). Desative-a em vez de excluir.` 
+            });
+        }
+
+        await dbRun('DELETE FROM revendas WHERE id = ?', [id]);
+        console.log(`🗑️ Revenda removida: ${revenda.nome}`);
+        res.json({ success: true, message: `Revenda ${revenda.nome} removida` });
+    } catch (err) {
+        console.error('Erro ao remover revenda:', err);
+        res.status(500).json({ error: 'Erro ao remover revenda' });
+    }
+});
+
+/**
+ * POST /api/revendas/importar
+ * Importa múltiplas revendas de uma vez
+ */
+app.post('/api/revendas/importar', requireSuperAdmin, async (req, res) => {
+    try {
+        const { nomes } = req.body;
+        if (!nomes || !Array.isArray(nomes) || !nomes.length) {
+            return res.status(400).json({ error: 'Informe um array de nomes' });
+        }
+
+        let added = 0;
+        let skipped = 0;
+        for (const nome of nomes) {
+            const trimmed = (nome || '').trim();
+            if (!trimmed) continue;
+            const existing = await dbGet('SELECT id FROM revendas WHERE LOWER(nome) = LOWER(?)', [trimmed]);
+            if (existing) { skipped++; continue; }
+            await dbRun('INSERT INTO revendas (nome) VALUES (?)', [trimmed]);
+            added++;
+        }
+
+        console.log(`🏪 Importação de revendas: ${added} adicionada(s), ${skipped} ignorada(s)`);
+        res.json({ success: true, added, skipped, message: `${added} revenda(s) adicionada(s), ${skipped} ignorada(s)` });
+    } catch (err) {
+        console.error('Erro ao importar revendas:', err);
+        res.status(500).json({ error: 'Erro ao importar revendas' });
+    }
+});
+
+/**
+ * GET /api/revendas/dashboard
+ * Dashboard de revendas com contagem de pedidos (superadmin)
+ */
+app.get('/api/revendas/dashboard', requireSuperAdmin, async (req, res) => {
+    try {
+        const stats = await dbAll(`
+            SELECT 
+                r.id, r.nome, r.contato, r.email, r.ativo,
+                COUNT(p.pedido_id) as total_pedidos,
+                SUM(CASE WHEN p.status = 'VALIDADO' THEN 1 ELSE 0 END) as validados,
+                SUM(CASE WHEN p.status = 'PENDENTE' THEN 1 ELSE 0 END) as pendentes
+            FROM revendas r
+            LEFT JOIN pedidos p ON p.revenda_nome = r.nome
+            GROUP BY r.id
+            ORDER BY total_pedidos DESC, r.nome ASC
+        `);
+
+        const totalRevendas = stats.length;
+        const ativas = stats.filter(r => r.ativo).length;
+        const totalPedidos = stats.reduce((s, r) => s + r.total_pedidos, 0);
+
+        res.json({ totalRevendas, ativas, totalPedidos, revendas: stats });
+    } catch (err) {
+        console.error('Erro no dashboard de revendas:', err);
+        res.status(500).json({ error: 'Erro ao gerar dashboard' });
     }
 });
 

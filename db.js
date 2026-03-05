@@ -75,11 +75,28 @@ function initDatabase() {
                 )
             `);
 
+            // Migração: adiciona coluna revenda_nome se não existir
+            db.run(`ALTER TABLE pedidos ADD COLUMN revenda_nome TEXT DEFAULT ''`, () => {});
+
+            // Tabela de revendas (parceiros revendedores)
+            db.run(`
+                CREATE TABLE IF NOT EXISTS revendas (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    nome TEXT NOT NULL UNIQUE,
+                    contato TEXT DEFAULT '',
+                    email TEXT DEFAULT '',
+                    ativo INTEGER DEFAULT 1,
+                    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            `);
+
             // Índices
             db.run(`CREATE INDEX IF NOT EXISTS idx_pedidos_pedido_id ON pedidos(pedido_id)`);
             db.run(`CREATE INDEX IF NOT EXISTS idx_pedidos_token ON pedidos(token)`);
+            db.run(`CREATE INDEX IF NOT EXISTS idx_pedidos_revenda_nome ON pedidos(revenda_nome)`);
             db.run(`CREATE INDEX IF NOT EXISTS idx_licencas_pedido_id ON licencas(pedido_id)`);
             db.run(`CREATE INDEX IF NOT EXISTS idx_logs_pedido_id ON logs(pedido_id)`);
+            db.run(`CREATE INDEX IF NOT EXISTS idx_revendas_nome ON revendas(nome)`);
 
             // Tabela pool de links GDAP (banco de links pré-cadastrados)
             db.run(`
