@@ -1286,7 +1286,7 @@ app.get('/api/revendas/ativas', requireAdminOrSuper, async (req, res) => {
  */
 app.post('/api/revendas', requireSuperAdmin, async (req, res) => {
     try {
-        const { nome, contato, email, partner_id, link_base } = req.body;
+        const { nome, contato, email, partner_id, link_base, categoria } = req.body;
         if (!nome || !nome.trim()) {
             return res.status(400).json({ error: 'Nome da revenda é obrigatório' });
         }
@@ -1297,9 +1297,11 @@ app.post('/api/revendas', requireSuperAdmin, async (req, res) => {
             return res.status(409).json({ error: 'Revenda com este nome já existe' });
         }
 
+        const validCat = ['ingram', 'tds'].includes((categoria || '').toLowerCase()) ? categoria.toLowerCase() : '';
+
         const result = await dbRun(
-            'INSERT INTO revendas (nome, contato, email, partner_id, link_base) VALUES (?, ?, ?, ?, ?)',
-            [nome.trim(), (contato || '').trim(), (email || '').trim(), (partner_id || '').trim(), (link_base || '').trim()]
+            'INSERT INTO revendas (nome, contato, email, partner_id, link_base, categoria) VALUES (?, ?, ?, ?, ?, ?)',
+            [nome.trim(), (contato || '').trim(), (email || '').trim(), (partner_id || '').trim(), (link_base || '').trim(), validCat]
         );
 
         console.log(`🏪 Nova revenda criada: ${nome.trim()}`);
@@ -1317,7 +1319,7 @@ app.post('/api/revendas', requireSuperAdmin, async (req, res) => {
 app.put('/api/revendas/:id', requireSuperAdmin, async (req, res) => {
     try {
         const { id } = req.params;
-        const { nome, contato, email, partner_id, link_base, ativo } = req.body;
+        const { nome, contato, email, partner_id, link_base, ativo, categoria } = req.body;
 
         const revenda = await dbGet('SELECT * FROM revendas WHERE id = ?', [id]);
         if (!revenda) return res.status(404).json({ error: 'Revenda não encontrada' });
@@ -1328,6 +1330,9 @@ app.put('/api/revendas/:id', requireSuperAdmin, async (req, res) => {
         const newPartnerId = partner_id !== undefined ? (partner_id || '').trim() : (revenda.partner_id || '');
         const newLinkBase = link_base !== undefined ? (link_base || '').trim() : (revenda.link_base || '');
         const newAtivo = ativo !== undefined ? (ativo ? 1 : 0) : revenda.ativo;
+        const newCategoria = categoria !== undefined
+            ? (['ingram', 'tds'].includes((categoria || '').toLowerCase()) ? categoria.toLowerCase() : '')
+            : (revenda.categoria || '');
 
         // Se mudou o nome, atualiza revenda_nome nos pedidos (backward compat)
         if (newNome !== revenda.nome) {
@@ -1338,8 +1343,8 @@ app.put('/api/revendas/:id', requireSuperAdmin, async (req, res) => {
         }
 
         await dbRun(
-            'UPDATE revendas SET nome = ?, contato = ?, email = ?, partner_id = ?, link_base = ?, ativo = ? WHERE id = ?',
-            [newNome, newContato, newEmail, newPartnerId, newLinkBase, newAtivo, id]
+            'UPDATE revendas SET nome = ?, contato = ?, email = ?, partner_id = ?, link_base = ?, ativo = ?, categoria = ? WHERE id = ?',
+            [newNome, newContato, newEmail, newPartnerId, newLinkBase, newAtivo, newCategoria, id]
         );
 
         console.log(`✏️ Revenda editada: ${newNome}`);
@@ -1418,7 +1423,7 @@ app.get('/api/revendas/dashboard', requireSuperAdmin, async (req, res) => {
     try {
         const stats = await dbAll(`
             SELECT 
-                r.id, r.nome, r.contato, r.email, r.partner_id, r.link_base, r.ativo,
+                r.id, r.nome, r.contato, r.email, r.partner_id, r.link_base, r.categoria, r.ativo,
                 COUNT(pr.pedido_id) as total_pedidos,
                 SUM(CASE WHEN p.status = 'VALIDADO' THEN 1 ELSE 0 END) as validados,
                 SUM(CASE WHEN p.status = 'PENDENTE' THEN 1 ELSE 0 END) as pendentes
@@ -1736,7 +1741,7 @@ app.delete('/api/usuarios/:id', requireSuperAdmin, async (req, res) => {
  * GET /api/fabric/status
  * Verifica se Fabric está configurado e retorna status da conexão
  */
-app.get('/api/fabric/status', requireAdminOrSuper, async (req, res) => {
+app.get('/api/fabric/status', requireSuperAdmin, async (req, res) => {
     try {
         const status = isFabricConfigured();
         res.json(status);
@@ -1749,7 +1754,7 @@ app.get('/api/fabric/status', requireAdminOrSuper, async (req, res) => {
  * GET /api/fabric/datasets
  * Lista datasets disponíveis no workspace Power BI
  */
-app.get('/api/fabric/datasets', requireAdminOrSuper, async (req, res) => {
+app.get('/api/fabric/datasets', requireSuperAdmin, async (req, res) => {
     try {
         const datasets = await listDatasets(req.query.workspaceId);
         res.json({ datasets });
@@ -1763,7 +1768,7 @@ app.get('/api/fabric/datasets', requireAdminOrSuper, async (req, res) => {
  * GET /api/fabric/tables
  * Lista tabelas de um dataset
  */
-app.get('/api/fabric/tables', requireAdminOrSuper, async (req, res) => {
+app.get('/api/fabric/tables', requireSuperAdmin, async (req, res) => {
     try {
         const tables = await listDatasetTables(req.query.datasetId);
         res.json({ tables });
@@ -1777,7 +1782,7 @@ app.get('/api/fabric/tables', requireAdminOrSuper, async (req, res) => {
  * POST /api/fabric/query
  * Executa query DAX contra dataset Power BI
  */
-app.post('/api/fabric/query', requireAdminOrSuper, async (req, res) => {
+app.post('/api/fabric/query', requireSuperAdmin, async (req, res) => {
     try {
         const { dax, datasetId } = req.body;
         if (!dax) return res.status(400).json({ error: 'Query DAX é obrigatória' });
@@ -1793,7 +1798,7 @@ app.post('/api/fabric/query', requireAdminOrSuper, async (req, res) => {
  * POST /api/fabric/sql-query
  * Executa query SQL contra Fabric SQL endpoint
  */
-app.post('/api/fabric/sql-query', requireAdminOrSuper, async (req, res) => {
+app.post('/api/fabric/sql-query', requireSuperAdmin, async (req, res) => {
     try {
         const { query } = req.body;
         if (!query) return res.status(400).json({ error: 'Query SQL é obrigatória' });
@@ -1831,7 +1836,7 @@ app.post('/api/fabric/sync-revendas', requireSuperAdmin, async (req, res) => {
  * POST /api/fabric/test-connection
  * Testa a conexão com Fabric SQL ou Power BI
  */
-app.post('/api/fabric/test-connection', requireAdminOrSuper, async (req, res) => {
+app.post('/api/fabric/test-connection', requireSuperAdmin, async (req, res) => {
     const results = { sql: null, powerbi: null, onelake: null };
     const status = isFabricConfigured();
     const userToken = req.session.fabricToken || null;
@@ -1883,7 +1888,7 @@ app.post('/api/fabric/test-connection', requireAdminOrSuper, async (req, res) =>
  * GET /api/onelake/workspaces
  * Lista workspaces acessíveis no Fabric (usa token delegado do usuário logado)
  */
-app.get('/api/onelake/workspaces', requireAdminOrSuper, async (req, res) => {
+app.get('/api/onelake/workspaces', requireSuperAdmin, async (req, res) => {
     try {
         const userToken = req.session.fabricToken || null;
         const workspaces = await listWorkspaces(userToken);
@@ -1899,7 +1904,7 @@ app.get('/api/onelake/workspaces', requireAdminOrSuper, async (req, res) => {
  * Lista itens de um workspace (Lakehouse, Warehouse, SemanticModel, etc.)
  * Query params: workspaceId, type
  */
-app.get('/api/onelake/items', requireAdminOrSuper, async (req, res) => {
+app.get('/api/onelake/items', requireSuperAdmin, async (req, res) => {
     try {
         const userToken = req.session.fabricToken || null;
         const items = await listWorkspaceItems(req.query.workspaceId, req.query.type, userToken);
@@ -1914,7 +1919,7 @@ app.get('/api/onelake/items', requireAdminOrSuper, async (req, res) => {
  * GET /api/onelake/lakehouses
  * Lista lakehouses de um workspace
  */
-app.get('/api/onelake/lakehouses', requireAdminOrSuper, async (req, res) => {
+app.get('/api/onelake/lakehouses', requireSuperAdmin, async (req, res) => {
     try {
         const userToken = req.session.fabricToken || null;
         const lakehouses = await listLakehouses(req.query.workspaceId, userToken);
@@ -1929,7 +1934,7 @@ app.get('/api/onelake/lakehouses', requireAdminOrSuper, async (req, res) => {
  * GET /api/onelake/lakehouses/:lakehouseId/tables
  * Lista tabelas de um Lakehouse específico
  */
-app.get('/api/onelake/lakehouses/:lakehouseId/tables', requireAdminOrSuper, async (req, res) => {
+app.get('/api/onelake/lakehouses/:lakehouseId/tables', requireSuperAdmin, async (req, res) => {
     try {
         const userToken = req.session.fabricToken || null;
         const tables = await listLakehouseTables(req.params.lakehouseId, req.query.workspaceId, userToken);
@@ -1945,7 +1950,7 @@ app.get('/api/onelake/lakehouses/:lakehouseId/tables', requireAdminOrSuper, asyn
  * Retorna colunas/tipos de uma tabela do OneLake (via SQL endpoint)
  * Query param: tableName
  */
-app.get('/api/onelake/table/describe', requireAdminOrSuper, async (req, res) => {
+app.get('/api/onelake/table/describe', requireSuperAdmin, async (req, res) => {
     try {
         const { tableName } = req.query;
         if (!tableName) return res.status(400).json({ error: 'tableName é obrigatório' });
@@ -1962,7 +1967,7 @@ app.get('/api/onelake/table/describe', requireAdminOrSuper, async (req, res) => 
  * Preview das primeiras linhas de uma tabela do OneLake
  * Query params: tableName, limit (default 50, max 1000)
  */
-app.get('/api/onelake/table/preview', requireAdminOrSuper, async (req, res) => {
+app.get('/api/onelake/table/preview', requireSuperAdmin, async (req, res) => {
     try {
         const { tableName, limit } = req.query;
         if (!tableName) return res.status(400).json({ error: 'tableName é obrigatório' });

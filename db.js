@@ -87,6 +87,7 @@ function initDatabase() {
                     email TEXT DEFAULT '',
                     partner_id TEXT DEFAULT '',
                     link_base TEXT DEFAULT '',
+                    categoria TEXT DEFAULT '',
                     ativo INTEGER DEFAULT 1,
                     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
@@ -95,6 +96,7 @@ function initDatabase() {
             // Migração: adiciona colunas partner_id e link_base à tabela revendas
             db.run(`ALTER TABLE revendas ADD COLUMN partner_id TEXT DEFAULT ''`, () => {});
             db.run(`ALTER TABLE revendas ADD COLUMN link_base TEXT DEFAULT ''`, () => {});
+            db.run(`ALTER TABLE revendas ADD COLUMN categoria TEXT DEFAULT ''`, () => {});
 
             // Tabela de associação pedido ↔ revendas (muitos-para-muitos)
             db.run(`

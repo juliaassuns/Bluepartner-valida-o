@@ -374,6 +374,7 @@
             <button class="tab active" onclick="switchMainTab('gdap')">Links GDAP</button>
             <button class="tab" onclick="switchMainTab('revendas')">Revendas</button>
             <button class="tab" onclick="switchMainTab('usuarios')">Usuários</button>
+            <button class="tab" onclick="switchMainTab('powerbi')">Power BI</button>
         </div>
 
         <!-- ===== USUARIOS TAB ===== -->
@@ -465,6 +466,14 @@
                             <i data-lucide="fingerprint"></i>
                             <input class="form-input" id="revendaPartnerIdInput" type="text" placeholder="Partner ID (indirectCSPId)">
                         </div>
+                        <div class="form-input-wrap" style="flex:1;min-width:150px">
+                            <i data-lucide="tag"></i>
+                            <select class="form-input" id="revendaCategoriaInput" style="cursor:pointer">
+                                <option value="">Sem categoria</option>
+                                <option value="ingram">Ingram</option>
+                                <option value="tds">TDS</option>
+                            </select>
+                        </div>
                         <div class="form-input-wrap" style="flex:2;min-width:300px">
                             <i data-lucide="link"></i>
                             <input class="form-input" id="revendaLinkBaseInput" type="url" placeholder="Link de convite parceiro (URL completa)">
@@ -491,11 +500,16 @@
                     <i data-lucide="bar-chart-3" style="stroke:var(--purple)"></i>
                     Dashboard de Revendas
                     <span class="badge badge-done" id="revendasBadge" style="margin-left:8px">0 revendas</span>
-                    <div style="margin-left:auto;display:flex;gap:8px">
+                    <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
                         <div class="tabs" id="revendasTabs">
                             <button class="tab active" onclick="filterRevendas('todas')">Todas</button>
                             <button class="tab" onclick="filterRevendas('ativas')">Ativas</button>
                             <button class="tab" onclick="filterRevendas('inativas')">Inativas</button>
+                        </div>
+                        <div class="tabs" id="revendasCatTabs">
+                            <button class="tab active" onclick="filterRevendasCat('')">Todas</button>
+                            <button class="tab" onclick="filterRevendasCat('ingram')">Ingram</button>
+                            <button class="tab" onclick="filterRevendasCat('tds')">TDS</button>
                         </div>
                     </div>
                 </div>
@@ -510,6 +524,46 @@
                 </div>
             </div>
 
+        </div> <!-- end revendasTab -->
+
+        <!-- ===== POWER BI TAB ===== -->
+        <div id="powerbiTab" style="display:none">
+            <div class="section" style="border-left: 3px solid var(--blue)">
+                <div class="section-header">
+                    <i data-lucide="database" style="stroke:var(--blue)"></i>
+                    Microsoft Fabric / OneLake
+                </div>
+                <div class="section-body">
+                    <div style="margin-bottom:14px;font-size:13px;color:#64748b">
+                        Conecte-se ao catálogo OneLake para explorar workspaces, lakehouses e tabelas do Fabric.
+                    </div>
+                    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+                        <button class="btn btn-primary" onclick="testFabricConnection()" id="btnFabricTest" style="white-space:nowrap"><i data-lucide="zap"></i> Testar Conexão</button>
+                        <button class="btn btn-outline" onclick="loadFabricWorkspaces()" style="white-space:nowrap"><i data-lucide="folder-open"></i> Listar Workspaces</button>
+                        <button class="btn btn-outline" onclick="syncRevendasFromFabric()" style="white-space:nowrap"><i data-lucide="refresh-cw"></i> Sincronizar Revendas</button>
+                    </div>
+                    <div id="fabricStatus" style="display:none;margin-bottom:12px;padding:12px;border-radius:8px;font-size:13px"></div>
+                    <div id="fabricContent"></div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">
+                    <i data-lucide="table" style="stroke:var(--purple)"></i>
+                    Explorar Tabelas
+                </div>
+                <div class="section-body">
+                    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+                        <div class="form-input-wrap" style="flex:1;min-width:200px">
+                            <i data-lucide="file-text"></i>
+                            <input class="form-input" id="fabricTableName" type="text" placeholder="Nome da tabela">
+                        </div>
+                        <button class="btn btn-outline" onclick="describeFabricTable()" style="white-space:nowrap"><i data-lucide="info"></i> Descrever</button>
+                        <button class="btn btn-outline" onclick="previewFabricTable()" style="white-space:nowrap"><i data-lucide="eye"></i> Preview</button>
+                    </div>
+                    <div id="fabricTableResult"></div>
+                </div>
+            </div>
         </div>
 
         <!-- ===== GDAP TAB ===== -->
@@ -597,6 +651,7 @@
     let currentFilter = 'todos';
     let allRevendas = [];
     let revendasFilter = 'todas';
+    let revendasCatFilter = '';
     let allUsers = [];
     let usersFilter = 'todos';
 
@@ -790,7 +845,9 @@
         document.getElementById('gdapTab').style.display = tab === 'gdap' ? 'block' : 'none';
         document.getElementById('revendasTab').style.display = tab === 'revendas' ? 'block' : 'none';
         document.getElementById('usuariosTab').style.display = tab === 'usuarios' ? 'block' : 'none';
+        document.getElementById('powerbiTab').style.display = tab === 'powerbi' ? 'block' : 'none';
         if (tab === 'usuarios') loadUsers();
+        if (tab === 'powerbi') checkFabricStatus();
     }
 
     // ===== REVENDAS =====
@@ -818,12 +875,21 @@
         renderRevendas();
     }
 
+    function filterRevendasCat(cat) {
+        revendasCatFilter = cat;
+        document.querySelectorAll('#revendasCatTabs .tab').forEach(t => t.classList.remove('active'));
+        event.target.classList.add('active');
+        renderRevendas();
+    }
+
     function renderRevendas() {
         const list = document.getElementById('revendasList');
         let filtered = [...allRevendas];
         
         if (revendasFilter === 'ativas') filtered = filtered.filter(r => r.ativo);
         if (revendasFilter === 'inativas') filtered = filtered.filter(r => !r.ativo);
+
+        if (revendasCatFilter) filtered = filtered.filter(r => (r.categoria || '') === revendasCatFilter);
 
         const search = (document.getElementById('revendaSearchInput')?.value || '').toLowerCase();
         if (search) {
@@ -845,6 +911,7 @@
         list.innerHTML = `<table class="rvd-table">
             <thead><tr>
                 <th>Revenda</th>
+                <th>Categoria</th>
                 <th>Contato</th>
                 <th>Partner ID</th>
                 <th>Pedidos</th>
@@ -862,8 +929,12 @@
                     : '<span class="badge rvd-badge-inactive">Inativa</span>';
                 const pid = esc(r.partner_id || '—');
                 const hasLink = !!(r.link_base);
+                const catLabel = r.categoria === 'ingram' ? '<span class="badge" style="background:#DBEAFE;color:#1D4ED8;font-size:10px">Ingram</span>'
+                    : r.categoria === 'tds' ? '<span class="badge" style="background:#FEF3C7;color:#92400E;font-size:10px">TDS</span>'
+                    : '<span style="color:var(--gray-400);font-size:11px">—</span>';
                 return `<tr>
                     <td style="font-weight:600;color:var(--gray-800)">${esc(r.nome)}</td>
+                    <td>${catLabel}</td>
                     <td style="font-size:12px;color:var(--gray-500)">${esc(r.contato || '—')}</td>
                     <td style="font-size:11px;color:var(--gray-500);font-family:monospace">${pid}${hasLink ? ' <span title="Link configurado" style="color:var(--green)">●</span>' : ''}</td>
                     <td style="font-weight:700;color:var(--purple)">${r.total_pedidos || 0}</td>
@@ -892,12 +963,13 @@
         const email = document.getElementById('revendaEmailInput').value.trim();
         const partner_id = document.getElementById('revendaPartnerIdInput').value.trim();
         const link_base = document.getElementById('revendaLinkBaseInput').value.trim();
+        const categoria = document.getElementById('revendaCategoriaInput').value;
         if (!nome) { showToast('Informe o nome da revenda'); return; }
         try {
             const res = await authFetch(API_BASE + '/api/revendas', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nome, contato, email, partner_id, link_base })
+                body: JSON.stringify({ nome, contato, email, partner_id, link_base, categoria })
             });
             const data = await res.json();
             if (res.ok) {
@@ -907,6 +979,7 @@
                 document.getElementById('revendaEmailInput').value = '';
                 document.getElementById('revendaPartnerIdInput').value = '';
                 document.getElementById('revendaLinkBaseInput').value = '';
+                document.getElementById('revendaCategoriaInput').value = '';
                 loadRevendasDashboard();
             } else {
                 showToast(data.error || 'Erro ao adicionar');
@@ -1112,6 +1185,152 @@
                 showToast(data.error || 'Erro');
             }
         } catch { showToast('Erro de conexão'); }
+    }
+
+    // ===== POWER BI / FABRIC =====
+    async function checkFabricStatus() {
+        try {
+            const res = await authFetch(API_BASE + '/api/fabric/status');
+            const data = await res.json();
+            const el = document.getElementById('fabricStatus');
+            el.style.display = 'block';
+            if (data.configured) {
+                el.style.background = '#DCFCE7'; el.style.color = '#15803D';
+                el.innerHTML = '✓ Fabric configurado — SQL: ' + esc(data.sqlConfigured ? 'Sim' : 'Não') + ' | Power BI: ' + esc(data.powerbiConfigured ? 'Sim' : 'Não');
+            } else {
+                el.style.background = '#FEF3C7'; el.style.color = '#92400E';
+                el.innerHTML = '⚠ Fabric não configurado. Configure as variáveis de ambiente FABRIC_* e POWERBI_*.';
+            }
+        } catch { }
+    }
+
+    async function testFabricConnection() {
+        const btn = document.getElementById('btnFabricTest');
+        btn.disabled = true; btn.textContent = 'Testando...';
+        try {
+            const res = await authFetch(API_BASE + '/api/fabric/test-connection', { method: 'POST' });
+            const data = await res.json();
+            const el = document.getElementById('fabricStatus');
+            el.style.display = 'block';
+            if (data.success) {
+                el.style.background = '#DCFCE7'; el.style.color = '#15803D';
+                el.innerHTML = '✓ Conexão OK!';
+            } else {
+                el.style.background = '#FEE2E2'; el.style.color = '#DC2626';
+                el.innerHTML = '✗ Falha: ' + esc(data.error || 'Erro desconhecido');
+            }
+        } catch { showToast('Erro de conexão'); }
+        btn.disabled = false; btn.innerHTML = '<i data-lucide="zap"></i> Testar Conexão'; reinitIcons();
+    }
+
+    async function loadFabricWorkspaces() {
+        const el = document.getElementById('fabricContent');
+        el.innerHTML = '<div style="color:var(--gray-500);font-size:13px">Carregando workspaces...</div>';
+        try {
+            const res = await authFetch(API_BASE + '/api/onelake/workspaces');
+            const data = await res.json();
+            if (!data.value || !data.value.length) {
+                el.innerHTML = '<div style="color:var(--gray-500);font-size:13px">Nenhum workspace encontrado.</div>';
+                return;
+            }
+            el.innerHTML = '<table class="rvd-table"><thead><tr><th>Workspace</th><th>ID</th><th>Tipo</th><th>Ações</th></tr></thead><tbody>' +
+                data.value.map(w => `<tr>
+                    <td style="font-weight:600">${esc(w.displayName || w.name)}</td>
+                    <td style="font-size:11px;font-family:monospace;color:var(--gray-500)">${esc(w.id)}</td>
+                    <td style="font-size:12px">${esc(w.type || '—')}</td>
+                    <td><button class="btn btn-sm btn-outline" onclick="loadWorkspaceItems('${w.id}')">Itens</button></td>
+                </tr>`).join('') + '</tbody></table>';
+            reinitIcons();
+        } catch { el.innerHTML = '<div style="color:red;font-size:13px">Erro ao carregar workspaces</div>'; }
+    }
+
+    async function loadWorkspaceItems(wsId) {
+        const el = document.getElementById('fabricContent');
+        el.innerHTML = '<div style="color:var(--gray-500);font-size:13px">Carregando itens...</div>';
+        try {
+            const res = await authFetch(API_BASE + '/api/onelake/lakehouses?workspaceId=' + wsId);
+            const data = await res.json();
+            if (!data.value || !data.value.length) {
+                el.innerHTML = '<div style="color:var(--gray-500);font-size:13px">Nenhum lakehouse encontrado.</div>';
+                return;
+            }
+            el.innerHTML = '<table class="rvd-table"><thead><tr><th>Lakehouse</th><th>ID</th><th>Ações</th></tr></thead><tbody>' +
+                data.value.map(lh => `<tr>
+                    <td style="font-weight:600">${esc(lh.displayName || lh.name)}</td>
+                    <td style="font-size:11px;font-family:monospace;color:var(--gray-500)">${esc(lh.id)}</td>
+                    <td><button class="btn btn-sm btn-outline" onclick="loadLakehouseTables('${lh.id}', '${wsId}')">Tabelas</button></td>
+                </tr>`).join('') + '</tbody></table>';
+            reinitIcons();
+        } catch { el.innerHTML = '<div style="color:red;font-size:13px">Erro ao carregar lakehouses</div>'; }
+    }
+
+    async function loadLakehouseTables(lhId, wsId) {
+        const el = document.getElementById('fabricContent');
+        el.innerHTML = '<div style="color:var(--gray-500);font-size:13px">Carregando tabelas...</div>';
+        try {
+            const res = await authFetch(API_BASE + '/api/onelake/lakehouses/' + lhId + '/tables?workspaceId=' + wsId);
+            const data = await res.json();
+            if (!data.data || !data.data.length) {
+                el.innerHTML = '<div style="color:var(--gray-500);font-size:13px">Nenhuma tabela encontrada.</div>';
+                return;
+            }
+            el.innerHTML = '<table class="rvd-table"><thead><tr><th>Tabela</th><th>Tipo</th><th>Local</th></tr></thead><tbody>' +
+                data.data.map(t => `<tr>
+                    <td style="font-weight:600">${esc(t.name)}</td>
+                    <td style="font-size:12px">${esc(t.type || '—')}</td>
+                    <td style="font-size:11px;color:var(--gray-500)">${esc(t.location || '—')}</td>
+                </tr>`).join('') + '</tbody></table>';
+            reinitIcons();
+        } catch { el.innerHTML = '<div style="color:red;font-size:13px">Erro ao carregar tabelas</div>'; }
+    }
+
+    async function syncRevendasFromFabric() {
+        if (!confirm('Sincronizar revendas do Fabric?')) return;
+        try {
+            const res = await authFetch(API_BASE + '/api/fabric/sync-revendas', { method: 'POST' });
+            const data = await res.json();
+            showToast(data.message || data.error || 'Concluído');
+            loadRevendasDashboard();
+        } catch { showToast('Erro de conexão'); }
+    }
+
+    async function describeFabricTable() {
+        const name = document.getElementById('fabricTableName').value.trim();
+        if (!name) { showToast('Informe o nome da tabela'); return; }
+        const el = document.getElementById('fabricTableResult');
+        el.innerHTML = '<div style="color:var(--gray-500);font-size:13px">Consultando...</div>';
+        try {
+            const res = await authFetch(API_BASE + '/api/onelake/table/describe?table=' + encodeURIComponent(name));
+            const data = await res.json();
+            if (data.columns) {
+                el.innerHTML = '<table class="rvd-table"><thead><tr><th>Coluna</th><th>Tipo</th></tr></thead><tbody>' +
+                    data.columns.map(c => `<tr><td style="font-weight:600">${esc(c.name || c.column_name)}</td><td style="font-size:12px">${esc(c.type || c.data_type || '—')}</td></tr>`).join('') +
+                    '</tbody></table>';
+            } else {
+                el.innerHTML = '<pre style="font-size:12px;background:#f8f9fa;padding:12px;border-radius:8px;overflow:auto">' + esc(JSON.stringify(data, null, 2)) + '</pre>';
+            }
+        } catch { el.innerHTML = '<div style="color:red;font-size:13px">Erro ao descrever tabela</div>'; }
+    }
+
+    async function previewFabricTable() {
+        const name = document.getElementById('fabricTableName').value.trim();
+        if (!name) { showToast('Informe o nome da tabela'); return; }
+        const el = document.getElementById('fabricTableResult');
+        el.innerHTML = '<div style="color:var(--gray-500);font-size:13px">Consultando...</div>';
+        try {
+            const res = await authFetch(API_BASE + '/api/onelake/table/preview?table=' + encodeURIComponent(name) + '&limit=20');
+            const data = await res.json();
+            if (data.rows && data.rows.length) {
+                const cols = Object.keys(data.rows[0]);
+                el.innerHTML = '<div style="overflow-x:auto"><table class="rvd-table"><thead><tr>' +
+                    cols.map(c => '<th>' + esc(c) + '</th>').join('') +
+                    '</tr></thead><tbody>' +
+                    data.rows.map(row => '<tr>' + cols.map(c => '<td style="font-size:11px">' + esc(String(row[c] ?? '')) + '</td>').join('') + '</tr>').join('') +
+                    '</tbody></table></div>';
+            } else {
+                el.innerHTML = '<div style="color:var(--gray-500);font-size:13px">Nenhum dado encontrado.</div>';
+            }
+        } catch { el.innerHTML = '<div style="color:red;font-size:13px">Erro ao consultar tabela</div>'; }
     }
 
     // ===== UTILS =====
