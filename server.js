@@ -9,11 +9,14 @@ const multer = require('multer');
 const XLSX = require('xlsx');
 const pdfParse = require('pdf-parse');
 const helmet = require('helmet');
+const fetch = global.fetch;
 const rateLimit = require('express-rate-limit');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const session = require('express-session');
+const { ConfidentialClientApplication } = require('@azure/msal-node');
+const { jwtVerify, createRemoteJWKSet } = require('jose');
 const { initDatabase, dbGet, dbAll, dbRun } = require('./db');
 const { criarConviteGDAP, isGdapConfigured } = require('./gdap');
+const { isFabricConfigured, fabricSqlQuery, executeDaxQuery, listDatasets, listDatasetTables, syncRevendasFromFabric, listWorkspaces, listWorkspaceItems, listLakehouses, listLakehouseTables, describeTable, previewTable, getDelegatedToken, resolveToken } = require('./fabric');
 
 // Multer config — upload to temp dir
 const upload = multer({
@@ -29,17 +32,48 @@ const upload = multer({
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ===== SECURITY CONFIG =====
-const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
-const ADMIN_USER = process.env.ADMIN_USER || 'admin';
-// Default password: BluPartner@2026 (hashed with bcrypt)
-const ADMIN_PASS_HASH = process.env.ADMIN_PASS_HASH || bcrypt.hashSync('BluPartner@2026', 10);
-const JWT_EXPIRES = '8h';
+// ===== AUTH CONFIG (Microsoft Entra ID) =====
+// Required envs:
+// ENTRA_TENANT_ID, ENTRA_CLIENT_ID, ENTRA_CLIENT_SECRET, ENTRA_REDIRECT_URI, SESSION_SECRET
+const ENTRA_TENANT_ID = process.env.ENTRA_TENANT_ID;
+const ENTRA_CLIENT_ID = process.env.ENTRA_CLIENT_ID;
+const ENTRA_CLIENT_SECRET = process.env.ENTRA_CLIENT_SECRET;
+const ENTRA_REDIRECT_URI = process.env.ENTRA_REDIRECT_URI || 'http://localhost:3000/auth/callback';
 
-// Super Admin credentials (separate from regular admin)
-const SUPER_ADMIN_USER = process.env.SUPER_ADMIN_USER || 'superadmin';
-// Default password: BluPartner@Super2026
-const SUPER_ADMIN_PASS_HASH = process.env.SUPER_ADMIN_PASS_HASH || bcrypt.hashSync('BluPartner@Super2026', 10);
+const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
+
+const isEntraConfigured = !!(ENTRA_TENANT_ID && ENTRA_CLIENT_ID && ENTRA_CLIENT_SECRET);
+
+const msalClient = isEntraConfigured
+    ? new ConfidentialClientApplication({
+        auth: {
+            clientId: ENTRA_CLIENT_ID,
+            authority: `https://login.microsoftonline.com/${ENTRA_TENANT_ID}`,
+            clientSecret: ENTRA_CLIENT_SECRET
+        }
+    })
+    : null;
+
+const jwks = isEntraConfigured
+    ? createRemoteJWKSet(
+        new URL(`https://login.microsoftonline.com/${ENTRA_TENANT_ID}/discovery/v2.0/keys`)
+    )
+    : null;
+
+// ===== SESSION CONFIG =====
+app.set('trust proxy', 1);
+app.use(session({
+    name: 'bp.sid',
+    secret: SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 8 * 60 * 60 * 1000 // 8h
+    }
+}));
 
 // ===== MIDDLEWARE =====
 
@@ -99,118 +133,162 @@ app.use((req, res, next) => {
     next();
 });
 
-// ===== AUTH MIDDLEWARE =====
-function requireAuth(req, res, next) {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ error: 'Token de autenticação necessário' });
+// ===== AUTH HELPERS / MIDDLEWARE =====
+async function verifyEntraIdToken(idToken) {
+    if (!isEntraConfigured || !jwks) {
+        throw new Error('Entra ID não configurado');
     }
-    try {
-        const token = authHeader.split(' ')[1];
-        const decoded = jwt.verify(token, JWT_SECRET);
-        req.adminUser = decoded.user;
-        next();
-    } catch (err) {
-        return res.status(401).json({ error: 'Token inválido ou expirado' });
-    }
+    const { payload } = await jwtVerify(idToken, jwks, {
+        issuer: `https://login.microsoftonline.com/${ENTRA_TENANT_ID}/v2.0`,
+        audience: ENTRA_CLIENT_ID
+    });
+    return payload;
 }
 
-// Super Admin middleware — requires role: 'superadmin' in JWT
-function requireSuperAdmin(req, res, next) {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ error: 'Token de autenticação necessário' });
+function requireSession(req, res, next) {
+    if (!req.session?.user) {
+        return res.status(401).json({ error: 'Sessão inválida' });
     }
-    try {
-        const token = authHeader.split(' ')[1];
-        const decoded = jwt.verify(token, JWT_SECRET);
-        if (decoded.role !== 'superadmin') {
-            return res.status(403).json({ error: 'Acesso restrito ao super admin' });
-        }
-        req.adminUser = decoded.user;
-        req.isSuperAdmin = true;
-        next();
-    } catch (err) {
-        return res.status(401).json({ error: 'Token inválido ou expirado' });
-    }
-}
-
-// Auth middleware that allows both admin and superadmin
-function requireAuthOrSuper(req, res, next) {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ error: 'Token de autenticação necessário' });
-    }
-    try {
-        const token = authHeader.split(' ')[1];
-        const decoded = jwt.verify(token, JWT_SECRET);
-        req.adminUser = decoded.user;
-        req.isSuperAdmin = decoded.role === 'superadmin';
-        next();
-    } catch (err) {
-        return res.status(401).json({ error: 'Token inválido ou expirado' });
-    }
-}
-
-// ===== AUTH ROUTES =====
-
-/**
- * POST /api/auth/login
- * Admin login — returns JWT token
- */
-app.post('/api/auth/login', authLimiter, async (req, res) => {
-    const { user, password } = req.body;
-    if (!user || !password) {
-        return res.status(400).json({ error: 'Usuário e senha são obrigatórios' });
-    }
-    if (user !== ADMIN_USER || !bcrypt.compareSync(password, ADMIN_PASS_HASH)) {
-        console.log(`🚫 Login falhou para: ${user}`);
-        return res.status(401).json({ error: 'Usuário ou senha inválidos' });
-    }
-    const token = jwt.sign({ user, role: 'admin' }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
-    console.log(`🔑 Login admin: ${user}`);
-    res.json({ success: true, token, expiresIn: JWT_EXPIRES });
-});
-
-/**
- * GET /api/auth/verify
- * Verify if current JWT is valid
- */
-app.get('/api/auth/verify', requireAuth, (req, res) => {
-    res.json({ valid: true, user: req.adminUser });
-});
-
-/**
- * POST /api/auth/superlogin
- * Super Admin login — returns JWT with role: 'superadmin'
- */
-app.post('/api/auth/superlogin', authLimiter, async (req, res) => {
-    const { user, password } = req.body;
-    if (!user || !password) {
-        return res.status(400).json({ error: 'Usuário e senha são obrigatórios' });
-    }
-    if (user !== SUPER_ADMIN_USER || !bcrypt.compareSync(password, SUPER_ADMIN_PASS_HASH)) {
-        console.log(`🚫 Super admin login falhou para: ${user}`);
-        return res.status(401).json({ error: 'Usuário ou senha inválidos' });
-    }
-    const token = jwt.sign({ user, role: 'superadmin' }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
-    console.log(`🔑 Login SUPER ADMIN: ${user}`);
-    res.json({ success: true, token, expiresIn: JWT_EXPIRES });
-});
-
-/**
- * GET /api/auth/superverify
- * Verify if current JWT is valid AND has superadmin role
- */
-app.get('/api/auth/superverify', requireSuperAdmin, (req, res) => {
-    res.json({ valid: true, user: req.adminUser, role: 'superadmin' });
-});
-
-// Block direct access to admin.html without auth cookie/token
-// (serves login page if not authenticated)
-app.use('/admin.html', (req, res, next) => {
-    // Always serve the file — auth is checked client-side via JWT
     next();
+}
+
+function requireAdminOrSuper(req, res, next) {
+    if (!req.session?.user) return res.status(401).json({ error: 'Sessão inválida' });
+    if (!['admin', 'superadmin'].includes(req.session.user.role)) {
+        return res.status(403).json({ error: 'Sem permissão' });
+    }
+    next();
+}
+
+function requireSuperAdmin(req, res, next) {
+    if (!req.session?.user) return res.status(401).json({ error: 'Sessão inválida' });
+    if (req.session.user.role !== 'superadmin') {
+        return res.status(403).json({ error: 'Acesso restrito ao super admin' });
+    }
+    next();
+}
+
+// ===== AUTH ROUTES (Microsoft Entra ID) =====
+
+/**
+ * GET /auth/login → redireciona para Microsoft
+ */
+app.get('/auth/login', authLimiter, async (req, res) => {
+    if (!ENTRA_TENANT_ID || !ENTRA_CLIENT_ID || !ENTRA_CLIENT_SECRET) {
+        return res.status(500).send('Entra ID não configurado. Preencha ENTRA_* no .env');
+    }
+
+    // Se o query param ?fabric=1, pede scopes extras do Power BI (precisa admin consent)
+    const wantFabric = req.query.fabric === '1';
+    const scopes = wantFabric
+        ? ['openid', 'profile', 'email', 'https://analysis.windows.net/powerbi/api/Dataset.Read.All', 'https://analysis.windows.net/powerbi/api/Workspace.Read.All']
+        : ['openid', 'profile', 'email'];
+
+    const authCodeUrl = await msalClient.getAuthCodeUrl({
+        redirectUri: ENTRA_REDIRECT_URI,
+        scopes,
+        prompt: 'select_account',
+        state: wantFabric ? 'fabric' : ''
+    });
+
+    res.redirect(authCodeUrl);
+});
+
+/**
+ * GET /auth/callback → recebe o code, troca por token, valida e cria sessão
+ */
+app.get('/auth/callback', async (req, res) => {
+    try {
+        const code = req.query.code;
+        if (!code) return res.status(400).send('Código ausente');
+
+        const wantFabric = req.query.state === 'fabric';
+        const scopes = wantFabric
+            ? ['openid', 'profile', 'email', 'https://analysis.windows.net/powerbi/api/Dataset.Read.All', 'https://analysis.windows.net/powerbi/api/Workspace.Read.All']
+            : ['openid', 'profile', 'email'];
+
+        const tokenResponse = await msalClient.acquireTokenByCode({
+            code: String(code),
+            redirectUri: ENTRA_REDIRECT_URI,
+            scopes
+        });
+
+        const idToken = tokenResponse.idToken;
+        const claims = await verifyEntraIdToken(idToken);
+
+        const email =
+            claims.preferred_username ||
+            claims.email ||
+            (Array.isArray(claims.emails) ? claims.emails[0] : null);
+
+        const nome = claims.name || '';
+
+        if (!email) return res.status(400).send('Não foi possível identificar o e-mail do usuário');
+
+        // Verifica usuário cadastrado no banco e ativo
+        const userRow = await dbGet('SELECT email, nome, role, ativo, criado_em FROM usuarios WHERE LOWER(email) = LOWER(?)', [email]);
+        if (!userRow) {
+            return res.status(403).send(`Usuário não cadastrado (${email}). Peça ao superadmin para adicionar seu e-mail.`);
+        }
+        if (!userRow.ativo) return res.status(403).send('Usuário inativo');
+
+        // Opcional: atualizar nome se vazio
+        if ((!userRow.nome || !userRow.nome.trim()) && nome) {
+            await dbRun('UPDATE usuarios SET nome = ? WHERE LOWER(email) = LOWER(?)', [nome, email]);
+        }
+
+        req.session.user = {
+            email: userRow.email,
+            nome: userRow.nome || nome || '',
+            role: userRow.role,
+            ativo: !!userRow.ativo
+        };
+
+        // Guarda access token para fluxo delegado (Fabric/Power BI)
+        if (tokenResponse.accessToken) {
+            req.session.fabricToken = tokenResponse.accessToken;
+        }
+
+        // Redireciona baseado em role
+        if (userRow.role === 'superadmin') return res.redirect('/superadmin');
+        return res.redirect('/admin');
+    } catch (err) {
+        console.error('Erro no /auth/callback:', err);
+        res.status(500).send('Erro ao autenticar');
+    }
+});
+
+/**
+ * GET /auth/logout → encerra sessão
+ */
+app.get('/auth/logout', (req, res) => {
+    req.session.destroy(() => {
+        res.clearCookie('bp.sid');
+        res.redirect('/login');
+    });
+});
+
+/**
+ * GET /auth/me → retorna usuário logado
+ */
+app.get('/auth/me', (req, res) => {
+    if (!req.session?.user) return res.status(401).json({ user: null });
+    res.json({ user: req.session.user });
+});
+
+// ===== PAGE GUARDS =====
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+app.get('/admin', (req, res) => {
+    if (!req.session?.user) return res.redirect('/login');
+    if (!['admin', 'superadmin'].includes(req.session.user.role)) return res.status(403).send('Sem permissão');
+    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+app.get('/superadmin', (req, res) => {
+    if (!req.session?.user) return res.redirect('/login');
+    if (req.session.user.role !== 'superadmin') return res.status(403).send('Acesso restrito ao super admin');
+    res.sendFile(path.join(__dirname, 'public', 'superadmin.html'));
 });
 
 // Static files
@@ -261,11 +339,26 @@ app.get('/api/pedido/:pedidoId/:token', validateToken, async (req, res) => {
             [pedido.pedido_id]
         );
 
+        // Buscar revendas associadas ao pedido via junction table
+        const revendas = await dbAll(
+            `SELECT r.id, r.nome, r.partner_id, r.link_base 
+             FROM pedido_revendas pr 
+             JOIN revendas r ON r.id = pr.revenda_id 
+             WHERE pr.pedido_id = ?`,
+            [pedido.pedido_id]
+        );
+
         res.json({
             cliente: pedido.cliente,
             cnpj: pedido.cnpj,
             pedidoId: pedido.pedido_id,
             revenda: pedido.revenda,
+            revendas: revendas.map(r => ({
+                id: r.id,
+                nome: r.nome,
+                partnerId: r.partner_id || '',
+                linkBase: r.link_base || ''
+            })),
             status: pedido.status,
             gdapLink: pedido.gdap_link || process.env.GDAP_DEFAULT_LINK || null,
             licencas: licencas
@@ -330,20 +423,27 @@ app.post('/api/validar', async (req, res) => {
  * POST /api/pedidos
  * Cria um novo pedido e gera link único para enviar ao cliente
  */
-app.post('/api/pedidos', requireAuth, async (req, res) => {
+app.post('/api/pedidos', requireAdminOrSuper, async (req, res) => {
     try {
-        const { cliente, cnpj, revenda, revenda_nome } = req.body;
+        const { cliente, cnpj, revendas: revendaIds } = req.body;
 
         if (!cliente || !cnpj) {
             return res.status(400).json({ error: 'Nome do cliente e CNPJ são obrigatórios' });
         }
 
-        const revendaVal = (revenda || 'ingram').toLowerCase();
-        if (!['ingram', 'tds'].includes(revendaVal)) {
-            return res.status(400).json({ error: 'Distribuidor deve ser "ingram" ou "tds"' });
+        if (!Array.isArray(revendaIds) || revendaIds.length === 0) {
+            return res.status(400).json({ error: 'Selecione pelo menos uma revenda' });
         }
 
-        const revendaNome = (revenda_nome || '').trim();
+        // Validar que as revendas existem e estão ativas
+        const placeholders = revendaIds.map(() => '?').join(',');
+        const validRevendas = await dbAll(
+            `SELECT id, nome FROM revendas WHERE id IN (${placeholders}) AND ativo = 1`,
+            revendaIds
+        );
+        if (validRevendas.length === 0) {
+            return res.status(400).json({ error: 'Nenhuma revenda válida selecionada' });
+        }
 
         // Gera pedidoId com componente aleatório (não sequencial)
         const ts = Date.now().toString(36);
@@ -389,12 +489,26 @@ app.post('/api/pedidos', requireAuth, async (req, res) => {
             console.log(`[GDAP] Usando link padrão (GDAP_DEFAULT_LINK) para ${pedidoId}`);
         }
 
+        // Monta revenda legado (primeiro nome) e revenda_nome para backward compat
+        const primeiraRevenda = validRevendas[0];
+        const revendaVal = primeiraRevenda.nome.toLowerCase().replace(/\s+/g, '_');
+        const revendaNome = validRevendas.map(r => r.nome).join(', ');
+
         await dbRun(
             'INSERT INTO pedidos (pedido_id, token, cliente, cnpj, revenda, revenda_nome, gdap_link, gdap_relationship_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
             [pedidoId, token, cliente.trim(), cnpj.trim(), revendaVal, revendaNome, gdapLink, gdapRelationshipId]
         );
 
-        console.log(`📋 Novo pedido criado: ${pedidoId} → ${cliente} (${revendaVal}) [Revenda: ${revendaNome || 'N/A'}]`);
+        // Inserir associações na tabela pedido_revendas
+        for (const rv of validRevendas) {
+            await dbRun(
+                'INSERT INTO pedido_revendas (pedido_id, revenda_id) VALUES (?, ?)',
+                [pedidoId, rv.id]
+            );
+        }
+
+        const revendaNomes = validRevendas.map(r => r.nome);
+        console.log(`📋 Novo pedido criado: ${pedidoId} → ${cliente} [Revendas: ${revendaNomes.join(', ')}]`);
 
         res.json({
             success: true,
@@ -402,10 +516,9 @@ app.post('/api/pedidos', requireAuth, async (req, res) => {
             token,
             cliente: cliente.trim(),
             cnpj: cnpj.trim(),
-            revenda: revendaVal,
-            revenda_nome: revendaNome,
+            revendas: revendaNomes,
             gdapLink,
-            link: `/?pedidoId=${pedidoId}&token=${token}&revenda=${revendaVal}`
+            link: `/?pedidoId=${pedidoId}&token=${token}`
         });
     } catch (err) {
         console.error('Erro ao criar pedido:', err);
@@ -414,17 +527,152 @@ app.post('/api/pedidos', requireAuth, async (req, res) => {
 });
 
 /**
+ * POST /api/pedidos/batch
+ * Cria múltiplos pedidos em lote, consulta CNPJ na OpenCNPJ e retorna links.
+ * Body: { pedidos: [{ pedidoId?: string, cnpj: string, revendas?: number[] }] }
+ * Usado pelo Power Automate / Copilot Studio.
+ */
+app.post('/api/pedidos/batch', requireAdminOrSuper, async (req, res) => {
+    try {
+        const { pedidos } = req.body;
+
+        if (!Array.isArray(pedidos) || pedidos.length === 0) {
+            return res.status(400).json({ error: 'Envie um array "pedidos" com pelo menos 1 item' });
+        }
+
+        if (pedidos.length > 100) {
+            return res.status(400).json({ error: 'Máximo de 100 pedidos por lote' });
+        }
+
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        const results = [];
+
+        for (const item of pedidos) {
+            const cnpjRaw = String(item.cnpj || '').replace(/[.\-\/]/g, '').replace(/\D/g, '');
+
+            if (!/^\d{14}$/.test(cnpjRaw)) {
+                results.push({
+                    pedidoId: item.pedidoId || null,
+                    erro: `CNPJ inválido: ${item.cnpj || '(vazio)'}`
+                });
+                continue;
+            }
+
+            // Consulta OpenCNPJ
+            let cliente = '';
+            let situacao = '';
+            try {
+                const cnpjRes = await fetch(`https://api.opencnpj.org/${cnpjRaw}`, {
+                    headers: { 'Accept': 'application/json', 'User-Agent': 'BluePartner-Validacao/1.0' }
+                });
+                if (cnpjRes.ok) {
+                    const cnpjData = await cnpjRes.json();
+                    cliente = cnpjData.razao_social || '';
+                    situacao = cnpjData.situacao_cadastral || '';
+                }
+            } catch (e) {
+                console.warn(`[BATCH] Falha ao consultar CNPJ ${cnpjRaw}:`, e.message);
+            }
+
+            // Gera identificadores
+            const ts = Date.now().toString(36);
+            const rand = crypto.randomBytes(3).toString('hex');
+            const pedidoId = (item.pedidoId || `PED-${ts}-${rand}`).toUpperCase();
+            const token = crypto.randomBytes(16).toString('hex');
+
+            // Resolve revendas: aceita array de IDs ou fallback
+            let revendaIds = item.revendas;
+            if (!Array.isArray(revendaIds) || revendaIds.length === 0) {
+                // Backward compat: tenta converter campo revenda (string) para ID
+                if (item.revenda) {
+                    const rv = await dbGet('SELECT id FROM revendas WHERE LOWER(nome) = LOWER(?) AND ativo = 1', [item.revenda]);
+                    if (rv) revendaIds = [rv.id];
+                }
+            }
+            if (!Array.isArray(revendaIds) || revendaIds.length === 0) {
+                // Pega primeira revenda ativa como fallback
+                const fallback = await dbGet('SELECT id FROM revendas WHERE ativo = 1 ORDER BY id ASC LIMIT 1');
+                revendaIds = fallback ? [fallback.id] : [];
+            }
+
+            // Valida revendas
+            let validRevendas = [];
+            if (revendaIds.length > 0) {
+                const ph = revendaIds.map(() => '?').join(',');
+                validRevendas = await dbAll(`SELECT id, nome FROM revendas WHERE id IN (${ph}) AND ativo = 1`, revendaIds);
+            }
+
+            // GDAP: pool → API → fallback
+            let gdapLink = null;
+            let gdapRelationshipId = null;
+
+            const poolLink = await dbGet("SELECT * FROM gdap_pool WHERE status = 'disponivel' ORDER BY criado_em ASC LIMIT 1");
+            if (poolLink) {
+                gdapLink = poolLink.link;
+                await dbRun(
+                    "UPDATE gdap_pool SET status = 'usado', pedido_id = ?, usado_em = CURRENT_TIMESTAMP WHERE id = ?",
+                    [pedidoId, poolLink.id]
+                );
+            } else if (!gdapLink && isGdapConfigured()) {
+                try {
+                    const gdapResult = await criarConviteGDAP({ displayName: `Licenças - ${cliente || cnpjRaw} (${pedidoId})` });
+                    gdapLink = gdapResult.inviteLink;
+                    gdapRelationshipId = gdapResult.relationshipId;
+                } catch (e) {
+                    console.warn(`[BATCH] GDAP falhou para ${pedidoId}:`, e.message);
+                }
+            }
+            if (!gdapLink && process.env.GDAP_DEFAULT_LINK) {
+                gdapLink = process.env.GDAP_DEFAULT_LINK;
+            }
+
+            // Monta dados legado
+            const revendaNomes = validRevendas.map(r => r.nome);
+            const revendaVal = validRevendas.length > 0 ? validRevendas[0].nome.toLowerCase().replace(/\s+/g, '_') : '';
+            const revendaNome = revendaNomes.join(', ');
+
+            // Insere pedido no banco
+            await dbRun(
+                'INSERT INTO pedidos (pedido_id, token, cliente, cnpj, revenda, revenda_nome, gdap_link, gdap_relationship_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                [pedidoId, token, cliente.trim(), cnpjRaw, revendaVal, revendaNome, gdapLink, gdapRelationshipId]
+            );
+
+            // Insere associações pedido_revendas
+            for (const rv of validRevendas) {
+                await dbRun('INSERT INTO pedido_revendas (pedido_id, revenda_id) VALUES (?, ?)', [pedidoId, rv.id]);
+            }
+
+            const link = `${baseUrl}/?pedidoId=${pedidoId}&token=${token}`;
+
+            results.push({ pedidoId, link, cliente, situacao, revendas: revendaNomes });
+        }
+
+        console.log(`📦 Batch: ${results.length} pedidos criados`);
+        res.json({ total: results.length, links: results });
+    } catch (err) {
+        console.error('Erro no batch de pedidos:', err);
+        res.status(500).json({ error: 'Erro interno ao processar lote' });
+    }
+});
+
+/**
  * GET /api/pedido-completo/:pedidoId
  * Retorna pedido com token (uso interno admin — REQUER AUTH)
  */
-app.get('/api/pedido-completo/:pedidoId', requireAuth, async (req, res) => {
+app.get('/api/pedido-completo/:pedidoId', requireAdminOrSuper, async (req, res) => {
     try {
         const pedido = await dbGet(
             'SELECT pedido_id, token, cliente, cnpj, revenda, revenda_nome, status, gdap_link FROM pedidos WHERE pedido_id = ?',
             [req.params.pedidoId]
         );
         if (!pedido) return res.status(404).json({ error: 'Não encontrado' });
-        res.json({ ...pedido, gdap_link: pedido.gdap_link || null });
+
+        const revendas = await dbAll(
+            `SELECT r.id, r.nome FROM pedido_revendas pr JOIN revendas r ON r.id = pr.revenda_id WHERE pr.pedido_id = ?`,
+            [pedido.pedido_id]
+        );
+
+        res.json({ ...pedido, gdap_link: pedido.gdap_link || null, revendas });
     } catch (err) {
         res.status(500).json({ error: 'Erro interno' });
     }
@@ -434,25 +682,49 @@ app.get('/api/pedido-completo/:pedidoId', requireAuth, async (req, res) => {
  * PUT /api/pedidos/:pedidoId
  * Edita um pedido existente
  */
-app.put('/api/pedidos/:pedidoId', requireAuth, async (req, res) => {
+app.put('/api/pedidos/:pedidoId', requireAdminOrSuper, async (req, res) => {
     try {
         const { pedidoId } = req.params;
-        const { cliente, cnpj, revenda, revenda_nome, gdapLink } = req.body;
+        const { cliente, cnpj, revendas: revendaIds, gdapLink } = req.body;
 
         const pedido = await dbGet('SELECT * FROM pedidos WHERE pedido_id = ?', [pedidoId]);
         if (!pedido) return res.status(404).json({ error: 'Pedido não encontrado' });
 
         const newCliente = (cliente || pedido.cliente).trim();
         const newCnpj = (cnpj || pedido.cnpj).trim();
-        const newRevenda = (revenda || pedido.revenda).toLowerCase();
-        const newRevendaNome = revenda_nome !== undefined ? (revenda_nome || '').trim() : (pedido.revenda_nome || '');
-
-        if (!['ingram', 'tds'].includes(newRevenda)) {
-            return res.status(400).json({ error: 'Distribuidor deve ser "ingram" ou "tds"' });
-        }
 
         // Atualiza link GDAP se fornecido (permite inserção/edição manual)
         const newGdapLink = gdapLink !== undefined ? (gdapLink || null) : pedido.gdap_link;
+
+        // Se revendaIds fornecido, atualiza associações
+        let revendaNomes = [];
+        if (Array.isArray(revendaIds) && revendaIds.length > 0) {
+            const ph = revendaIds.map(() => '?').join(',');
+            const validRevendas = await dbAll(
+                `SELECT id, nome FROM revendas WHERE id IN (${ph}) AND ativo = 1`,
+                revendaIds
+            );
+            if (validRevendas.length === 0) {
+                return res.status(400).json({ error: 'Nenhuma revenda válida selecionada' });
+            }
+
+            // Remove associações antigas e insere novas
+            await dbRun('DELETE FROM pedido_revendas WHERE pedido_id = ?', [pedidoId]);
+            for (const rv of validRevendas) {
+                await dbRun('INSERT INTO pedido_revendas (pedido_id, revenda_id) VALUES (?, ?)', [pedidoId, rv.id]);
+            }
+            revendaNomes = validRevendas.map(r => r.nome);
+        } else {
+            // Mantém revendas existentes
+            const existingRvs = await dbAll(
+                `SELECT r.nome FROM pedido_revendas pr JOIN revendas r ON r.id = pr.revenda_id WHERE pr.pedido_id = ?`,
+                [pedidoId]
+            );
+            revendaNomes = existingRvs.map(r => r.nome);
+        }
+
+        const newRevenda = revendaNomes.length > 0 ? revendaNomes[0].toLowerCase().replace(/\s+/g, '_') : (pedido.revenda || '');
+        const newRevendaNome = revendaNomes.length > 0 ? revendaNomes.join(', ') : (pedido.revenda_nome || '');
 
         await dbRun(
             'UPDATE pedidos SET cliente = ?, cnpj = ?, revenda = ?, revenda_nome = ?, gdap_link = ?, atualizado_em = CURRENT_TIMESTAMP WHERE pedido_id = ?',
@@ -460,7 +732,7 @@ app.put('/api/pedidos/:pedidoId', requireAuth, async (req, res) => {
         );
 
         console.log(`✏️ Pedido editado: ${pedidoId}`);
-        res.json({ success: true, pedidoId, cliente: newCliente, cnpj: newCnpj, revenda: newRevenda, revenda_nome: newRevendaNome, gdapLink: newGdapLink });
+        res.json({ success: true, pedidoId, cliente: newCliente, cnpj: newCnpj, revendas: revendaNomes, gdapLink: newGdapLink });
     } catch (err) {
         console.error('Erro ao editar pedido:', err);
         res.status(500).json({ error: 'Erro interno ao editar pedido' });
@@ -471,7 +743,7 @@ app.put('/api/pedidos/:pedidoId', requireAuth, async (req, res) => {
  * GET /api/licencas/:pedidoId
  * Lista licenças de um pedido (uso admin)
  */
-app.get('/api/licencas/:pedidoId', requireAuth, async (req, res) => {
+app.get('/api/licencas/:pedidoId', requireAdminOrSuper, async (req, res) => {
     try {
         const licencas = await dbAll(
             'SELECT id, pedido_id, produto, qtd, duracao, preco FROM licencas WHERE pedido_id = ? ORDER BY id ASC',
@@ -488,7 +760,7 @@ app.get('/api/licencas/:pedidoId', requireAuth, async (req, res) => {
  * POST /api/licencas/:pedidoId
  * Adiciona uma licença a um pedido
  */
-app.post('/api/licencas/:pedidoId', requireAuth, async (req, res) => {
+app.post('/api/licencas/:pedidoId', requireAdminOrSuper, async (req, res) => {
     try {
         const { pedidoId } = req.params;
         const { produto, qtd, duracao, preco } = req.body;
@@ -517,7 +789,7 @@ app.post('/api/licencas/:pedidoId', requireAuth, async (req, res) => {
  * DELETE /api/licencas/:licencaId
  * Remove uma licença específica
  */
-app.delete('/api/licencas/:licencaId', requireAuth, async (req, res) => {
+app.delete('/api/licencas/:licencaId', requireAdminOrSuper, async (req, res) => {
     try {
         const result = await dbRun('DELETE FROM licencas WHERE id = ?', [req.params.licencaId]);
         if (result.changes === 0) return res.status(404).json({ error: 'Licença não encontrada' });
@@ -532,7 +804,7 @@ app.delete('/api/licencas/:licencaId', requireAuth, async (req, res) => {
  * POST /api/proposta/:pedidoId
  * Upload de proposta (PDF, CSV, XLSX, XLS) e importa itens como licenças
  */
-app.post('/api/proposta/:pedidoId', requireAuth, upload.single('arquivo'), async (req, res) => {
+app.post('/api/proposta/:pedidoId', requireAdminOrSuper, upload.single('arquivo'), async (req, res) => {
     try {
         const { pedidoId } = req.params;
         const pedido = await dbGet('SELECT * FROM pedidos WHERE pedido_id = ?', [pedidoId]);
@@ -734,9 +1006,10 @@ function mapColumns(headers, cols) {
  * DELETE /api/pedidos/:pedidoId
  * Remove um pedido
  */
-app.delete('/api/pedidos/:pedidoId', requireAuth, async (req, res) => {
+app.delete('/api/pedidos/:pedidoId', requireAdminOrSuper, async (req, res) => {
     try {
         const { pedidoId } = req.params;
+        await dbRun('DELETE FROM pedido_revendas WHERE pedido_id = ?', [pedidoId]);
         await dbRun('DELETE FROM licencas WHERE pedido_id = ?', [pedidoId]);
         await dbRun('DELETE FROM logs WHERE pedido_id = ?', [pedidoId]);
         const result = await dbRun('DELETE FROM pedidos WHERE pedido_id = ?', [pedidoId]);
@@ -754,7 +1027,7 @@ app.delete('/api/pedidos/:pedidoId', requireAuth, async (req, res) => {
  * GET /api/logs/:pedidoId
  * Retorna logs de validação de um pedido (uso interno)
  */
-app.get('/api/logs/:pedidoId', requireAuth, async (req, res) => {
+app.get('/api/logs/:pedidoId', requireAdminOrSuper, async (req, res) => {
     try {
         const logs = await dbAll(
             'SELECT * FROM logs WHERE pedido_id = ? ORDER BY criado_em DESC',
@@ -768,18 +1041,201 @@ app.get('/api/logs/:pedidoId', requireAuth, async (req, res) => {
 });
 
 /**
- * GET /api/pedidos
- * Lista todos os pedidos (uso interno/admin)
+ * GET /api/logs
+ * Lista logs com filtro e paginação (para a tela "Logs")
+ * Query:
+ * - pedidoId (opcional)
+ * - from (YYYY-MM-DD) (opcional)
+ * - to (YYYY-MM-DD) (opcional)
+ * - page (default 1)
+ * - pageSize (default 10, max 100)
  */
-app.get('/api/pedidos', requireAuth, async (req, res) => {
+app.get('/api/logs', requireAdminOrSuper, async (req, res) => {
+    try {
+        const pedidoId = (req.query.pedidoId || '').toString().trim();
+        const from = (req.query.from || '').toString().trim();
+        const to = (req.query.to || '').toString().trim();
+
+        const page = Math.max(1, parseInt(req.query.page || '1', 10) || 1);
+        const pageSizeRaw = parseInt(req.query.pageSize || '10', 10) || 10;
+        const pageSize = Math.min(100, Math.max(1, pageSizeRaw));
+        const offset = (page - 1) * pageSize;
+
+        const where = [];
+        const params = [];
+
+        if (pedidoId) {
+            where.push('pedido_id = ?');
+            params.push(pedidoId);
+        }
+
+        if (from) {
+            // include day start
+            where.push("datetime(timestamp) >= datetime(? || ' 00:00:00')");
+            params.push(from);
+        }
+        if (to) {
+            // include day end
+            where.push("datetime(timestamp) <= datetime(? || ' 23:59:59')");
+            params.push(to);
+        }
+
+        const whereSql = where.length ? ('WHERE ' + where.join(' AND ')) : '';
+
+        const totalRow = await dbGet(
+            `SELECT COUNT(*) as total FROM logs ${whereSql}`,
+            params
+        );
+
+        const logs = await dbAll(
+            `SELECT * FROM logs ${whereSql} ORDER BY criado_em DESC LIMIT ? OFFSET ?`,
+            [...params, pageSize, offset]
+        );
+
+        res.json({
+            page,
+            pageSize,
+            total: totalRow?.total || 0,
+            totalPages: Math.max(1, Math.ceil((totalRow?.total || 0) / pageSize)),
+            logs
+        });
+    } catch (err) {
+        console.error('Erro ao listar logs:', err);
+        res.status(500).json({ error: 'Erro ao listar logs' });
+    }
+});
+
+/**
+ * GET /api/pedidos
+ * Lista todos os pedidos (uso interno/admin) com revendas associadas
+ */
+app.get('/api/pedidos', requireAdminOrSuper, async (req, res) => {
     try {
         const pedidos = await dbAll(
             'SELECT pedido_id, cliente, cnpj, revenda, revenda_nome, status, criado_em, atualizado_em FROM pedidos ORDER BY criado_em DESC'
         );
-        res.json({ total: pedidos.length, pedidos });
+
+        // Buscar revendas de todos os pedidos de uma vez
+        const allPR = await dbAll(
+            `SELECT pr.pedido_id, r.id as revenda_id, r.nome as revenda_nome_full 
+             FROM pedido_revendas pr 
+             JOIN revendas r ON r.id = pr.revenda_id`
+        );
+        const prMap = {};
+        for (const pr of allPR) {
+            if (!prMap[pr.pedido_id]) prMap[pr.pedido_id] = [];
+            prMap[pr.pedido_id].push({ id: pr.revenda_id, nome: pr.revenda_nome_full });
+        }
+
+        const result = pedidos.map(p => ({
+            ...p,
+            revendas: prMap[p.pedido_id] || []
+        }));
+
+        res.json({ total: result.length, pedidos: result });
     } catch (err) {
         console.error('Erro ao listar pedidos:', err);
         res.status(500).json({ error: 'Erro ao listar pedidos' });
+    }
+});
+
+/**
+ * GET /api/admin/dashboard
+ * Métricas para o dashboard do admin:
+ * - pedidosNoMes: pedidos criados no mês corrente
+ * - clientes: quantidade de clientes únicos (por CNPJ)
+ * - usuariosEmRisco: pedidos pendentes com mais de 7 dias
+ * - usuariosNoPrazo7Dias: pedidos pendentes com até 7 dias
+ */
+/**
+ * GET /api/cnpj/:cnpj
+ * Consulta dados de CNPJ via OpenCNPJ API e retorna dados normalizados
+ */
+app.get('/api/cnpj/:cnpj', requireAdminOrSuper, async (req, res) => {
+    try {
+        const raw = String(req.params.cnpj || '');
+        const cnpj = raw.replace(/[.\-\/]/g, '').replace(/\D/g, '');
+
+        if (!/^\d{14}$/.test(cnpj)) {
+            return res.status(400).json({ error: 'CNPJ inválido' });
+        }
+
+        const url = `https://api.opencnpj.org/${cnpj}`;
+
+        const apiRes = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'User-Agent': 'BluePartner-Validacao/1.0'
+            }
+        });
+
+        if (apiRes.status === 404) {
+            return res.status(404).json({ error: 'CNPJ não encontrado' });
+        }
+
+        if (!apiRes.ok) {
+            const text = await apiRes.text().catch(() => '');
+            return res.status(502).json({
+                error: 'Falha ao consultar CNPJ',
+                status: apiRes.status,
+                details: text?.slice?.(0, 500) || ''
+            });
+        }
+
+        const data = await apiRes.json();
+
+        const resp = {
+            nome: data.razao_social || null,
+            situacao: data.situacao_cadastral || null,
+            cidade: `${data.municipio || ''}, ${data.uf || ''}`.replace(/^, |, $/g, '') || null
+        };
+
+        res.json(resp);
+    } catch (err) {
+        console.error('Erro ao consultar CNPJ:', err);
+        res.status(500).json({ error: 'Erro interno ao consultar CNPJ' });
+    }
+});
+
+app.get('/api/admin/dashboard', requireAdminOrSuper, async (req, res) => {
+    try {
+        // Month boundaries in SQLite: start of current month to start of next month
+        const pedidosNoMesRow = await dbGet(
+            `SELECT COUNT(*) as total
+             FROM pedidos
+             WHERE criado_em >= datetime('now', 'start of month')
+               AND criado_em < datetime('now', 'start of month', '+1 month')`
+        );
+
+        const clientesRow = await dbGet(
+            `SELECT COUNT(DISTINCT cnpj) as total FROM pedidos`
+        );
+
+        // Pending age buckets based on criado_em
+        const usuariosNoPrazo7DiasRow = await dbGet(
+            `SELECT COUNT(*) as total
+             FROM pedidos
+             WHERE status = 'PENDENTE'
+               AND criado_em >= datetime('now', '-7 days')`
+        );
+
+        const usuariosEmRiscoRow = await dbGet(
+            `SELECT COUNT(*) as total
+             FROM pedidos
+             WHERE status = 'PENDENTE'
+               AND criado_em < datetime('now', '-7 days')`
+        );
+
+        res.json({
+            pedidosNoMes: pedidosNoMesRow?.total || 0,
+            clientes: clientesRow?.total || 0,
+            usuariosEmRisco: usuariosEmRiscoRow?.total || 0,
+            usuariosNoPrazo7Dias: usuariosNoPrazo7DiasRow?.total || 0,
+        });
+    } catch (err) {
+        console.error('Erro ao gerar dashboard admin:', err);
+        res.status(500).json({ error: 'Erro ao gerar dashboard admin' });
     }
 });
 
@@ -789,19 +1245,19 @@ app.get('/api/pedidos', requireAuth, async (req, res) => {
  * GET /api/revendas
  * Lista todas as revendas cadastradas
  */
-app.get('/api/revendas', requireAuthOrSuper, async (req, res) => {
+app.get('/api/revendas', requireAdminOrSuper, async (req, res) => {
     try {
         const revendas = await dbAll('SELECT * FROM revendas ORDER BY nome ASC');
-        // Conta pedidos por revenda
+        // Conta pedidos por revenda via junction table
         const counts = await dbAll(
-            `SELECT revenda_nome, COUNT(*) as total FROM pedidos WHERE revenda_nome != '' GROUP BY revenda_nome`
+            `SELECT revenda_id, COUNT(*) as total FROM pedido_revendas GROUP BY revenda_id`
         );
         const countMap = {};
-        counts.forEach(c => { countMap[c.revenda_nome] = c.total; });
+        counts.forEach(c => { countMap[c.revenda_id] = c.total; });
 
         const result = revendas.map(r => ({
             ...r,
-            pedidos_count: countMap[r.nome] || 0
+            pedidos_count: countMap[r.id] || 0
         }));
 
         res.json({ total: result.length, revendas: result });
@@ -815,9 +1271,9 @@ app.get('/api/revendas', requireAuthOrSuper, async (req, res) => {
  * GET /api/revendas/ativas
  * Lista apenas revendas ativas (para uso no dropdown do admin)
  */
-app.get('/api/revendas/ativas', requireAuth, async (req, res) => {
+app.get('/api/revendas/ativas', requireAdminOrSuper, async (req, res) => {
     try {
-        const revendas = await dbAll('SELECT id, nome FROM revendas WHERE ativo = 1 ORDER BY nome ASC');
+        const revendas = await dbAll('SELECT id, nome, partner_id, link_base FROM revendas WHERE ativo = 1 ORDER BY nome ASC');
         res.json({ revendas });
     } catch (err) {
         res.status(500).json({ error: 'Erro ao listar revendas ativas' });
@@ -830,7 +1286,7 @@ app.get('/api/revendas/ativas', requireAuth, async (req, res) => {
  */
 app.post('/api/revendas', requireSuperAdmin, async (req, res) => {
     try {
-        const { nome, contato, email } = req.body;
+        const { nome, contato, email, partner_id, link_base } = req.body;
         if (!nome || !nome.trim()) {
             return res.status(400).json({ error: 'Nome da revenda é obrigatório' });
         }
@@ -842,8 +1298,8 @@ app.post('/api/revendas', requireSuperAdmin, async (req, res) => {
         }
 
         const result = await dbRun(
-            'INSERT INTO revendas (nome, contato, email) VALUES (?, ?, ?)',
-            [nome.trim(), (contato || '').trim(), (email || '').trim()]
+            'INSERT INTO revendas (nome, contato, email, partner_id, link_base) VALUES (?, ?, ?, ?, ?)',
+            [nome.trim(), (contato || '').trim(), (email || '').trim(), (partner_id || '').trim(), (link_base || '').trim()]
         );
 
         console.log(`🏪 Nova revenda criada: ${nome.trim()}`);
@@ -861,7 +1317,7 @@ app.post('/api/revendas', requireSuperAdmin, async (req, res) => {
 app.put('/api/revendas/:id', requireSuperAdmin, async (req, res) => {
     try {
         const { id } = req.params;
-        const { nome, contato, email, ativo } = req.body;
+        const { nome, contato, email, partner_id, link_base, ativo } = req.body;
 
         const revenda = await dbGet('SELECT * FROM revendas WHERE id = ?', [id]);
         if (!revenda) return res.status(404).json({ error: 'Revenda não encontrada' });
@@ -869,19 +1325,21 @@ app.put('/api/revendas/:id', requireSuperAdmin, async (req, res) => {
         const newNome = (nome || revenda.nome).trim();
         const newContato = contato !== undefined ? (contato || '').trim() : revenda.contato;
         const newEmail = email !== undefined ? (email || '').trim() : revenda.email;
+        const newPartnerId = partner_id !== undefined ? (partner_id || '').trim() : (revenda.partner_id || '');
+        const newLinkBase = link_base !== undefined ? (link_base || '').trim() : (revenda.link_base || '');
         const newAtivo = ativo !== undefined ? (ativo ? 1 : 0) : revenda.ativo;
 
-        // Se mudou o nome, atualiza nos pedidos também
+        // Se mudou o nome, atualiza revenda_nome nos pedidos (backward compat)
         if (newNome !== revenda.nome) {
             await dbRun(
-                'UPDATE pedidos SET revenda_nome = ? WHERE revenda_nome = ?',
-                [newNome, revenda.nome]
+                'UPDATE pedidos SET revenda_nome = REPLACE(revenda_nome, ?, ?) WHERE revenda_nome LIKE ?',
+                [revenda.nome, newNome, `%${revenda.nome}%`]
             );
         }
 
         await dbRun(
-            'UPDATE revendas SET nome = ?, contato = ?, email = ?, ativo = ? WHERE id = ?',
-            [newNome, newContato, newEmail, newAtivo, id]
+            'UPDATE revendas SET nome = ?, contato = ?, email = ?, partner_id = ?, link_base = ?, ativo = ? WHERE id = ?',
+            [newNome, newContato, newEmail, newPartnerId, newLinkBase, newAtivo, id]
         );
 
         console.log(`✏️ Revenda editada: ${newNome}`);
@@ -902,10 +1360,10 @@ app.delete('/api/revendas/:id', requireSuperAdmin, async (req, res) => {
         const revenda = await dbGet('SELECT * FROM revendas WHERE id = ?', [id]);
         if (!revenda) return res.status(404).json({ error: 'Revenda não encontrada' });
 
-        // Verifica se tem pedidos associados
+        // Verifica se tem pedidos associados via junction table
         const pedidosCount = await dbGet(
-            'SELECT COUNT(*) as total FROM pedidos WHERE revenda_nome = ?',
-            [revenda.nome]
+            'SELECT COUNT(*) as total FROM pedido_revendas WHERE revenda_id = ?',
+            [id]
         );
         if (pedidosCount && pedidosCount.total > 0) {
             return res.status(400).json({ 
@@ -960,12 +1418,13 @@ app.get('/api/revendas/dashboard', requireSuperAdmin, async (req, res) => {
     try {
         const stats = await dbAll(`
             SELECT 
-                r.id, r.nome, r.contato, r.email, r.ativo,
-                COUNT(p.pedido_id) as total_pedidos,
+                r.id, r.nome, r.contato, r.email, r.partner_id, r.link_base, r.ativo,
+                COUNT(pr.pedido_id) as total_pedidos,
                 SUM(CASE WHEN p.status = 'VALIDADO' THEN 1 ELSE 0 END) as validados,
                 SUM(CASE WHEN p.status = 'PENDENTE' THEN 1 ELSE 0 END) as pendentes
             FROM revendas r
-            LEFT JOIN pedidos p ON p.revenda_nome = r.nome
+            LEFT JOIN pedido_revendas pr ON pr.revenda_id = r.id
+            LEFT JOIN pedidos p ON p.pedido_id = pr.pedido_id
             GROUP BY r.id
             ORDER BY total_pedidos DESC, r.nome ASC
         `);
@@ -1006,7 +1465,7 @@ app.get('/api/gdap/status', async (req, res) => {
  * GET /api/gdap/pool
  * Lista todos os links GDAP do pool
  */
-app.get('/api/gdap/pool', requireAuthOrSuper, async (req, res) => {
+app.get('/api/gdap/pool', requireAdminOrSuper, async (req, res) => {
     try {
         const links = await dbAll('SELECT * FROM gdap_pool ORDER BY criado_em DESC');
         const disponiveis = links.filter(l => l.status === 'disponivel').length;
@@ -1091,7 +1550,7 @@ app.delete('/api/gdap/pool/:id', requireSuperAdmin, async (req, res) => {
  * Cria relação GDAP e retorna link de convite
  * Body (opcional): { displayName, duration }
  */
-app.post('/api/gdap/criar-convite', requireAuth, async (req, res) => {
+app.post('/api/gdap/criar-convite', requireAdminOrSuper, async (req, res) => {
     try {
         if (!isGdapConfigured()) {
             return res.status(503).json({
@@ -1122,7 +1581,7 @@ app.post('/api/gdap/criar-convite', requireAuth, async (req, res) => {
  * Gera (ou regenera) um link GDAP exclusivo para um pedido específico.
  * Cada cliente recebe seu próprio link — resolve o problema de link único.
  */
-app.post('/api/gdap/gerar-link/:pedidoId', requireAuth, async (req, res) => {
+app.post('/api/gdap/gerar-link/:pedidoId', requireAdminOrSuper, async (req, res) => {
     try {
         if (!isGdapConfigured()) {
             return res.status(503).json({
@@ -1164,6 +1623,357 @@ app.post('/api/gdap/gerar-link/:pedidoId', requireAuth, async (req, res) => {
     }
 });
 
+// ===== ROTAS GESTÃO DE USUÁRIOS (superadmin) =====
+
+/**
+ * GET /api/usuarios
+ * Lista todos os usuários cadastrados
+ */
+app.get('/api/usuarios', requireSuperAdmin, async (req, res) => {
+    try {
+        const usuarios = await dbAll('SELECT id, email, nome, role, ativo, criado_em FROM usuarios ORDER BY criado_em DESC');
+        res.json({ total: usuarios.length, usuarios });
+    } catch (err) {
+        console.error('Erro ao listar usuários:', err);
+        res.status(500).json({ error: 'Erro ao listar usuários' });
+    }
+});
+
+/**
+ * POST /api/usuarios
+ * Cria um novo usuário (apenas email + role, sem senha)
+ */
+app.post('/api/usuarios', requireSuperAdmin, async (req, res) => {
+    try {
+        const { email, role } = req.body;
+        if (!email || !email.trim()) {
+            return res.status(400).json({ error: 'E-mail é obrigatório' });
+        }
+        const trimmedEmail = email.trim().toLowerCase();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+            return res.status(400).json({ error: 'E-mail inválido' });
+        }
+        const validRole = ['admin', 'superadmin'].includes(role) ? role : 'admin';
+
+        const existing = await dbGet('SELECT id FROM usuarios WHERE LOWER(email) = ?', [trimmedEmail]);
+        if (existing) {
+            return res.status(409).json({ error: 'Usuário com este e-mail já existe' });
+        }
+
+        const result = await dbRun(
+            'INSERT INTO usuarios (email, role) VALUES (?, ?)',
+            [trimmedEmail, validRole]
+        );
+
+        console.log(`👤 Novo usuário criado: ${trimmedEmail} (${validRole})`);
+        res.json({ success: true, id: result.lastID, email: trimmedEmail, role: validRole });
+    } catch (err) {
+        console.error('Erro ao criar usuário:', err);
+        res.status(500).json({ error: 'Erro ao criar usuário' });
+    }
+});
+
+/**
+ * PUT /api/usuarios/:id
+ * Atualiza role e/ou status de um usuário
+ */
+app.put('/api/usuarios/:id', requireSuperAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { role, ativo } = req.body;
+
+        const user = await dbGet('SELECT * FROM usuarios WHERE id = ?', [id]);
+        if (!user) return res.status(404).json({ error: 'Usuário não encontrado' });
+
+        // Impede que o superadmin desative a si mesmo
+        if (req.session.user.email.toLowerCase() === user.email.toLowerCase() && ativo === false) {
+            return res.status(400).json({ error: 'Você não pode desativar sua própria conta' });
+        }
+
+        const newRole = role && ['admin', 'superadmin'].includes(role) ? role : user.role;
+        const newAtivo = ativo !== undefined ? (ativo ? 1 : 0) : user.ativo;
+
+        await dbRun(
+            'UPDATE usuarios SET role = ?, ativo = ? WHERE id = ?',
+            [newRole, newAtivo, id]
+        );
+
+        console.log(`✏️ Usuário atualizado: ${user.email} → role=${newRole}, ativo=${newAtivo}`);
+        res.json({ success: true, id: parseInt(id), email: user.email, role: newRole, ativo: !!newAtivo });
+    } catch (err) {
+        console.error('Erro ao atualizar usuário:', err);
+        res.status(500).json({ error: 'Erro ao atualizar usuário' });
+    }
+});
+
+/**
+ * DELETE /api/usuarios/:id
+ * Remove um usuário
+ */
+app.delete('/api/usuarios/:id', requireSuperAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await dbGet('SELECT * FROM usuarios WHERE id = ?', [id]);
+        if (!user) return res.status(404).json({ error: 'Usuário não encontrado' });
+
+        // Impede que o superadmin delete a si mesmo
+        if (req.session.user.email.toLowerCase() === user.email.toLowerCase()) {
+            return res.status(400).json({ error: 'Você não pode remover sua própria conta' });
+        }
+
+        await dbRun('DELETE FROM usuarios WHERE id = ?', [id]);
+        console.log(`🗑️ Usuário removido: ${user.email}`);
+        res.json({ success: true, message: `Usuário ${user.email} removido` });
+    } catch (err) {
+        console.error('Erro ao remover usuário:', err);
+        res.status(500).json({ error: 'Erro ao remover usuário' });
+    }
+});
+
+// ===== ROTAS FABRIC / POWER BI =====
+
+/**
+ * GET /api/fabric/status
+ * Verifica se Fabric está configurado e retorna status da conexão
+ */
+app.get('/api/fabric/status', requireAdminOrSuper, async (req, res) => {
+    try {
+        const status = isFabricConfigured();
+        res.json(status);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * GET /api/fabric/datasets
+ * Lista datasets disponíveis no workspace Power BI
+ */
+app.get('/api/fabric/datasets', requireAdminOrSuper, async (req, res) => {
+    try {
+        const datasets = await listDatasets(req.query.workspaceId);
+        res.json({ datasets });
+    } catch (err) {
+        console.error('Erro ao listar datasets:', err.message);
+        res.status(500).json({ error: 'Erro ao listar datasets: ' + err.message });
+    }
+});
+
+/**
+ * GET /api/fabric/tables
+ * Lista tabelas de um dataset
+ */
+app.get('/api/fabric/tables', requireAdminOrSuper, async (req, res) => {
+    try {
+        const tables = await listDatasetTables(req.query.datasetId);
+        res.json({ tables });
+    } catch (err) {
+        console.error('Erro ao listar tabelas:', err.message);
+        res.status(500).json({ error: 'Erro ao listar tabelas: ' + err.message });
+    }
+});
+
+/**
+ * POST /api/fabric/query
+ * Executa query DAX contra dataset Power BI
+ */
+app.post('/api/fabric/query', requireAdminOrSuper, async (req, res) => {
+    try {
+        const { dax, datasetId } = req.body;
+        if (!dax) return res.status(400).json({ error: 'Query DAX é obrigatória' });
+        const rows = await executeDaxQuery(dax, datasetId);
+        res.json({ rows, total: rows.length });
+    } catch (err) {
+        console.error('Erro ao executar DAX:', err.message);
+        res.status(500).json({ error: 'Erro na query: ' + err.message });
+    }
+});
+
+/**
+ * POST /api/fabric/sql-query
+ * Executa query SQL contra Fabric SQL endpoint
+ */
+app.post('/api/fabric/sql-query', requireAdminOrSuper, async (req, res) => {
+    try {
+        const { query } = req.body;
+        if (!query) return res.status(400).json({ error: 'Query SQL é obrigatória' });
+        // Só permite SELECT (read-only)
+        const normalized = query.trim().toUpperCase();
+        if (!normalized.startsWith('SELECT')) {
+            return res.status(400).json({ error: 'Apenas queries SELECT são permitidas' });
+        }
+        const result = await fabricSqlQuery(query);
+        res.json({ rows: result.recordset, total: result.recordset.length });
+    } catch (err) {
+        console.error('Erro ao executar SQL Fabric:', err.message);
+        res.status(500).json({ error: 'Erro na query SQL: ' + err.message });
+    }
+});
+
+/**
+ * POST /api/fabric/sync-revendas
+ * Sincroniza revendas do Fabric para o banco local
+ */
+app.post('/api/fabric/sync-revendas', requireSuperAdmin, async (req, res) => {
+    try {
+        const { tableName, columnMap } = req.body;
+        if (!tableName) return res.status(400).json({ error: 'Nome da tabela é obrigatório' });
+        const result = await syncRevendasFromFabric(tableName, columnMap || {}, dbRun, dbGet);
+        console.log(`🔄 Sync Fabric revendas: ${JSON.stringify(result)}`);
+        res.json(result);
+    } catch (err) {
+        console.error('Erro ao sync revendas Fabric:', err.message);
+        res.status(500).json({ error: 'Erro ao sincronizar: ' + err.message });
+    }
+});
+
+/**
+ * POST /api/fabric/test-connection
+ * Testa a conexão com Fabric SQL ou Power BI
+ */
+app.post('/api/fabric/test-connection', requireAdminOrSuper, async (req, res) => {
+    const results = { sql: null, powerbi: null, onelake: null };
+    const status = isFabricConfigured();
+    const userToken = req.session.fabricToken || null;
+
+    if (status.sql && status.credentials) {
+        try {
+            const r = await fabricSqlQuery('SELECT 1 AS ok');
+            results.sql = { connected: true, message: 'Conectado ao Fabric SQL' };
+        } catch (err) {
+            results.sql = { connected: false, message: err.message };
+        }
+    }
+
+    // Power BI: tenta delegado primeiro, depois client credentials
+    if (status.credentials) {
+        try {
+            const datasets = await listDatasets(null, userToken);
+            results.powerbi = { connected: true, message: `${datasets.length} dataset(s) encontrado(s)`, datasets: datasets.length };
+        } catch (err) {
+            results.powerbi = { connected: false, message: err.message };
+        }
+    }
+
+    // OneLake: tenta delegado primeiro via token do usuário
+    if (status.credentials) {
+        try {
+            const items = await listWorkspaceItems(null, null, userToken);
+            results.onelake = { connected: true, message: `${items.length} item(ns) no workspace`, items: items.length };
+        } catch (err) {
+            // Se OBO falhou e não tem workspace configurado, tenta listar workspaces
+            try {
+                const workspaces = await listWorkspaces(userToken);
+                results.onelake = { connected: true, message: `${workspaces.length} workspace(s) encontrado(s)`, workspaces: workspaces.map(w => ({ id: w.id, name: w.displayName })) };
+            } catch (err2) {
+                results.onelake = { connected: false, message: err2.message };
+            }
+        }
+    }
+
+    // Info sobre modo de autenticação
+    results.authMode = userToken ? 'delegated (token do usuário)' : 'client_credentials (service principal)';
+
+    res.json(results);
+});
+
+// ===== ROTAS ONELAKE CATALOG =====
+
+/**
+ * GET /api/onelake/workspaces
+ * Lista workspaces acessíveis no Fabric (usa token delegado do usuário logado)
+ */
+app.get('/api/onelake/workspaces', requireAdminOrSuper, async (req, res) => {
+    try {
+        const userToken = req.session.fabricToken || null;
+        const workspaces = await listWorkspaces(userToken);
+        res.json({ workspaces });
+    } catch (err) {
+        console.error('Erro ao listar workspaces:', err.message);
+        res.status(500).json({ error: 'Erro ao listar workspaces: ' + err.message });
+    }
+});
+
+/**
+ * GET /api/onelake/items
+ * Lista itens de um workspace (Lakehouse, Warehouse, SemanticModel, etc.)
+ * Query params: workspaceId, type
+ */
+app.get('/api/onelake/items', requireAdminOrSuper, async (req, res) => {
+    try {
+        const userToken = req.session.fabricToken || null;
+        const items = await listWorkspaceItems(req.query.workspaceId, req.query.type, userToken);
+        res.json({ items });
+    } catch (err) {
+        console.error('Erro ao listar itens:', err.message);
+        res.status(500).json({ error: 'Erro ao listar itens: ' + err.message });
+    }
+});
+
+/**
+ * GET /api/onelake/lakehouses
+ * Lista lakehouses de um workspace
+ */
+app.get('/api/onelake/lakehouses', requireAdminOrSuper, async (req, res) => {
+    try {
+        const userToken = req.session.fabricToken || null;
+        const lakehouses = await listLakehouses(req.query.workspaceId, userToken);
+        res.json({ lakehouses });
+    } catch (err) {
+        console.error('Erro ao listar lakehouses:', err.message);
+        res.status(500).json({ error: 'Erro ao listar lakehouses: ' + err.message });
+    }
+});
+
+/**
+ * GET /api/onelake/lakehouses/:lakehouseId/tables
+ * Lista tabelas de um Lakehouse específico
+ */
+app.get('/api/onelake/lakehouses/:lakehouseId/tables', requireAdminOrSuper, async (req, res) => {
+    try {
+        const userToken = req.session.fabricToken || null;
+        const tables = await listLakehouseTables(req.params.lakehouseId, req.query.workspaceId, userToken);
+        res.json({ tables });
+    } catch (err) {
+        console.error('Erro ao listar tabelas do lakehouse:', err.message);
+        res.status(500).json({ error: 'Erro ao listar tabelas: ' + err.message });
+    }
+});
+
+/**
+ * GET /api/onelake/table/describe
+ * Retorna colunas/tipos de uma tabela do OneLake (via SQL endpoint)
+ * Query param: tableName
+ */
+app.get('/api/onelake/table/describe', requireAdminOrSuper, async (req, res) => {
+    try {
+        const { tableName } = req.query;
+        if (!tableName) return res.status(400).json({ error: 'tableName é obrigatório' });
+        const columns = await describeTable(tableName);
+        res.json({ tableName, columns });
+    } catch (err) {
+        console.error('Erro ao descrever tabela:', err.message);
+        res.status(500).json({ error: 'Erro ao descrever tabela: ' + err.message });
+    }
+});
+
+/**
+ * GET /api/onelake/table/preview
+ * Preview das primeiras linhas de uma tabela do OneLake
+ * Query params: tableName, limit (default 50, max 1000)
+ */
+app.get('/api/onelake/table/preview', requireAdminOrSuper, async (req, res) => {
+    try {
+        const { tableName, limit } = req.query;
+        if (!tableName) return res.status(400).json({ error: 'tableName é obrigatório' });
+        const data = await previewTable(tableName, limit);
+        res.json(data);
+    } catch (err) {
+        console.error('Erro ao preview tabela:', err.message);
+        res.status(500).json({ error: 'Erro ao ler tabela: ' + err.message });
+    }
+});
+
 // ===== SPA FALLBACK =====
 // Rota do cliente (aceite) — servida somente via link com parâmetros
 app.get('/validar', (req, res) => {
@@ -1173,26 +1983,22 @@ app.get('/validar/:pedidoId/:token', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Super Admin — página oculta
-app.get('/superadmin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'superadmin.html'));
-});
-
-// Página principal = Admin
+// Página principal
 app.get('/', (req, res) => {
     // Se tem parâmetros de pedido, serve a página do cliente
     if (req.query.pedidoId && req.query.token) {
         return res.sendFile(path.join(__dirname, 'public', 'index.html'));
     }
-    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+    // Senão, manda para login/admin conforme sessão
+    if (!req.session?.user) return res.redirect('/login');
+    if (req.session.user.role === 'superadmin') return res.redirect('/superadmin');
+    return res.redirect('/admin');
 });
-app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
-});
-// Qualquer outra rota não-API serve o admin
+
+// Qualquer outra rota não-API manda para /admin (que já valida sessão)
 app.get('*', (req, res) => {
     if (!req.path.startsWith('/api/')) {
-        res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+        return res.redirect('/admin');
     }
 });
 
@@ -1207,6 +2013,17 @@ async function start() {
     try {
         await initDatabase();
         console.log('📦 Banco de dados inicializado');
+
+        // Auto-seed: garante que superadmin existe no banco (importante para deploy no Azure)
+        const superadminEmail = 'julia.silva@bluepartner.com.br';
+        const existing = await dbGet('SELECT id FROM usuarios WHERE LOWER(email) = LOWER(?)', [superadminEmail]);
+        if (!existing) {
+            await dbRun(
+                'INSERT INTO usuarios (email, nome, role, ativo) VALUES (?, ?, ?, ?)',
+                [superadminEmail, 'Julia da Assunção Silva', 'superadmin', 1]
+            );
+            console.log(`👤 Superadmin criada automaticamente: ${superadminEmail}`);
+        }
 
         app.listen(PORT, () => {
             console.log('');
@@ -1225,9 +2042,9 @@ async function start() {
             console.log(`  GET  /api/pedidos`);
             console.log('');
             console.log('');
-            console.log('  🔒 Segurança:');
-            console.log(`  Admin login: ${ADMIN_USER} / (env ADMIN_PASS_HASH)`);
-            console.log(`  JWT expires: ${JWT_EXPIRES}`);
+            console.log('  🔒 Auth/Sessão:');
+            console.log(`  Entra redirect: ${ENTRA_REDIRECT_URI}`);
+            console.log(`  Cookie secure: ${process.env.NODE_ENV === 'production'}`);
             console.log('');
             console.log('  GDAP:');
             console.log(`  GET  /api/gdap/status`);

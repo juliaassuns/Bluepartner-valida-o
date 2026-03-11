@@ -16,6 +16,18 @@
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+        /* ===== MEDIA / IMAGES (responsive defaults) ===== */
+        img, svg, video, canvas {
+            max-width: 100%;
+            height: auto;
+        }
+        /* Prevent inline SVGs from "squishing" inside flex items */
+        svg {
+            flex-shrink: 0;
+        }
+        /* Better tap responsiveness on mobile (avoid 300ms delay on some browsers) */
+        button, a { touch-action: manipulation; }
+
         :root {
             --blue-primary: #00AEEF;
             --blue-dark: #0090C8;
@@ -129,6 +141,7 @@
             display: flex; align-items: center; justify-content: center;
             transition: var(--transition-spring);
             box-shadow: 0 2px 10px rgba(0,174,239,0.25);
+            overflow: hidden;
         }
         .header-logo:hover .logo-icon {
             transform: scale(1.08) rotate(-3deg);
@@ -199,6 +212,7 @@
             margin-bottom: 18px;
             border: 1px solid rgba(255,255,255,0.18);
             box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            overflow: hidden;
         }
         .hero-icon-wrap svg { width: 28px; height: 28px; fill: white; }
         .hero h1 {
@@ -281,9 +295,13 @@
 
         /* ===== CONTAINER ===== */
         .container {
-            max-width: 720px; margin: 24px auto 0;
-            padding: 0 24px 48px; flex: 1;
-            position: relative; z-index: 10;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 24px 24px 48px;
+            flex: 1;
+            position: relative;
+            z-index: 10;
+            width: 100%;
         }
 
         /* ===== LOADING STATE ===== */
@@ -985,11 +1003,11 @@
             .progress-bar { padding: 14px 18px; flex-wrap: wrap; gap: 4px; }
             .progress-label { display: none; }
             .progress-dot { width: 28px; height: 28px; font-size: 11px; }
-            .container { padding: 0 16px 40px; }
+            .container { padding: 16px 16px 40px; }
             .card-header { padding: 20px; }
             .card-body { padding: 20px; }
             .cnpj-section { padding: 20px; }
-            .cnpj-input { font-size: 16px; padding: 14px 16px 14px 48px; }
+            .cnpj-input { font-size: 16px; padding: 14px 16px 14px 48px; letter-spacing: 1px; }
             .agreement-card { padding: 20px; }
             .header-inner { padding: 12px 16px; }
             .header-badges .header-badge:not(.secure) { display: none; }
@@ -1442,22 +1460,8 @@
                         </div>
                     </div>
 
-                    <!-- Passo 2 - Revenda -->
-                    <div class="success-step" id="successStep2">
-                        <div class="success-step-top">
-                            <span class="success-step-badge purple">Passo 2</span>
-                            <span class="success-step-label" id="revendaStepLabel">Aceitar Parceria</span>
-                        </div>
-                        <div class="success-step-body">
-                            <div class="success-step-icon-wrap purple">
-                                <i data-lucide="handshake"></i>
-                            </div>
-                            <div class="success-step-text">
-                                <div class="success-step-desc" id="revendaStepDesc">Vincula sua empresa ao distribuidor Microsoft autorizado.</div>
-                                <button class="success-step-btn btn-purple" id="btnRevenda" disabled onclick="openRevendaLink()">Abrir <span id="revendaStepName"></span> →</button>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Passo 2+ - Revendas (dinâmico) -->
+                    <div id="revendaStepsContainer"></div>
                 </div>
 
                 <!-- All done -->
@@ -1497,11 +1501,6 @@
 
     <script>
     const CONFIG = {
-        REVENDA_LINKS: {
-            ingram: 'https://admin.microsoft.com/Adminportal/Home?invType=IndirectResellerRelationship&partnerId=fd711286-496a-49d4-a9e7-056fe461f9db&msppId=4817772&indirectCSPId=4e3ecce0-5bc3-42d1-a51e-3357bbbf721e#/BillingAccounts/partner-invitation',
-            tds: 'https://admin.microsoft.com/Adminportal/Home?invType=IndirectResellerRelationship&partnerId=fd711286-496a-49d4-a9e7-056fe461f9db&msppId=4817772&indirectCSPId=34851c42-87d2-423d-8fac-537b0e6f133b#/BillingAccounts/partner-invitation'
-        },
-        REVENDA_NAMES: { ingram: 'Ingram Micro', tds: 'TD SYNNEX' },
         API_BASE: '',
         INACTIVITY_TIMEOUT: 5 * 60 * 1000,
         REDIRECT_DELAY: 3000
@@ -1509,6 +1508,7 @@
 
     let pedidoId = null, tokenUnico = null, revenda = null;
     let inactivityTimer = null, pedidoData = null;
+    let revendasData = []; // Array de revendas do pedido (vindas da API)
 
     // Header scroll effect
     window.addEventListener('scroll', () => {
@@ -1517,12 +1517,8 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         parseURL();
-        if (!pedidoId || !tokenUnico || !revenda) {
+        if (!pedidoId || !tokenUnico) {
             showError('Link incompleto', 'Verifique se copiou o endereço completo do link de validação.');
-            return;
-        }
-        if (!CONFIG.REVENDA_LINKS[revenda]) {
-            showError('Distribuidor não reconhecido', 'O distribuidor informado não é suportado. Use o link original enviado a você.');
             return;
         }
         loadPedido();
@@ -1544,7 +1540,6 @@
         }
         if (!pedidoId) pedidoId = params.get('pedidoId');
         if (!tokenUnico) tokenUnico = params.get('token');
-        if (!revenda) revenda = 'ingram';
     }
 
     async function loadPedido() {
@@ -1592,6 +1587,9 @@
         document.getElementById('progressBarWrap').style.display = 'block';
         document.getElementById('pedidoIdDisplay').textContent = pedidoId;
 
+        // Store revendas from API
+        revendasData = (pedidoData && pedidoData.revendas) || [];
+
         // Show client name
         if (pedidoData && pedidoData.cliente) {
             document.getElementById('clienteDisplay').textContent = pedidoData.cliente;
@@ -1608,11 +1606,14 @@
             }
         }
 
-        const rn = CONFIG.REVENDA_NAMES[revenda] || revenda;
+        // Mostra nome(s) da(s) revenda(s) associada(s)
+        const rn = revendasData.length > 0
+            ? revendasData.map(r => r.nome).join(', ')
+            : (revenda || 'Parceiro');
         document.getElementById('revendaName').textContent = rn;
         const tag = document.getElementById('revendaTag');
         tag.textContent = rn;
-        tag.className = 'revenda-tag ' + revenda;
+        tag.className = 'revenda-tag';
 
         setupCnpjInput();
         updateProgressBar();
@@ -1710,7 +1711,7 @@
         setTimeout(() => { container.innerHTML = ''; }, 6000);
     }
 
-    let gdapDone = false, revendaDone = false;
+    let gdapDone = false;
 
     async function handleConfirm() {
         if (!document.getElementById('agreementCheckbox').checked) return;
@@ -1725,21 +1726,17 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    pedidoId, token: tokenUnico, revenda,
+                    pedidoId, token: tokenUnico, revenda: revenda || '',
                     cnpj: cnpjValue,
                     timestamp: new Date().toISOString(),
                     status: 'VALIDADO'
                 })
             }).catch(() => {});
 
-            // Preenche nome da revenda nos elementos
-            const rn = CONFIG.REVENDA_NAMES[revenda] || revenda;
-            document.getElementById('revendaStepName').textContent = rn;
-            document.getElementById('revendaStepLabel').textContent = `Aceitar Parceria ${rn}`;
-            document.getElementById('revendaStepDesc').textContent = `Vincula sua empresa ao distribuidor ${rn} (Microsoft autorizado).`;
+            // Renderiza cards de revendas dinamicamente
+            renderRevendaSteps();
 
             document.getElementById('successOverlay').classList.add('show');
-            // Render Lucide icons inside modal
             if (typeof lucide !== 'undefined') lucide.createIcons();
             launchConfetti();
         } catch {
@@ -1748,8 +1745,44 @@
         }
     }
 
+    let revendasDoneMap = {};
+
+    function renderRevendaSteps() {
+        const container = document.getElementById('revendaStepsContainer');
+        const revendasComLink = revendasData.filter(r => r.linkBase);
+
+        if (revendasComLink.length === 0) {
+            container.innerHTML = '';
+            return;
+        }
+
+        container.innerHTML = revendasComLink.map((r, idx) => {
+            const stepNum = idx + 2; // Step 1 is GDAP
+            return `
+                <div class="success-step" id="revendaStep_${r.id}">
+                    <div class="success-step-top">
+                        <span class="success-step-badge purple">Passo ${stepNum}</span>
+                        <span class="success-step-label">Aceitar Parceria ${esc(r.nome)}</span>
+                    </div>
+                    <div class="success-step-body">
+                        <div class="success-step-icon-wrap purple">
+                            <i data-lucide="handshake"></i>
+                        </div>
+                        <div class="success-step-text">
+                            <div class="success-step-desc">Vincula sua empresa ao distribuidor ${esc(r.nome)} (Microsoft autorizado).</div>
+                            <button class="success-step-btn btn-purple" id="btnRevenda_${r.id}" disabled onclick="openRevendaLink(${r.id})">Abrir ${esc(r.nome)} →</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
     function openGdapLink() {
-        // Usa o link GDAP exclusivo deste pedido (gerado na criação)
         const gdapUrl = pedidoData && pedidoData.gdapLink;
         if (!gdapUrl) {
             alert('Link GDAP não disponível para este pedido. Entre em contato com a BluePartner.');
@@ -1766,40 +1799,57 @@
         gdapBtn.className = 'success-step-btn btn-done';
         gdapBtn.innerHTML = '<i data-lucide="check" style="width:14px;height:14px;"></i> Autorizado';
 
-        // Progress bar → 50%
-        document.getElementById('successProgressFill').classList.add('half');
+        // Progress bar
+        const totalSteps = 1 + revendasData.filter(r => r.linkBase).length;
+        updateSuccessProgress(1, totalSteps);
 
-        // Enable step 2
-        document.getElementById('btnRevenda').disabled = false;
+        // Enable revenda buttons
+        document.querySelectorAll('[id^="btnRevenda_"]').forEach(btn => btn.disabled = false);
 
         if (typeof lucide !== 'undefined') lucide.createIcons();
         checkAllDone();
     }
 
-    function openRevendaLink() {
-        window.open(CONFIG.REVENDA_LINKS[revenda], '_blank');
-        revendaDone = true;
+    function openRevendaLink(revendaId) {
+        const rv = revendasData.find(r => r.id === revendaId);
+        if (!rv || !rv.linkBase) return;
 
-        const step2 = document.getElementById('successStep2');
-        step2.classList.add('done');
+        window.open(rv.linkBase, '_blank');
+        revendasDoneMap[revendaId] = true;
 
-        const revendaBtn = document.getElementById('btnRevenda');
-        revendaBtn.disabled = true;
-        revendaBtn.className = 'success-step-btn btn-done';
-        const rn = CONFIG.REVENDA_NAMES[revenda] || revenda;
-        revendaBtn.innerHTML = '<i data-lucide="check" style="width:14px;height:14px;"></i> Parceria ' + rn + ' Aceita';
+        const step = document.getElementById('revendaStep_' + revendaId);
+        if (step) step.classList.add('done');
 
-        // Progress bar → 100% green
-        const fill = document.getElementById('successProgressFill');
-        fill.classList.remove('half');
-        fill.classList.add('full');
+        const btn = document.getElementById('btnRevenda_' + revendaId);
+        if (btn) {
+            btn.disabled = true;
+            btn.className = 'success-step-btn btn-done';
+            btn.innerHTML = '<i data-lucide="check" style="width:14px;height:14px;"></i> Parceria ' + esc(rv.nome) + ' Aceita';
+        }
+
+        // Update progress
+        const revendasComLink = revendasData.filter(r => r.linkBase);
+        const totalSteps = 1 + revendasComLink.length;
+        const doneCount = (gdapDone ? 1 : 0) + revendasComLink.filter(r => revendasDoneMap[r.id]).length;
+        updateSuccessProgress(doneCount, totalSteps);
 
         if (typeof lucide !== 'undefined') lucide.createIcons();
         checkAllDone();
+    }
+
+    function updateSuccessProgress(done, total) {
+        const fill = document.getElementById('successProgressFill');
+        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+        fill.style.width = pct + '%';
+        fill.classList.remove('half', 'full');
+        if (pct >= 100) fill.classList.add('full');
+        else if (pct >= 40) fill.classList.add('half');
     }
 
     function checkAllDone() {
-        if (gdapDone && revendaDone) {
+        const revendasComLink = revendasData.filter(r => r.linkBase);
+        const allRevendasDone = revendasComLink.length === 0 || revendasComLink.every(r => revendasDoneMap[r.id]);
+        if (gdapDone && allRevendasDone) {
             document.getElementById('allDoneText').classList.add('show');
             if (typeof lucide !== 'undefined') lucide.createIcons();
             launchConfetti();

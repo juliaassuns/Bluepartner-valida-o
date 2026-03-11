@@ -68,47 +68,22 @@
             box-shadow: 0 24px 48px rgba(0,0,0,0.25);
             overflow: hidden;
             animation: loginIn 0.3s ease-out;
+            text-align: center;
+            padding: 40px 32px;
         }
         @keyframes loginIn {
             from { transform: scale(0.95) translateY(10px); opacity: 0; }
             to { transform: scale(1) translateY(0); opacity: 1; }
         }
-        .login-header { padding: 32px 32px 24px; text-align: center; }
-        .login-logo {
-            width: 56px; height: 56px; background: #7C3AED;
-            border-radius: 14px; display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 16px;
-        }
-        .login-logo svg { width: 32px; height: 32px; color: white; }
-        .login-title { font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 4px; }
-        .login-subtitle { font-size: 13px; color: #6B7280; }
-        .login-form { padding: 0 32px 32px; }
-        .login-field { margin-bottom: 16px; }
-        .login-label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
-        .login-input {
-            width: 100%; height: 42px; padding: 0 14px;
-            border: 1.5px solid #D1D5DB; border-radius: 8px;
-            font-size: 14px; font-family: inherit;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            outline: none;
-        }
-        .login-input:focus { border-color: #7C3AED; box-shadow: 0 0 0 3px rgba(124,58,237,0.12); }
-        .login-btn {
-            width: 100%; height: 42px;
+        .login-card h2 { font-size: 18px; color: #111827; margin: 16px 0 8px; }
+        .login-card p { font-size: 13px; color: #6B7280; margin-bottom: 24px; }
+        .login-card .login-btn {
+            display: inline-flex; align-items: center; gap: 10px;
             background: #7C3AED; color: #fff; border: none;
-            border-radius: 8px; font-size: 14px; font-weight: 600;
-            cursor: pointer; transition: background 0.2s; font-family: inherit;
+            border-radius: 8px; padding: 12px 24px; font-size: 14px; font-weight: 600;
+            cursor: pointer; text-decoration: none; font-family: inherit;
         }
-        .login-btn:hover { background: #6D28D9; }
-        .login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        .login-error {
-            background: #FEE2E2; color: #DC2626;
-            font-size: 13px; padding: 10px 14px;
-            border-radius: 8px; margin-bottom: 16px; display: none;
-        }
-        .login-error.show { display: block; }
-        .login-footer { padding: 16px 32px; border-top: 1px solid #E5E7EB; text-align: center; }
-        .login-footer-text { font-size: 11px; color: #9CA3AF; }
+        .login-card .login-btn:hover { background: #6D28D9; }
 
         /* ===== NAV ===== */
         .nav {
@@ -176,9 +151,10 @@
         /* ===== STATS ===== */
         .stats-bar {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 16px; margin-bottom: 24px;
         }
+        .stat-card:nth-child(5)::before { background: var(--green); }
         .stat-card {
             background: var(--white);
             border-radius: var(--radius-lg);
@@ -304,6 +280,9 @@
         .tab.active { background: var(--white); color: var(--purple); box-shadow: var(--shadow-sm); }
         .tab:hover:not(.active) { color: var(--gray-700); }
 
+        @media (max-width: 768px) {
+            .stats-bar { grid-template-columns: repeat(3, 1fr); }
+        }
         @media (max-width: 640px) {
             .stats-bar { grid-template-columns: 1fr 1fr; }
             .page { padding: 16px; }
@@ -333,28 +312,15 @@
     <!-- LOGIN -->
     <div class="login-overlay" id="loginOverlay">
         <div class="login-card">
-            <div class="login-header">
-                <div class="login-logo">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                </div>
-                <div class="login-title">Super Admin</div>
-                <div class="login-subtitle">Acesso restrito — BluePartner</div>
+            <div style="width:56px;height:56px;background:rgba(124,58,237,.12);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto;border:1px solid rgba(124,58,237,.15)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             </div>
-            <form class="login-form" onsubmit="doLogin(event)">
-                <div class="login-error" id="loginError"></div>
-                <div class="login-field">
-                    <label class="login-label">Usuário</label>
-                    <input class="login-input" id="loginUser" type="text" placeholder="Usuário super admin" required autocomplete="username">
-                </div>
-                <div class="login-field">
-                    <label class="login-label">Senha</label>
-                    <input class="login-input" id="loginPass" type="password" placeholder="Senha" required autocomplete="current-password">
-                </div>
-                <button class="login-btn" type="submit" id="loginBtn">Entrar</button>
-            </form>
-            <div class="login-footer">
-                <span class="login-footer-text">Painel de controle avançado</span>
-            </div>
+            <h2>Super Admin</h2>
+            <p>Acesso restrito via Microsoft Entra ID</p>
+            <a class="login-btn" href="/auth/login" style="display:inline-flex;align-items:center;gap:10px">
+                <span style="display:grid;grid-template-columns:1fr 1fr;gap:2px;width:16px;height:16px"><span style="background:#F25022;border-radius:1px"></span><span style="background:#7FBA00;border-radius:1px"></span><span style="background:#00A4EF;border-radius:1px"></span><span style="background:#FFB900;border-radius:1px"></span></span>
+                Entrar com conta Microsoft
+            </a>
         </div>
     </div>
 
@@ -397,12 +363,74 @@
                 <div class="stat-label">Revendas Ativas</div>
                 <div class="stat-value" id="statRevendas" style="color:var(--blue)">--</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-label">Usuários Ativos</div>
+                <div class="stat-value" id="statUsuarios" style="color:var(--green)">--</div>
+            </div>
         </div>
 
         <!-- MAIN TABS -->
         <div class="tabs" id="mainTabs" style="margin-bottom:20px">
             <button class="tab active" onclick="switchMainTab('gdap')">Links GDAP</button>
             <button class="tab" onclick="switchMainTab('revendas')">Revendas</button>
+            <button class="tab" onclick="switchMainTab('usuarios')">Usuários</button>
+        </div>
+
+        <!-- ===== USUARIOS TAB ===== -->
+        <div id="usuariosTab" style="display:none">
+
+            <!-- ADD USER -->
+            <div class="section" style="border-left: 3px solid var(--green)">
+                <div class="section-header">
+                    <i data-lucide="user-plus" style="stroke:var(--green)"></i>
+                    Adicionar Usuário
+                </div>
+                <div class="section-body">
+                    <div style="margin-bottom:14px;font-size:13px;color:#64748b">
+                        Cadastre usuários com e-mail corporativo Microsoft. A autenticação é 100% via Entra ID — nenhuma senha é armazenada.
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                        <div class="form-input-wrap" style="flex:2;min-width:250px">
+                            <i data-lucide="mail"></i>
+                            <input class="form-input" id="userEmailInput" type="email" placeholder="E-mail corporativo Microsoft">
+                        </div>
+                        <div class="form-input-wrap" style="flex:1;min-width:140px">
+                            <i data-lucide="shield"></i>
+                            <select class="form-input" id="userRoleInput" style="cursor:pointer">
+                                <option value="admin">Admin</option>
+                                <option value="superadmin">Super Admin</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" onclick="addUser()" style="white-space:nowrap"><i data-lucide="plus"></i> Adicionar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- USERS TABLE -->
+            <div class="section">
+                <div class="section-header">
+                    <i data-lucide="users" style="stroke:var(--purple)"></i>
+                    Gestão de Usuários
+                    <span class="badge badge-done" id="usersBadge" style="margin-left:8px">0 usuários</span>
+                    <div style="margin-left:auto;display:flex;gap:8px">
+                        <div class="tabs" id="usersTabs">
+                            <button class="tab active" onclick="filterUsers('todos')">Todos</button>
+                            <button class="tab" onclick="filterUsers('ativos')">Ativos</button>
+                            <button class="tab" onclick="filterUsers('inativos')">Inativos</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <div style="margin-bottom:12px">
+                        <div class="form-input-wrap" style="max-width:300px">
+                            <i data-lucide="search"></i>
+                            <input class="form-input" id="userSearchInput" type="text" placeholder="Buscar usuário..." oninput="renderUsers()">
+                        </div>
+                    </div>
+                    <div id="usersList"></div>
+                </div>
+            </div>
+
         </div>
 
         <!-- ===== REVENDAS TAB ===== -->
@@ -430,6 +458,16 @@
                         <div class="form-input-wrap" style="flex:1;min-width:150px">
                             <i data-lucide="mail"></i>
                             <input class="form-input" id="revendaEmailInput" type="email" placeholder="E-mail (opcional)">
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+                        <div class="form-input-wrap" style="flex:1;min-width:200px">
+                            <i data-lucide="fingerprint"></i>
+                            <input class="form-input" id="revendaPartnerIdInput" type="text" placeholder="Partner ID (indirectCSPId)">
+                        </div>
+                        <div class="form-input-wrap" style="flex:2;min-width:300px">
+                            <i data-lucide="link"></i>
+                            <input class="form-input" id="revendaLinkBaseInput" type="url" placeholder="Link de convite parceiro (URL completa)">
                         </div>
                         <button class="btn btn-primary" onclick="addRevenda()" style="white-space:nowrap"><i data-lucide="plus"></i> Adicionar</button>
                     </div>
@@ -555,14 +593,14 @@
 
     <script>
     const API_BASE = '';
-    const TOKEN_KEY = 'bp_superadmin_token';
-    let authToken = localStorage.getItem(TOKEN_KEY);
     let allPoolLinks = [];
     let currentFilter = 'todos';
     let allRevendas = [];
     let revendasFilter = 'todas';
+    let allUsers = [];
+    let usersFilter = 'todos';
 
-    // ===== AUTH =====
+    // ===== AUTH (session-based via Entra ID) =====
     function showLogin() {
         document.getElementById('loginOverlay').classList.remove('hidden');
     }
@@ -570,64 +608,30 @@
         document.getElementById('loginOverlay').classList.add('hidden');
     }
 
-    async function doLogin(e) {
-        e.preventDefault();
-        const btn = document.getElementById('loginBtn');
-        const errEl = document.getElementById('loginError');
-        btn.disabled = true;
-        errEl.classList.remove('show');
-        try {
-            const res = await fetch(API_BASE + '/api/auth/superlogin', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    user: document.getElementById('loginUser').value.trim(),
-                    password: document.getElementById('loginPass').value
-                })
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Credenciais inválidas');
-            authToken = data.token;
-            localStorage.setItem(TOKEN_KEY, authToken);
-            hideLogin();
-            initDashboard();
-        } catch (err) {
-            errEl.textContent = err.message;
-            errEl.classList.add('show');
-        } finally {
-            btn.disabled = false;
-        }
-    }
-
     function doLogout() {
-        authToken = null;
-        localStorage.removeItem(TOKEN_KEY);
-        showLogin();
+        window.location.href = '/auth/logout';
     }
 
     async function authFetch(url, opts = {}) {
-        if (!opts.headers) opts.headers = {};
-        if (authToken) opts.headers['Authorization'] = 'Bearer ' + authToken;
-        const res = await fetch(url, opts);
+        const res = await fetch(url, { ...opts, credentials: 'same-origin' });
         if (res.status === 401) {
-            doLogout();
+            showLogin();
             throw new Error('Sessão expirada');
         }
         return res;
     }
 
     async function checkAuth() {
-        if (!authToken) { showLogin(); return; }
         try {
-            const res = await fetch(API_BASE + '/api/auth/superverify', {
-                headers: { 'Authorization': 'Bearer ' + authToken }
-            });
-            if (!res.ok) throw new Error();
+            const res = await fetch('/auth/me', { credentials: 'same-origin' });
+            const data = await res.json();
+            if (!res.ok || !data.user || data.user.role !== 'superadmin') {
+                showLogin();
+                return;
+            }
             hideLogin();
             initDashboard();
         } catch {
-            authToken = null;
-            localStorage.removeItem(TOKEN_KEY);
             showLogin();
         }
     }
@@ -635,6 +639,7 @@
     function initDashboard() {
         loadPool();
         loadRevendasDashboard();
+        loadUsers();
     }
 
     checkAuth();
@@ -784,6 +789,8 @@
         event.target.classList.add('active');
         document.getElementById('gdapTab').style.display = tab === 'gdap' ? 'block' : 'none';
         document.getElementById('revendasTab').style.display = tab === 'revendas' ? 'block' : 'none';
+        document.getElementById('usuariosTab').style.display = tab === 'usuarios' ? 'block' : 'none';
+        if (tab === 'usuarios') loadUsers();
     }
 
     // ===== REVENDAS =====
@@ -839,7 +846,7 @@
             <thead><tr>
                 <th>Revenda</th>
                 <th>Contato</th>
-                <th>E-mail</th>
+                <th>Partner ID</th>
                 <th>Pedidos</th>
                 <th>Validados</th>
                 <th>Pendentes</th>
@@ -853,10 +860,12 @@
                 const statusBadge = r.ativo 
                     ? '<span class="badge rvd-badge-active">Ativa</span>'
                     : '<span class="badge rvd-badge-inactive">Inativa</span>';
+                const pid = esc(r.partner_id || '—');
+                const hasLink = !!(r.link_base);
                 return `<tr>
                     <td style="font-weight:600;color:var(--gray-800)">${esc(r.nome)}</td>
                     <td style="font-size:12px;color:var(--gray-500)">${esc(r.contato || '—')}</td>
-                    <td style="font-size:12px;color:var(--gray-500)">${esc(r.email || '—')}</td>
+                    <td style="font-size:11px;color:var(--gray-500);font-family:monospace">${pid}${hasLink ? ' <span title="Link configurado" style="color:var(--green)">●</span>' : ''}</td>
                     <td style="font-weight:700;color:var(--purple)">${r.total_pedidos || 0}</td>
                     <td style="font-size:12px;color:var(--green)">${r.validados || 0}</td>
                     <td style="font-size:12px;color:var(--orange)">${r.pendentes || 0}</td>
@@ -881,12 +890,14 @@
         const nome = document.getElementById('revendaNomeInput').value.trim();
         const contato = document.getElementById('revendaContatoInput').value.trim();
         const email = document.getElementById('revendaEmailInput').value.trim();
+        const partner_id = document.getElementById('revendaPartnerIdInput').value.trim();
+        const link_base = document.getElementById('revendaLinkBaseInput').value.trim();
         if (!nome) { showToast('Informe o nome da revenda'); return; }
         try {
             const res = await authFetch(API_BASE + '/api/revendas', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nome, contato, email })
+                body: JSON.stringify({ nome, contato, email, partner_id, link_base })
             });
             const data = await res.json();
             if (res.ok) {
@@ -894,6 +905,8 @@
                 document.getElementById('revendaNomeInput').value = '';
                 document.getElementById('revendaContatoInput').value = '';
                 document.getElementById('revendaEmailInput').value = '';
+                document.getElementById('revendaPartnerIdInput').value = '';
+                document.getElementById('revendaLinkBaseInput').value = '';
                 loadRevendasDashboard();
             } else {
                 showToast(data.error || 'Erro ao adicionar');
@@ -944,6 +957,157 @@
             if (res.ok) {
                 showToast('Revenda removida');
                 loadRevendasDashboard();
+            } else {
+                showToast(data.error || 'Erro');
+            }
+        } catch { showToast('Erro de conexão'); }
+    }
+
+    // ===== USUARIOS =====
+    async function loadUsers() {
+        try {
+            const res = await authFetch(API_BASE + '/api/usuarios');
+            const data = await res.json();
+            allUsers = data.usuarios || [];
+            const ativos = allUsers.filter(u => u.ativo).length;
+            document.getElementById('statUsuarios').textContent = ativos;
+            const badge = document.getElementById('usersBadge');
+            badge.textContent = allUsers.length + ' usuário' + (allUsers.length !== 1 ? 's' : '');
+            renderUsers();
+        } catch {
+            document.getElementById('usersList').innerHTML = '<div style="color:red;font-size:13px;padding:12px">Erro ao carregar usuários</div>';
+        }
+    }
+
+    function filterUsers(filter) {
+        usersFilter = filter;
+        document.querySelectorAll('#usersTabs .tab').forEach(t => t.classList.remove('active'));
+        event.target.classList.add('active');
+        renderUsers();
+    }
+
+    function renderUsers() {
+        const list = document.getElementById('usersList');
+        let filtered = [...allUsers];
+        if (usersFilter === 'ativos') filtered = filtered.filter(u => u.ativo);
+        if (usersFilter === 'inativos') filtered = filtered.filter(u => !u.ativo);
+        const search = (document.getElementById('userSearchInput')?.value || '').toLowerCase();
+        if (search) {
+            filtered = filtered.filter(u =>
+                (u.email || '').toLowerCase().includes(search) ||
+                (u.nome || '').toLowerCase().includes(search)
+            );
+        }
+        if (!filtered.length) {
+            list.innerHTML = '<div class="empty-state"><i data-lucide="users"></i><p>Nenhum usuário encontrado.</p></div>';
+            reinitIcons();
+            return;
+        }
+        list.innerHTML = `<table class="rvd-table">
+            <thead><tr>
+                <th>Nome</th>
+                <th>E-mail</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Criado em</th>
+                <th>Ações</th>
+            </tr></thead>
+            <tbody>
+            ${filtered.map(u => {
+                const statusBadge = u.ativo
+                    ? '<span class="badge rvd-badge-active">Ativo</span>'
+                    : '<span class="badge rvd-badge-inactive">Inativo</span>';
+                const roleBadge = u.role === 'superadmin'
+                    ? '<span class="badge" style="background:#EDE9FE;color:#7C3AED">Super Admin</span>'
+                    : '<span class="badge" style="background:#DBEAFE;color:#2563EB">Admin</span>';
+                const criado = u.criado_em ? new Date(u.criado_em).toLocaleDateString('pt-BR') : '—';
+                return `<tr>
+                    <td style="font-weight:600;color:var(--gray-800)">${esc(u.nome || '—')}</td>
+                    <td style="font-size:12px;color:var(--gray-600)">${esc(u.email)}</td>
+                    <td>${roleBadge}</td>
+                    <td>${statusBadge}</td>
+                    <td style="font-size:12px;color:var(--gray-500)">${criado}</td>
+                    <td style="display:flex;gap:4px">
+                        <button class="btn btn-sm btn-outline" onclick="toggleUserRole(${u.id}, '${u.role === 'superadmin' ? 'admin' : 'superadmin'}')" title="${u.role === 'superadmin' ? 'Rebaixar para Admin' : 'Promover a Super Admin'}">
+                            <i data-lucide="${u.role === 'superadmin' ? 'arrow-down' : 'arrow-up'}" style="width:12px;height:12px"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline" onclick="toggleUserActive(${u.id}, ${u.ativo ? 0 : 1})" title="${u.ativo ? 'Desativar' : 'Ativar'}">
+                            <i data-lucide="${u.ativo ? 'user-x' : 'user-check'}" style="width:12px;height:12px"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteUser(${u.id}, '${esc(u.email)}')" title="Remover">
+                            <i data-lucide="trash-2" style="width:12px;height:12px"></i>
+                        </button>
+                    </td>
+                </tr>`;
+            }).join('')}
+            </tbody>
+        </table>`;
+        reinitIcons();
+    }
+
+    async function addUser() {
+        const email = document.getElementById('userEmailInput').value.trim();
+        const role = document.getElementById('userRoleInput').value;
+        if (!email) { showToast('Informe o e-mail'); return; }
+        try {
+            const res = await authFetch(API_BASE + '/api/usuarios', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, role })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast('Usuário adicionado: ' + email);
+                document.getElementById('userEmailInput').value = '';
+                loadUsers();
+            } else {
+                showToast(data.error || 'Erro ao adicionar');
+            }
+        } catch { showToast('Erro de conexão'); }
+    }
+
+    async function toggleUserRole(id, newRole) {
+        try {
+            const res = await authFetch(API_BASE + '/api/usuarios/' + id, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ role: newRole })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast('Role atualizada: ' + newRole);
+                loadUsers();
+            } else {
+                showToast(data.error || 'Erro');
+            }
+        } catch { showToast('Erro de conexão'); }
+    }
+
+    async function toggleUserActive(id, ativo) {
+        try {
+            const res = await authFetch(API_BASE + '/api/usuarios/' + id, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ativo: !!ativo })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast(ativo ? 'Usuário ativado' : 'Usuário desativado');
+                loadUsers();
+            } else {
+                showToast(data.error || 'Erro');
+            }
+        } catch { showToast('Erro de conexão'); }
+    }
+
+    async function deleteUser(id, email) {
+        if (!confirm('Remover o usuário "' + email + '"? Esta ação não pode ser desfeita.')) return;
+        try {
+            const res = await authFetch(API_BASE + '/api/usuarios/' + id, { method: 'DELETE' });
+            const data = await res.json();
+            if (res.ok) {
+                showToast('Usuário removido');
+                loadUsers();
             } else {
                 showToast(data.error || 'Erro');
             }
