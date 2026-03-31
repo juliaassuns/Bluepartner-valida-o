@@ -17,6 +17,7 @@ const { jwtVerify, createRemoteJWKSet } = require('jose');
 const { initDatabase, dbGet, dbAll, dbRun } = require('./db');
 const { criarConviteGDAP, isGdapConfigured } = require('./gdap');
 const { isFabricConfigured, fabricSqlQuery, executeDaxQuery, listDatasets, listDatasetTables, syncRevendasFromFabric, listWorkspaces, listWorkspaceItems, listLakehouses, listLakehouseTables, describeTable, previewTable, getDelegatedToken, resolveToken } = require('./fabric');
+const { isBiConfigured, fetchPontuacaoBI, getSugestoes } = require('./bi');
 
 // Multer config — upload to temp dir
 const upload = multer({
@@ -1732,6 +1733,52 @@ app.delete('/api/usuarios/:id', requireSuperAdmin, async (req, res) => {
     } catch (err) {
         console.error('Erro ao remover usuário:', err);
         res.status(500).json({ error: 'Erro ao remover usuário' });
+    }
+});
+
+// ===== ROTAS BI (PONTUAÇÃO / SUGESTÕES) =====
+
+/**
+ * GET /api/bi/status
+ * Verifica se a integração BI está configurada
+ */
+app.get('/api/bi/status', requireAdminOrSuper, (req, res) => {
+    res.json(isBiConfigured());
+});
+
+/**
+ * GET /api/bi/pontuacao
+ * Retorna pontuação de todas as revendas do BI
+ */
+app.get('/api/bi/pontuacao', requireAdminOrSuper, async (req, res) => {
+    try {
+        const bi = isBiConfigured();
+        if (!bi.configured) {
+            return res.json({ configured: false, dados: [], message: 'BI não configurado' });
+        }
+        const dados = await fetchPontuacaoBI();
+        res.json({ configured: true, dados });
+    } catch (err) {
+        console.error('Erro ao buscar pontuação BI:', err.message);
+        res.status(500).json({ error: 'Erro ao consultar BI: ' + err.message });
+    }
+});
+
+/**
+ * GET /api/bi/sugestoes
+ * Retorna revendas que precisam de mais pedidos para bater meta (ordenadas por urgência)
+ */
+app.get('/api/bi/sugestoes', requireAdminOrSuper, async (req, res) => {
+    try {
+        const bi = isBiConfigured();
+        if (!bi.configured) {
+            return res.json({ configured: false, sugestoes: [], resumo: null, message: 'BI não configurado — configure BI_SCORING_DAX ou BI_SCORING_TABLE no .env' });
+        }
+        const result = await getSugestoes();
+        res.json({ configured: true, ...result });
+    } catch (err) {
+        console.error('Erro ao buscar sugestões BI:', err.message);
+        res.status(500).json({ error: 'Erro ao consultar sugestões: ' + err.message });
     }
 });
 

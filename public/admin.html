@@ -614,10 +614,6 @@
           <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4V4Zm4 4h8M8 12h8M8 16h6"/></svg>
           Logs
         </div>
-        <div class="menu-item" data-page="fabric" onclick="gotoPage('fabric')">
-          <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="20" cy="18" r="2" fill="currentColor"/></svg>
-          Fabric / PBI
-        </div>
       </nav>
 
       <div class="sidebar-footer">BluePartner © 2026</div>
@@ -840,97 +836,7 @@
           </div>
         </section>
 
-        <!-- ===== FABRIC / POWER BI ===== -->
-        <section class="page" id="page-fabric">
-          <div class="page-header">
-            <div>
-              <h1 class="page-title">Fabric / Power BI</h1>
-              <div class="page-subtitle">Integração com Microsoft Fabric e Power BI</div>
-            </div>
-            <button class="btn btn-primary" type="button" onclick="fabricTestConnection()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-              Testar Conexão
-            </button>
-          </div>
 
-          <!-- Status cards -->
-          <div class="metrics" id="fabricStatusCards">
-            <div class="metric-card">
-              <div class="metric-label">SQL Endpoint</div>
-              <div class="metric-value" id="fabricSqlStatus">—</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">Power BI API</div>
-              <div class="metric-value" id="fabricPbiStatus">—</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">Credenciais</div>
-              <div class="metric-value" id="fabricCredsStatus">—</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">Último Sync</div>
-              <div class="metric-value" id="fabricLastSync">—</div>
-            </div>
-          </div>
-
-          <!-- Datasets -->
-          <div style="margin-top:24px">
-            <h3 style="margin:0 0 12px;font-size:1rem;font-weight:700">Datasets disponíveis</h3>
-            <button class="btn btn-muted" type="button" onclick="fabricLoadDatasets()" style="margin-bottom:12px">
-              <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>
-              Carregar Datasets
-            </button>
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>Nome</th><th>ID</th><th>Configur. por</th><th>Ações</th></tr></thead>
-                <tbody id="fabricDatasetsBody">
-                  <tr><td colspan="4" style="color:var(--muted);">Clique em "Carregar Datasets"</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Query DAX -->
-          <div style="margin-top:24px">
-            <h3 style="margin:0 0 12px;font-size:1rem;font-weight:700">Consulta DAX / SQL</h3>
-            <div style="display:flex;gap:8px;margin-bottom:8px">
-              <select class="input" id="fabricQueryType" style="max-width:140px">
-                <option value="dax">DAX (Power BI)</option>
-                <option value="sql">SQL (Fabric)</option>
-              </select>
-              <input class="input" id="fabricDatasetIdInput" placeholder="Dataset ID (opcional, usa padrão)" style="flex:1" />
-            </div>
-            <textarea class="input" id="fabricQueryInput" rows="4" placeholder="EVALUATE TOPN(10, 'Revendas')" style="width:100%;font-family:monospace;font-size:13px;resize:vertical"></textarea>
-            <div style="display:flex;gap:8px;margin-top:8px">
-              <button class="btn btn-primary" type="button" onclick="fabricRunQuery()">Executar</button>
-              <span id="fabricQueryStatus" style="align-self:center;font-size:13px;color:var(--muted)"></span>
-            </div>
-            <div class="table-wrap" style="margin-top:12px;max-height:400px;overflow:auto">
-              <table>
-                <thead id="fabricResultHead"></thead>
-                <tbody id="fabricResultBody">
-                  <tr><td style="color:var(--muted);">Execute uma query para ver resultados</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Sync Revendas -->
-          <div style="margin-top:24px;padding:20px;background:var(--surface);border-radius:12px;border:1px solid var(--border)">
-            <h3 style="margin:0 0 12px;font-size:1rem;font-weight:700">🔄 Sincronizar Revendas do Fabric</h3>
-            <p style="font-size:13px;color:var(--muted);margin:0 0 12px">Importa revendas de uma tabela Fabric SQL para o banco local. Atualiza existentes e insere novas.</p>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-              <input class="input" id="fabricSyncTable" placeholder="Nome da tabela (ex: dbo.Revendas)" />
-              <input class="input" id="fabricSyncColNome" placeholder="Coluna Nome (ex: NomeRevenda)" value="Nome" />
-              <input class="input" id="fabricSyncColPartner" placeholder="Coluna Partner ID" value="PartnerId" />
-              <input class="input" id="fabricSyncColLink" placeholder="Coluna Link Base" value="LinkBase" />
-            </div>
-            <button class="btn btn-primary" type="button" onclick="fabricSyncRevendas()">
-              Sincronizar Agora
-            </button>
-            <span id="fabricSyncStatus" style="margin-left:12px;font-size:13px"></span>
-          </div>
-        </section>
       </div>
     </main>
   </div>
@@ -948,14 +854,23 @@
         </button>
       </div>
       <div class="modal-body">
-        <div class="form-grid">
-          <div class="form-group full">
-            <label>Nome do Cliente</label>
-            <input id="npCliente" placeholder="Ex: Contoso Brasil Ltda" />
+        <!-- Painel de sugestões BI -->
+        <div id="biSugestoesPanel" style="display:none;margin-bottom:16px;padding:14px 16px;border-radius:10px;background:linear-gradient(135deg,#e8f4fd,#f0f7ff);border:1px solid #b3d9f2">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2980b9" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            <strong style="color:#2471a3;font-size:14px">Sugestões do BI — Revendas que precisam de pedidos</strong>
           </div>
+          <div id="biSugestoesList" style="display:flex;flex-direction:column;gap:8px"></div>
+        </div>
+        <div class="form-grid">
           <div class="form-group full">
             <label>CNPJ</label>
             <input id="npCnpj" placeholder="00.000.000/0001-00" oninput="onCnpjInputChanged()" />
+            <span id="npCnpjStatus" style="font-size:12px;color:var(--muted);margin-top:4px;display:none"></span>
+          </div>
+          <div class="form-group full" id="npClienteGroup" style="display:none">
+            <label>Razão Social</label>
+            <input id="npCliente" readonly style="background:#f0f2f5;cursor:default" />
           </div>
           <div class="form-group full">
             <label>Revendas</label>
@@ -971,6 +886,8 @@
       </div>
     </div>
   </div>
+
+
 
   <script>
     const API_BASE = '';
@@ -1021,7 +938,6 @@
         page === 'dashboard' ? 'Dashboard' :
         page === 'pedidos' ? 'Pedidos' :
         page === 'gdap' ? 'GDAP Pool' :
-        page === 'fabric' ? 'Fabric / Power BI' :
         'Logs';
 
       closeSidebar();
@@ -1030,9 +946,66 @@
     // ===== MODAL: NOVO PEDIDO =====
     function openNewPedidoModal(){
       document.getElementById('newPedidoModal').classList.add('show');
+      loadBiSugestoes();
     }
     function closeNewPedidoModal(){
       document.getElementById('newPedidoModal').classList.remove('show');
+      document.getElementById('npCnpj').value = '';
+      document.getElementById('npCliente').value = '';
+      document.getElementById('npClienteGroup').style.display = 'none';
+      document.getElementById('npCnpjStatus').style.display = 'none';
+      document.getElementById('biSugestoesPanel').style.display = 'none';
+    }
+
+    // ===== BI SUGESTÕES =====
+    async function loadBiSugestoes(){
+      const panel = document.getElementById('biSugestoesPanel');
+      const list = document.getElementById('biSugestoesList');
+      try {
+        const res = await authFetch(API_BASE + '/api/bi/sugestoes');
+        const data = await res.json().catch(() => ({}));
+
+        if (!data.configured || !data.sugestoes || data.sugestoes.length === 0) {
+          panel.style.display = 'none';
+          return;
+        }
+
+        list.innerHTML = data.sugestoes.map(s => {
+          const pct = s.percentual;
+          const barColor = pct < 50 ? '#e74c3c' : pct < 100 ? '#f39c12' : '#27ae60';
+          return `
+            <div style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:var(--white);border-radius:8px;border:1px solid var(--border)">
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:600;font-size:13px;color:var(--text)">${esc(s.revenda)}</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:2px">
+                  Score: ${s.pontuacao} · Ranking: #${s.ranking} · Faltam <strong>${s.faltam}</strong> pedido(s)
+                </div>
+              </div>
+              <div style="width:120px;flex-shrink:0">
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:3px">
+                  <span>${s.realizados}/${s.meta}</span>
+                  <span>${pct}%</span>
+                </div>
+                <div style="height:6px;background:#e9ecef;border-radius:3px;overflow:hidden">
+                  <div style="width:${Math.min(pct,100)}%;height:100%;background:${barColor};border-radius:3px"></div>
+                </div>
+              </div>
+            </div>`;
+        }).join('');
+
+        // Resumo
+        if (data.resumo) {
+          list.innerHTML += `
+            <div style="font-size:11px;color:var(--muted);text-align:right;margin-top:4px">
+              ${data.resumo.atingiram}/${data.resumo.total} revendas atingiram a meta
+            </div>`;
+        }
+
+        panel.style.display = 'block';
+      } catch(e) {
+        panel.style.display = 'none';
+        console.warn('BI sugestões indisponível:', e);
+      }
     }
 
     // ===== CNPJ LOOKUP (autopreencher) =====
@@ -1052,6 +1025,8 @@
     async function lookupCnpjAndFill(){
       const cnpjInput = document.getElementById('npCnpj');
       const clienteInput = document.getElementById('npCliente');
+      const clienteGroup = document.getElementById('npClienteGroup');
+      const cnpjStatus = document.getElementById('npCnpjStatus');
 
       // formata enquanto digita
       const prev = cnpjInput.value;
@@ -1059,18 +1034,32 @@
       if (formatted !== prev) cnpjInput.value = formatted;
 
       const cnpj = onlyDigits(cnpjInput.value);
-      if (cnpj.length !== 14) return;
 
-      // não sobrescreve se usuário já digitou manualmente
-      const clienteJaPreenchido = (clienteInput.value || '').trim().length > 0;
+      if (cnpj.length < 14) {
+        clienteGroup.style.display = 'none';
+        clienteInput.value = '';
+        cnpjStatus.style.display = 'none';
+        return;
+      }
+
+      cnpjStatus.style.display = 'block';
+      cnpjStatus.textContent = 'Buscando razão social...';
+      cnpjStatus.style.color = 'var(--muted)';
 
       const res = await authFetch(API_BASE + '/api/cnpj/' + encodeURIComponent(cnpj));
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) return;
 
-      if (!clienteJaPreenchido && data.nome){
-        clienteInput.value = data.nome;
+      if (!res.ok || !data.nome) {
+        cnpjStatus.textContent = 'CNPJ não encontrado';
+        cnpjStatus.style.color = '#e74c3c';
+        clienteGroup.style.display = 'none';
+        clienteInput.value = '';
+        return;
       }
+
+      cnpjStatus.style.display = 'none';
+      clienteInput.value = data.nome;
+      clienteGroup.style.display = 'block';
     }
 
     function onCnpjInputChanged(){
@@ -1208,7 +1197,6 @@
       await loadPedidos();
       await loadGdapPool();
       await loadLogs();
-
       const dash = await loadDashboard();
       renderDashboard(dash);
 
@@ -1492,139 +1480,7 @@
       }
     });
 
-    // ===== FABRIC / POWER BI =====
-    async function fabricLoadStatus() {
-      try {
-        const r = await fetch('/api/fabric/status', { credentials: 'include' });
-        const s = await r.json();
-        document.getElementById('fabricSqlStatus').textContent = s.sql ? '✅ Config.' : '❌ N/config.';
-        document.getElementById('fabricPbiStatus').textContent = s.powerbi ? '✅ Config.' : '❌ N/config.';
-        document.getElementById('fabricCredsStatus').textContent = s.credentials ? '✅ OK' : '❌ Faltando';
-      } catch { /* ignore */ }
-    }
-
-    async function fabricTestConnection() {
-      document.getElementById('fabricSqlStatus').textContent = '⏳...';
-      document.getElementById('fabricPbiStatus').textContent = '⏳...';
-      try {
-        const r = await fetch('/api/fabric/test-connection', { method: 'POST', credentials: 'include' });
-        const d = await r.json();
-        if (d.sql) {
-          document.getElementById('fabricSqlStatus').textContent = d.sql.connected ? '✅ Conectado' : '❌ ' + d.sql.message;
-          document.getElementById('fabricSqlStatus').style.color = d.sql.connected ? 'var(--success)' : 'var(--danger)';
-        }
-        if (d.powerbi) {
-          document.getElementById('fabricPbiStatus').textContent = d.powerbi.connected ? '✅ ' + d.powerbi.datasets + ' dataset(s)' : '❌ ' + d.powerbi.message;
-          document.getElementById('fabricPbiStatus').style.color = d.powerbi.connected ? 'var(--success)' : 'var(--danger)';
-        }
-      } catch (e) {
-        document.getElementById('fabricSqlStatus').textContent = '❌ Erro';
-        document.getElementById('fabricPbiStatus').textContent = '❌ Erro';
-      }
-    }
-
-    async function fabricLoadDatasets() {
-      const body = document.getElementById('fabricDatasetsBody');
-      body.innerHTML = '<tr><td colspan="4" style="color:var(--muted)">Carregando...</td></tr>';
-      try {
-        const r = await fetch('/api/fabric/datasets', { credentials: 'include' });
-        const d = await r.json();
-        if (!d.datasets || d.datasets.length === 0) {
-          body.innerHTML = '<tr><td colspan="4" style="color:var(--muted)">Nenhum dataset encontrado</td></tr>';
-          return;
-        }
-        body.innerHTML = d.datasets.map(ds => `
-          <tr>
-            <td style="font-weight:600">${esc(ds.name)}</td>
-            <td style="font-family:monospace;font-size:12px">${esc(ds.id)}</td>
-            <td>${esc(ds.configuredBy || '—')}</td>
-            <td>
-              <button class="btn btn-muted" style="font-size:12px;padding:4px 10px" onclick="fabricUseDataset('${esc(ds.id)}')">Usar</button>
-            </td>
-          </tr>
-        `).join('');
-      } catch (e) {
-        body.innerHTML = `<tr><td colspan="4" style="color:var(--danger)">${esc(e.message)}</td></tr>`;
-      }
-    }
-
-    function fabricUseDataset(id) {
-      document.getElementById('fabricDatasetIdInput').value = id;
-    }
-
     function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
-
-    async function fabricRunQuery() {
-      const type = document.getElementById('fabricQueryType').value;
-      const query = document.getElementById('fabricQueryInput').value.trim();
-      const dsId = document.getElementById('fabricDatasetIdInput').value.trim();
-      const statusEl = document.getElementById('fabricQueryStatus');
-      const headEl = document.getElementById('fabricResultHead');
-      const bodyEl = document.getElementById('fabricResultBody');
-
-      if (!query) { statusEl.textContent = 'Digite uma query'; return; }
-      statusEl.textContent = 'Executando...';
-      headEl.innerHTML = '';
-      bodyEl.innerHTML = '<tr><td style="color:var(--muted)">Executando...</td></tr>';
-
-      try {
-        const url = type === 'dax' ? '/api/fabric/query' : '/api/fabric/sql-query';
-        const payload = type === 'dax' ? { dax: query, datasetId: dsId || undefined } : { query };
-        const r = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify(payload)
-        });
-        const d = await r.json();
-        if (!r.ok) throw new Error(d.error || 'Erro na query');
-
-        statusEl.textContent = `${d.total} resultado(s)`;
-        if (!d.rows || d.rows.length === 0) {
-          headEl.innerHTML = '';
-          bodyEl.innerHTML = '<tr><td style="color:var(--muted)">Sem resultados</td></tr>';
-          return;
-        }
-
-        const cols = Object.keys(d.rows[0]);
-        headEl.innerHTML = '<tr>' + cols.map(c => `<th>${esc(c)}</th>`).join('') + '</tr>';
-        bodyEl.innerHTML = d.rows.slice(0, 200).map(row =>
-          '<tr>' + cols.map(c => `<td>${esc(String(row[c] ?? ''))}</td>`).join('') + '</tr>'
-        ).join('');
-      } catch (e) {
-        statusEl.textContent = '';
-        bodyEl.innerHTML = `<tr><td style="color:var(--danger)">${esc(e.message)}</td></tr>`;
-      }
-    }
-
-    async function fabricSyncRevendas() {
-      const table = document.getElementById('fabricSyncTable').value.trim();
-      const statusEl = document.getElementById('fabricSyncStatus');
-      if (!table) { statusEl.textContent = '❌ Informe o nome da tabela'; return; }
-
-      statusEl.textContent = '🔄 Sincronizando...';
-      try {
-        const r = await fetch('/api/fabric/sync-revendas', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({
-            tableName: table,
-            columnMap: {
-              nome: document.getElementById('fabricSyncColNome').value.trim() || 'Nome',
-              partner_id: document.getElementById('fabricSyncColPartner').value.trim() || 'PartnerId',
-              link_base: document.getElementById('fabricSyncColLink').value.trim() || 'LinkBase'
-            }
-          })
-        });
-        const d = await r.json();
-        if (!r.ok) throw new Error(d.error || 'Erro no sync');
-        statusEl.innerHTML = `✅ ${d.total} registros — ${d.inserted} inseridos, ${d.updated} atualizados, ${d.skipped} ignorados`;
-        document.getElementById('fabricLastSync').textContent = new Date().toLocaleString('pt-BR');
-      } catch (e) {
-        statusEl.textContent = '❌ ' + e.message;
-      }
-    }
 
     // initial load
     if (!authToken) {
@@ -1633,7 +1489,6 @@
       window.location.href = '/login.html';
     } else {
       loadAllData();
-      fabricLoadStatus();
     }
   </script>
 </body>

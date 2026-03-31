@@ -231,9 +231,15 @@ async function syncRevendasFromFabric(tableName, columnMap, dbRun, dbGet) {
     const colPartnerId = columnMap.partner_id || 'PartnerId';
     const colLinkBase = columnMap.link_base || 'LinkBase';
 
+    // Valida nomes de colunas (previne SQL injection via nomes arbitrários)
+    const colNamePattern = /^[\w]+$/;
+    if (!colNamePattern.test(colNome) || !colNamePattern.test(colPartnerId) || !colNamePattern.test(colLinkBase)) {
+        throw new Error('Nome de coluna inválido');
+    }
+
     const pool = await getSqlPool();
     const result = await pool.request().query(
-        `SELECT [${colNome}] AS nome, [${colPartnerId}] AS partner_id, [${colLinkBase}] AS link_base FROM [${tableName}]`
+        `SELECT [${colNome}] AS nome, [${colPartnerId}] AS partner_id, [${colLinkBase}] AS link_base FROM [${tableName.replace(/[\[\]]/g, '')}]`
     );
 
     let inserted = 0, updated = 0, skipped = 0;
@@ -350,9 +356,10 @@ async function describeTable(tableName) {
         throw new Error('Nome de tabela inválido');
     }
     const pool = await getSqlPool();
-    const result = await pool.request().query(
-        `SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '${tableName.replace(/[\[\]]/g, '')}' ORDER BY ORDINAL_POSITION`
-    );
+    const cleanName = tableName.replace(/[\[\]]/g, '');
+    const result = await pool.request()
+        .input('tableName', cleanName)
+        .query('SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = @tableName ORDER BY ORDINAL_POSITION');
     return result.recordset.map(c => ({
         name: c.COLUMN_NAME,
         type: c.DATA_TYPE,
