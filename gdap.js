@@ -141,6 +141,165 @@ async function criarConviteGDAP({ displayName, duration } = {}) {
     };
 }
 
+// ===== LISTAR RELAÇÕES GDAP ATIVAS =====
+/**
+ * Lista todas as relações GDAP ativas (status = active).
+ * Retorna array com { id, displayName, status, customer.tenantId, customer.displayName }
+ */
+async function listarRelacoesAtivas() {
+    const token = await getAccessToken();
+    const headers = { Authorization: `Bearer ${token}` };
+
+    const url = `${GRAPH_BASE_URL}/tenantRelationships/delegatedAdminRelationships?$filter=status eq 'active'&$select=id,displayName,status,customer,duration,createdDateTime`;
+    const resp = await axios.get(url, { headers });
+    return resp.data.value || [];
+}
+
+// ===== CONSULTAR STATUS DE UMA RELAÇÃO GDAP =====
+async function consultarRelacao(relationshipId) {
+    const token = await getAccessToken();
+    const headers = { Authorization: `Bearer ${token}` };
+
+    const url = `${GRAPH_BASE_URL}/tenantRelationships/delegatedAdminRelationships/${encodeURIComponent(relationshipId)}`;
+    const resp = await axios.get(url, { headers });
+    return resp.data;
+}
+
+// ===== LER LICENÇAS DO CLIENTE VIA GDAP =====
+/**
+ * Usa a relação GDAP para acessar o tenant do cliente e ler subscribedSkus.
+ * Requer que a relação esteja ativa e a role License Reader.
+ * 
+ * @param {string} customerTenantId - Tenant ID do cliente (vem da relação GDAP)
+ * @returns {Array} Lista de licenças { skuPartNumber, skuId, capabilityStatus, total, consumed, available, servicePlans }
+ */
+async function lerLicencasCliente(customerTenantId) {
+    // Obter token delegado para o tenant do cliente usando GDAP
+    const client = getMsalClient();
+
+    const result = await client.acquireTokenByClientCredential({
+        scopes: [GRAPH_SCOPE],
+        azureRegion: undefined,
+    });
+
+    if (!result || !result.accessToken) {
+        throw new Error('Falha ao obter token para consultar licenças');
+    }
+
+    const token = result.accessToken;
+    const headers = {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+    };
+
+    // Usar endpoint delegatedAdminCustomer para acessar dados do cliente
+    const url = `${GRAPH_BASE_URL}/tenantRelationships/delegatedAdminCustomers/${encodeURIComponent(customerTenantId)}/serviceManagementDetails`;
+    
+    // Primeiro tentar subscribedSkus via delegated admin
+    const skuUrl = `https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminCustomers/${encodeURIComponent(customerTenantId)}/serviceManagementDetails`;
+    
+    // A API correta para ler licenças via GDAP é usar o Graph com header do customer tenant
+    const licUrl = `https://graph.microsoft.com/v1.0/subscribedSkus`;
+    
+    // Para acessar dados do cliente via GDAP, usamos o header X-AnchorTenantId
+    const customerHeaders = {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+    };
+
+    // Tentar via endpoint de contrato delegado
+    try {
+        // Método 1: usar /contracts para encontrar o tenant e depois ler SKUs
+        const contractsUrl = `https://graph.microsoft.com/v1.0/contracts?$filter=customerId eq '${customerTenantId}'`;
+        const contractResp = await axios.get(contractsUrl, { headers });
+        console.log(`[GDAP] Contrato encontrado para tenant ${customerTenantId}`);
+    } catch (e) {
+        // Normal falhar se não tiver permissão de contracts
+    }
+
+    // Método via GDAP: acessar subscribedSkus usando acquireTokenOnBehalfOf com GDAP
+    // Para partner center/CSP, a forma correta é usar o token do partner com GDAP ativo
+    const partnerAccessUrl = `https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminCustomers/${encodeURIComponent(customerTenantId)}/serviceManagementDetails`;
+    
+    let serviceDetails = [];
+    try {
+        const svcResp = await axios.get(partnerAccessUrl, { headers });
+        serviceDetails = svcResp.data.value || [];
+    } catch (e) {
+        console.log(`[GDAP] serviceManagementDetails não disponível: ${e.message}`);
+    }
+
+    // Ler subscribedSkus usando o token com GDAP (o Graph API redireciona automaticamente via relação GDAP)
+    // A forma recomendada pela Microsoft é fazer request com o accessToken do partner
+    // e o header de delegação
+    const skus = [];
+    try {
+        // Para GDAP, a API é acessada diretamente no contexto do partner com o tenantId do cliente
+        const skuEndpoint = `https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminCustomers/${encodeURIComponent(customerTenantId)}/serviceManagementDetails`;
+        const resp2 = await axios.get(skuEndpoint, { headers });
+        
+        // Se tiver resultado, converter para formato de licenças
+        if (resp2.data && resp2.data.value) {
+            for (const svc of resp2.data.value) {
+                skus.push({
+                    serviceManagementUrl: svc.serviceManagementUrl,
+                    serviceName: svc.serviceName,
+                    id: svc.id,
+                });
+            }
+        }
+    } catch (e) {
+        console.log(`[GDAP] Erro ao ler service details: ${e.message}`);
+    }
+
+    // Tentar ler subscribedSkus diretamente (funciona quando GDAP está ativo com License Reader)
+    // Usando acquireTokenByClientCredential com authority do tenant do cliente
+    try {
+        const customerMsalConfig = {
+            auth: {
+                clientId: process.env.GDAP_CLIENT_ID,
+                clientSecret: process.env.GDAP_CLIENT_SECRET,
+                authority: `https://login.microsoftonline.com/${customerTenantId}`,
+            },
+        };
+        const customerMsal = new msal.ConfidentialClientApplication(customerMsalConfig);
+        const customerToken = await customerMsal.acquireTokenByClientCredential({
+            scopes: [GRAPH_SCOPE],
+        });
+
+        if (customerToken && customerToken.accessToken) {
+            const skuResp = await axios.get('https://graph.microsoft.com/v1.0/subscribedSkus', {
+                headers: { Authorization: `Bearer ${customerToken.accessToken}` },
+            });
+
+            const licencas = (skuResp.data.value || []).map(sku => ({
+                skuId: sku.skuId,
+                skuPartNumber: sku.skuPartNumber,
+                capabilityStatus: sku.capabilityStatus, // Enabled, Suspended, Deleted
+                appliesTo: sku.appliesTo,
+                total: sku.prepaidUnits?.enabled || 0,
+                warning: sku.prepaidUnits?.warning || 0,
+                suspended: sku.prepaidUnits?.suspended || 0,
+                consumed: sku.consumedUnits || 0,
+                available: (sku.prepaidUnits?.enabled || 0) - (sku.consumedUnits || 0),
+                servicePlans: (sku.servicePlans || []).map(sp => ({
+                    servicePlanId: sp.servicePlanId,
+                    servicePlanName: sp.servicePlanName,
+                    provisioningStatus: sp.provisioningStatus,
+                    appliesTo: sp.appliesTo,
+                })),
+            }));
+
+            return licencas;
+        }
+    } catch (e) {
+        console.error(`[GDAP] Falha ao ler subscribedSkus do tenant ${customerTenantId}: ${e.response?.data?.error?.message || e.message}`);
+        throw new Error(`Não foi possível ler licenças do tenant ${customerTenantId}. Verifique se a relação GDAP está ativa e aceita. Erro: ${e.response?.data?.error?.message || e.message}`);
+    }
+
+    return [];
+}
+
 // ===== VERIFICAR CONFIGURAÇÃO =====
 function isGdapConfigured() {
     return !!(
@@ -154,4 +313,7 @@ module.exports = {
     criarConviteGDAP,
     isGdapConfigured,
     getAccessToken,
+    listarRelacoesAtivas,
+    consultarRelacao,
+    lerLicencasCliente,
 };

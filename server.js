@@ -15,7 +15,7 @@ const session = require('express-session');
 const { ConfidentialClientApplication } = require('@azure/msal-node');
 const { jwtVerify, createRemoteJWKSet } = require('jose');
 const { initDatabase, dbGet, dbAll, dbRun } = require('./db');
-const { criarConviteGDAP, isGdapConfigured } = require('./gdap');
+const { criarConviteGDAP, isGdapConfigured, listarRelacoesAtivas, consultarRelacao, lerLicencasCliente } = require('./gdap');
 const { isFabricConfigured, fabricSqlQuery, executeDaxQuery, listDatasets, listDatasetTables, syncRevendasFromFabric, listWorkspaces, listWorkspaceItems, listLakehouses, listLakehouseTables, describeTable, previewTable, getDelegatedToken, resolveToken } = require('./fabric');
 const { isBiConfigured, fetchPontuacaoBI, getSugestoes } = require('./bi');
 
@@ -1626,6 +1626,249 @@ app.post('/api/gdap/gerar-link/:pedidoId', requireAdminOrSuper, async (req, res)
             error: 'Erro ao gerar link GDAP',
             message: err.message
         });
+    }
+});
+
+// ===== ROTAS LICENÇAS (via GDAP) =====
+
+/**
+ * GET /api/gdap/relacoes-ativas
+ * Lista todas as relações GDAP ativas (status = active) com dados do cliente
+ */
+app.get('/api/gdap/relacoes-ativas', requireAdminOrSuper, async (req, res) => {
+    try {
+        if (!isGdapConfigured()) {
+            return res.status(503).json({ error: 'GDAP não configurado' });
+        }
+        const relacoes = await listarRelacoesAtivas();
+        res.json({ total: relacoes.length, relacoes });
+    } catch (err) {
+        console.error('❌ Erro ao listar relações GDAP:', err.message);
+        res.status(500).json({ error: 'Erro ao listar relações ativas', message: err.message });
+    }
+});
+
+/**
+ * GET /api/gdap/status/:relationshipId
+ * Consulta status de uma relação GDAP específica
+ */
+app.get('/api/gdap/status/:relationshipId', requireAdminOrSuper, async (req, res) => {
+    try {
+        if (!isGdapConfigured()) {
+            return res.status(503).json({ error: 'GDAP não configurado' });
+        }
+        const relacao = await consultarRelacao(req.params.relationshipId);
+        res.json(relacao);
+    } catch (err) {
+        console.error('❌ Erro ao consultar relação GDAP:', err.message);
+        const status = err.response?.status === 404 ? 404 : 500;
+        res.status(status).json({
+            error: 'Erro ao consultar relação GDAP',
+            message: err.response?.data?.error?.message || err.message
+        });
+    }
+});
+
+/**
+ * GET /api/gdap/licencas/:customerTenantId
+ * Lê as licenças (subscribedSkus) do tenant do cliente via GDAP
+ */
+app.get('/api/gdap/licencas/:customerTenantId', requireAdminOrSuper, async (req, res) => {
+    try {
+        if (!isGdapConfigured()) {
+            return res.status(503).json({ error: 'GDAP não configurado' });
+        }
+        const licencas = await lerLicencasCliente(req.params.customerTenantId);
+        res.json({ customerTenantId: req.params.customerTenantId, total: licencas.length, licencas });
+    } catch (err) {
+        console.error('❌ Erro ao ler licenças:', err.message);
+        res.status(500).json({ error: 'Erro ao ler licenças do cliente', message: err.message });
+    }
+});
+
+/**
+ * GET /api/gdap/comparar/:pedidoId
+ * Compara licenças do pedido (Ingram/TDS) com o portal do cliente (via GDAP)
+ * 1. Busca licenças locais do pedido
+ * 2. Busca relationship GDAP do pedido → tenant do cliente
+ * 3. Lê subscribedSkus do portal
+ * 4. Faz match fuzzy entre produto do pedido e SKU do portal
+ */
+app.get('/api/gdap/comparar/:pedidoId', requireAdminOrSuper, async (req, res) => {
+    try {
+        const { pedidoId } = req.params;
+        const pedido = await dbGet('SELECT * FROM pedidos WHERE pedido_id = ?', [pedidoId]);
+        if (!pedido) return res.status(404).json({ error: 'Pedido não encontrado' });
+
+        // 1. Licenças locais (o que foi pedido na Ingram/TDS)
+        const licencasLocal = await dbAll(
+            'SELECT id, produto, qtd, duracao, preco FROM licencas WHERE pedido_id = ? ORDER BY id ASC',
+            [pedidoId]
+        );
+
+        if (!licencasLocal.length) {
+            return res.json({
+                pedidoId,
+                cliente: pedido.cliente,
+                cnpj: pedido.cnpj,
+                gdapStatus: 'sem_licencas',
+                message: 'Nenhuma licença cadastrada neste pedido. Adicione licenças ou importe uma proposta.',
+                pedido: licencasLocal,
+                portal: [],
+                comparacao: []
+            });
+        }
+
+        // 2. Verificar se tem GDAP relationship
+        if (!isGdapConfigured()) {
+            return res.json({
+                pedidoId,
+                cliente: pedido.cliente,
+                cnpj: pedido.cnpj,
+                gdapStatus: 'nao_configurado',
+                message: 'GDAP não configurado. Configure GDAP_TENANT_ID, GDAP_CLIENT_ID e GDAP_CLIENT_SECRET no .env',
+                pedido: licencasLocal,
+                portal: [],
+                comparacao: licencasLocal.map(l => ({ ...l, portalMatch: null, resultado: 'gdap_nao_configurado' }))
+            });
+        }
+
+        let portalLicencas = [];
+        let gdapStatus = 'sem_relacao';
+        let gdapMessage = '';
+        let customerTenantId = null;
+
+        if (pedido.gdap_relationship_id) {
+            try {
+                // Consultar relação para pegar o tenant do cliente
+                const relacao = await consultarRelacao(pedido.gdap_relationship_id);
+                if (relacao.status === 'active' && relacao.customer?.tenantId) {
+                    customerTenantId = relacao.customer.tenantId;
+                    gdapStatus = 'ativo';
+                    portalLicencas = await lerLicencasCliente(customerTenantId);
+                } else if (relacao.status === 'approvalPending') {
+                    gdapStatus = 'pendente';
+                    gdapMessage = 'O cliente ainda não aceitou o convite GDAP. Aguardando aprovação.';
+                } else {
+                    gdapStatus = relacao.status || 'inativo';
+                    gdapMessage = `Relação GDAP com status "${relacao.status}". O cliente precisa aceitar o convite.`;
+                }
+            } catch (err) {
+                gdapStatus = 'erro';
+                gdapMessage = 'Erro ao consultar relação GDAP: ' + err.message;
+            }
+        } else {
+            gdapMessage = 'Este pedido não tem um link GDAP gerado. Gere um link GDAP na página de pedidos para poder comparar.';
+        }
+
+        // 3. Fazer matching fuzzy entre produto local e SKU do portal
+        const skuNameMap = {
+            'microsoft 365 business basic': ['O365_BUSINESS_ESSENTIALS', 'SMB_BUSINESS_ESSENTIALS'],
+            'microsoft 365 business standard': ['O365_BUSINESS_PREMIUM', 'SMB_BUSINESS_PREMIUM'],
+            'microsoft 365 business premium': ['SPB'],
+            'microsoft 365 apps for business': ['SMB_BUSINESS'],
+            'microsoft 365 apps for enterprise': ['OFFICESUBSCRIPTION'],
+            'office 365 e1': ['STANDARDPACK'],
+            'office 365 e3': ['ENTERPRISEPACK'],
+            'office 365 e5': ['ENTERPRISEPREMIUM', 'ENTERPRISEPREMIUM_NOPSTNCONF'],
+            'microsoft 365 e3': ['SPE_E3'],
+            'microsoft 365 e5': ['SPE_E5'],
+            'microsoft 365 f1': ['SPE_F1', 'M365_F1'],
+            'microsoft 365 f3': ['SPE_F1', 'M365_F1'],
+            'office 365 f1': ['DESKLESSPACK'],
+            'office 365 f3': ['DESKLESSPACK'],
+            'power bi pro': ['POWER_BI_PRO'],
+            'power bi premium': ['POWER_BI_PREMIUM_PER_USER'],
+            'project plan 3': ['PROJECTPROFESSIONAL'],
+            'project plan 5': ['PROJECTPREMIUM'],
+            'visio plan 2': ['VISIOCLIENT'],
+            'exchange online plan 1': ['EXCHANGESTANDARD'],
+            'exchange online plan 2': ['EXCHANGEENTERPRISE'],
+            'defender for office 365': ['ATP_ENTERPRISE', 'THREAT_INTELLIGENCE'],
+            'defender for endpoint': ['WIN_DEF_ATP'],
+            'enterprise mobility': ['EMS', 'EMSPREMIUM'],
+            'azure ad premium p1': ['AAD_PREMIUM'],
+            'azure ad premium p2': ['AAD_PREMIUM_P2'],
+            'entra id p1': ['AAD_PREMIUM'],
+            'entra id p2': ['AAD_PREMIUM_P2'],
+            'intune': ['INTUNE_A'],
+            'teams exploratory': ['TEAMS_EXPLORATORY'],
+            'sharepoint online plan 1': ['SHAREPOINTSTANDARD'],
+            'sharepoint online plan 2': ['SHAREPOINTENTERPRISE'],
+            'power automate': ['FLOW_FREE'],
+            'azure information protection': ['RIGHTSMANAGEMENT'],
+            'copilot': ['Microsoft_365_Copilot'],
+        };
+
+        const comparacao = licencasLocal.map(licLocal => {
+            const produtoLower = (licLocal.produto || '').toLowerCase().trim();
+            let portalMatch = null;
+            let resultado = 'nao_encontrada';
+
+            // 1. Tentar match direto pelo SKU
+            portalMatch = portalLicencas.find(p =>
+                p.skuPartNumber.toLowerCase() === produtoLower
+            );
+
+            // 2. Tentar match pelo mapa de nomes
+            if (!portalMatch) {
+                for (const [nome, skus] of Object.entries(skuNameMap)) {
+                    if (produtoLower.includes(nome) || nome.includes(produtoLower)) {
+                        portalMatch = portalLicencas.find(p =>
+                            skus.includes(p.skuPartNumber)
+                        );
+                        if (portalMatch) break;
+                    }
+                }
+            }
+
+            // 3. Tentar match parcial (palavras-chave)
+            if (!portalMatch) {
+                const palavras = produtoLower.split(/[\s\-\_\(\)]+/).filter(w => w.length > 2);
+                portalMatch = portalLicencas.find(p => {
+                    const skuLow = p.skuPartNumber.toLowerCase();
+                    return palavras.filter(w => skuLow.includes(w)).length >= 2;
+                });
+            }
+
+            if (portalMatch) {
+                if (portalMatch.capabilityStatus === 'Enabled') {
+                    resultado = portalMatch.total >= (licLocal.qtd || 1) ? 'ok' : 'qtd_divergente';
+                } else {
+                    resultado = 'suspensa';
+                }
+            } else if (gdapStatus !== 'ativo') {
+                resultado = 'gdap_indisponivel';
+            }
+
+            return {
+                ...licLocal,
+                portalMatch: portalMatch ? {
+                    skuPartNumber: portalMatch.skuPartNumber,
+                    capabilityStatus: portalMatch.capabilityStatus,
+                    total: portalMatch.total,
+                    consumed: portalMatch.consumed,
+                    available: portalMatch.available
+                } : null,
+                resultado
+            };
+        });
+
+        res.json({
+            pedidoId,
+            cliente: pedido.cliente,
+            cnpj: pedido.cnpj,
+            customerTenantId,
+            gdapStatus,
+            gdapMessage,
+            pedido: licencasLocal,
+            portal: portalLicencas,
+            comparacao
+        });
+
+    } catch (err) {
+        console.error('❌ Erro ao comparar licenças:', err);
+        res.status(500).json({ error: 'Erro ao comparar licenças', message: err.message });
     }
 });
 

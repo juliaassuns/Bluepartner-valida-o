@@ -610,6 +610,10 @@
           <svg viewBox="0 0 24 24"><path d="M12 22a7 7 0 1 0-7-7m7 7a7 7 0 0 0 7-7m-7 7V15m7 0a7 7 0 1 0-7-7m7 7H15M12 8V2m0 6h6m-6 0H6"/></svg>
           GDAP Pool
         </div>
+        <div class="menu-item" data-page="licencas" onclick="gotoPage('licencas')">
+          <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0 1 12 2.944a11.955 11.955 0 0 1-8.618 3.04A12.02 12.02 0 0 0 3 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          Licenças
+        </div>
         <div class="menu-item" data-page="logs" onclick="gotoPage('logs')">
           <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4V4Zm4 4h8M8 12h8M8 16h6"/></svg>
           Logs
@@ -790,6 +794,90 @@
           </div>
         </section>
 
+        <!-- LICENÇAS — Comparação Pedido vs Portal -->
+        <section class="page" id="page-licencas">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Comparar Licenças</h1>
+              <div class="page-subtitle">Compare o que foi pedido na Ingram/TDS com o que está no portal do cliente</div>
+            </div>
+          </div>
+
+          <!-- Seletor de pedido -->
+          <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:20px;">
+            <div style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
+              <div style="flex:1; min-width:250px;">
+                <label style="font-size:0.85rem; font-weight:600; display:block; margin-bottom:4px;">Selecione o Pedido</label>
+                <select class="input" id="licSelectPedido" onchange="onSelectPedidoComparar()" style="width:100%;">
+                  <option value="">— Selecione um pedido —</option>
+                </select>
+              </div>
+              <button class="btn btn-primary" type="button" onclick="executarComparacao()" id="btnComparar" disabled>
+                <svg viewBox="0 0 24 24"><path d="M8 21V3m8 18V3M4 7h4M4 17h4m8-10h4m-4 10h4"/></svg>
+                Comparar com Portal
+              </button>
+            </div>
+            <div id="licPedidoInfo" style="display:none; margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
+              <div style="display:flex; gap:24px; flex-wrap:wrap; font-size:0.9rem;">
+                <div><strong>Cliente:</strong> <span id="licInfoCliente"></span></div>
+                <div><strong>CNPJ:</strong> <span id="licInfoCnpj"></span></div>
+                <div><strong>Revenda:</strong> <span id="licInfoRevenda"></span></div>
+                <div><strong>Status:</strong> <span id="licInfoStatus"></span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resultado da comparação -->
+          <div id="licComparacaoResultado" style="display:none;">
+            <!-- Status GDAP -->
+            <div id="licGdapAlert" style="display:none; border-radius:12px; padding:16px; margin-bottom:16px; font-size:0.9rem;"></div>
+
+            <!-- Tabela de comparação -->
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Produto (Pedido Ingram/TDS)</th>
+                    <th>Qtd Pedida</th>
+                    <th>Licença no Portal</th>
+                    <th>Status Portal</th>
+                    <th>Qtd Portal</th>
+                    <th>Resultado</th>
+                  </tr>
+                </thead>
+                <tbody id="licComparacaoBody">
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Licenças extras no portal (não pedidas) -->
+            <div id="licExtrasPanel" style="display:none; margin-top:20px;">
+              <h3 style="font-size:1rem; font-weight:700; margin-bottom:8px;">📦 Outras licenças no portal do cliente</h3>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Licença (SKU)</th>
+                      <th>Status</th>
+                      <th>Total</th>
+                      <th>Usadas</th>
+                      <th>Disponíveis</th>
+                    </tr>
+                  </thead>
+                  <tbody id="licExtrasBody">
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Loading -->
+          <div id="licLoading" style="display:none; color:var(--muted); font-weight:700; padding:20px; text-align:center;">
+            <svg width="24" height="24" viewBox="0 0 24 24" style="animation:spin 1s linear infinite; vertical-align:middle;"><path d="M21 12a9 9 0 1 1-2.64-6.36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Consultando portal do cliente via GDAP...
+          </div>
+        </section>
+
         <!-- LOGS -->
         <section class="page" id="page-logs">
           <div class="page-header">
@@ -938,6 +1026,7 @@
         page === 'dashboard' ? 'Dashboard' :
         page === 'pedidos' ? 'Pedidos' :
         page === 'gdap' ? 'GDAP Pool' :
+        page === 'licencas' ? 'Licenças' :
         'Logs';
 
       closeSidebar();
@@ -1202,6 +1291,7 @@
 
       renderPedidosTable();
       renderGdapTable();
+      populateLicSelectPedido();
     }
 
     // ===== DASHBOARD RENDER =====
@@ -1334,27 +1424,7 @@
     }
 
     async function compareLicencas(pedidoId){
-      // por enquanto, reaproveita a API de licenças (admin) e mostra um resumo.
-      // Isso evita "não abre nada" e dá utilidade imediata ao botão.
-      try {
-        const res = await authFetch(API_BASE + '/api/licencas/' + encodeURIComponent(pedidoId));
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          alert(data.error || 'Erro ao carregar licenças');
-          return;
-        }
-        const itens = data.licencas || [];
-        if (!itens.length) {
-          alert('Nenhuma licença cadastrada para este pedido.');
-          return;
-        }
-        const resumo = itens
-          .map(i => `• ${i.produto} | qtd: ${i.qtd} | ${i.duracao} | ${i.preco}`)
-          .join('\\n');
-        alert('Licenças cadastradas:\\n\\n' + resumo);
-      } catch (e) {
-        alert('Erro ao carregar licenças');
-      }
+      executarComparacao(pedidoId);
     }
 
     async function deletePedido(pedidoId){
@@ -1420,11 +1490,41 @@
     }
 
     async function verificarGdapStatus(relationshipId){
-      alert('Verificar status GDAP: ' + relationshipId + '\\n(necessário endpoint backend para consultar Graph API)');
+      try {
+        const res = await authFetch(API_BASE + '/api/gdap/status/' + encodeURIComponent(relationshipId));
+        const data = await res.json();
+        if (!res.ok) {
+          alert('Erro: ' + (data.message || data.error));
+          return;
+        }
+        const status = data.status || '—';
+        const cliente = data.customer?.displayName || '—';
+        const tenantId = data.customer?.tenantId || '—';
+        const criado = data.createdDateTime ? new Date(data.createdDateTime).toLocaleString('pt-BR') : '—';
+        alert(`Status GDAP:\n\nRelação: ${data.displayName || relationshipId}\nStatus: ${status}\nCliente: ${cliente}\nTenant ID: ${tenantId}\nCriado em: ${criado}`);
+        // Reload pool to update status
+        await loadGdapPool();
+        renderGdapTable();
+      } catch (err) {
+        alert('Erro ao verificar: ' + err.message);
+      }
     }
 
     async function compareGdapLicencas(relationshipId){
-      alert('Comparar licenças (GDAP active): ' + relationshipId + '\\n(placeholder)');
+      // Buscar relação para pegar o tenantId do cliente
+      try {
+        const res = await authFetch(API_BASE + '/api/gdap/status/' + encodeURIComponent(relationshipId));
+        const data = await res.json();
+        if (!res.ok || !data.customer?.tenantId) {
+          alert('Não foi possível obter o tenant ID do cliente para esta relação.');
+          return;
+        }
+        // Navegar para a página de licenças e abrir o cliente
+        gotoPage('licencas');
+        verLicencasCliente(data.customer.tenantId, data.customer.displayName || 'Cliente');
+      } catch (err) {
+        alert('Erro: ' + err.message);
+      }
     }
 
     // ===== LOGS TABLE (FILTER + PAGINATION) =====
@@ -1470,6 +1570,263 @@
     function logsNextPage(){
       logsPage = logsPage + 1;
       loadLogs();
+    }
+
+    // ===== COMPARAÇÃO DE LICENÇAS (Pedido vs Portal) =====
+
+    function populateLicSelectPedido() {
+      const sel = document.getElementById('licSelectPedido');
+      const current = sel.value;
+      sel.innerHTML = '<option value="">— Selecione um pedido —</option>';
+      (pedidosCache || []).forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.pedido_id;
+        opt.textContent = `${p.pedido_id} — ${p.cliente} (${p.revenda_nome || p.revenda || '—'})`;
+        sel.appendChild(opt);
+      });
+      if (current) sel.value = current;
+    }
+
+    function onSelectPedidoComparar() {
+      const pedidoId = document.getElementById('licSelectPedido').value;
+      const btn = document.getElementById('btnComparar');
+      const info = document.getElementById('licPedidoInfo');
+
+      if (!pedidoId) {
+        btn.disabled = true;
+        info.style.display = 'none';
+        document.getElementById('licComparacaoResultado').style.display = 'none';
+        return;
+      }
+
+      btn.disabled = false;
+      const p = pedidosCache.find(x => x.pedido_id === pedidoId);
+      if (p) {
+        info.style.display = 'block';
+        document.getElementById('licInfoCliente').textContent = p.cliente || '—';
+        document.getElementById('licInfoCnpj').textContent = p.cnpj || '—';
+        document.getElementById('licInfoRevenda').textContent = p.revenda_nome || p.revenda || '—';
+        document.getElementById('licInfoStatus').textContent = p.status || '—';
+      }
+    }
+
+    async function executarComparacao(pedidoIdParam) {
+      const pedidoId = pedidoIdParam || document.getElementById('licSelectPedido').value;
+      if (!pedidoId) return;
+
+      // Se veio de fora (botão na tabela pedidos), navegar para a página e selecionar
+      if (pedidoIdParam) {
+        gotoPage('licencas');
+        await new Promise(r => setTimeout(r, 100));
+        populateLicSelectPedido();
+        document.getElementById('licSelectPedido').value = pedidoId;
+        onSelectPedidoComparar();
+      }
+
+      document.getElementById('licLoading').style.display = 'block';
+      document.getElementById('licComparacaoResultado').style.display = 'none';
+
+      try {
+        const res = await authFetch(API_BASE + '/api/gdap/comparar/' + encodeURIComponent(pedidoId));
+        const data = await res.json();
+        document.getElementById('licLoading').style.display = 'none';
+
+        if (!res.ok) {
+          alert(data.error || data.message || 'Erro ao comparar');
+          return;
+        }
+
+        renderComparacao(data);
+      } catch (err) {
+        document.getElementById('licLoading').style.display = 'none';
+        alert('Erro de conexão: ' + err.message);
+      }
+    }
+
+    function renderComparacao(data) {
+      document.getElementById('licComparacaoResultado').style.display = 'block';
+
+      // GDAP status alert
+      const alert = document.getElementById('licGdapAlert');
+      if (data.gdapStatus === 'ativo') {
+        alert.style.display = 'block';
+        alert.style.background = '#ecfdf5';
+        alert.style.border = '1px solid #6ee7b7';
+        alert.style.color = '#065f46';
+        alert.innerHTML = '✅ <strong>GDAP ativo</strong> — Leitura do portal do cliente realizada com sucesso.' +
+          (data.customerTenantId ? ' <span style="font-family:monospace;font-size:0.8rem;">Tenant: ' + esc(data.customerTenantId) + '</span>' : '');
+      } else if (data.gdapStatus === 'pendente') {
+        alert.style.display = 'block';
+        alert.style.background = '#fffbeb';
+        alert.style.border = '1px solid #fcd34d';
+        alert.style.color = '#92400e';
+        alert.innerHTML = '⏳ <strong>GDAP pendente</strong> — ' + esc(data.gdapMessage || 'Cliente ainda não aceitou o convite.');
+      } else if (data.gdapStatus === 'sem_relacao') {
+        alert.style.display = 'block';
+        alert.style.background = '#fef3c7';
+        alert.style.border = '1px solid #fbbf24';
+        alert.style.color = '#92400e';
+        alert.innerHTML = '⚠️ <strong>Sem GDAP</strong> — ' + esc(data.gdapMessage || 'Gere um link GDAP para este pedido primeiro.');
+      } else if (data.gdapStatus === 'nao_configurado') {
+        alert.style.display = 'block';
+        alert.style.background = '#fef2f2';
+        alert.style.border = '1px solid #fca5a5';
+        alert.style.color = '#991b1b';
+        alert.innerHTML = '❌ <strong>GDAP não configurado</strong> — Configure as variáveis GDAP no servidor.';
+      } else if (data.gdapStatus === 'sem_licencas') {
+        alert.style.display = 'block';
+        alert.style.background = '#fef3c7';
+        alert.style.border = '1px solid #fbbf24';
+        alert.style.color = '#92400e';
+        alert.innerHTML = '📋 ' + esc(data.message || 'Nenhuma licença cadastrada neste pedido.');
+        document.getElementById('licComparacaoBody').innerHTML = '';
+        document.getElementById('licExtrasPanel').style.display = 'none';
+        return;
+      } else {
+        alert.style.display = 'block';
+        alert.style.background = '#fef2f2';
+        alert.style.border = '1px solid #fca5a5';
+        alert.style.color = '#991b1b';
+        alert.innerHTML = '❌ ' + esc(data.gdapMessage || 'Erro ao consultar portal.');
+      }
+
+      // Tabela de comparação
+      const comparacao = data.comparacao || [];
+      const tbody = document.getElementById('licComparacaoBody');
+
+      if (!comparacao.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="color:var(--muted);font-weight:700;">Nenhuma licença para comparar</td></tr>';
+      } else {
+        tbody.innerHTML = comparacao.map(c => {
+          let resultadoHtml = '';
+          let rowBg = '';
+          switch (c.resultado) {
+            case 'ok':
+              resultadoHtml = '<span style="color:#10b981;font-weight:700;">✅ Conferida</span>';
+              rowBg = 'background:#f0fdf4;';
+              break;
+            case 'qtd_divergente':
+              resultadoHtml = `<span style="color:#f59e0b;font-weight:700;">⚠️ Qtd divergente (portal: ${c.portalMatch?.total || 0})</span>`;
+              rowBg = 'background:#fffbeb;';
+              break;
+            case 'suspensa':
+              resultadoHtml = `<span style="color:#ef4444;font-weight:700;">🔴 Suspensa no portal</span>`;
+              rowBg = 'background:#fef2f2;';
+              break;
+            case 'nao_encontrada':
+              resultadoHtml = '<span style="color:#ef4444;font-weight:700;">❌ Não encontrada no portal</span>';
+              rowBg = 'background:#fef2f2;';
+              break;
+            case 'gdap_indisponivel':
+              resultadoHtml = '<span style="color:#6b7280;font-weight:600;">⏳ GDAP indisponível</span>';
+              break;
+            case 'gdap_nao_configurado':
+              resultadoHtml = '<span style="color:#6b7280;font-weight:600;">— GDAP não configurado</span>';
+              break;
+            default:
+              resultadoHtml = '<span style="color:var(--muted);">—</span>';
+          }
+
+          const portalSku = c.portalMatch ? skuFriendlyName(c.portalMatch.skuPartNumber) : '—';
+          const portalStatus = c.portalMatch?.capabilityStatus || '—';
+          const portalQtd = c.portalMatch ? c.portalMatch.total : '—';
+          const statusColor = portalStatus === 'Enabled' ? '#10b981' : portalStatus === 'Suspended' ? '#ef4444' : '#6b7280';
+
+          return `
+            <tr style="${rowBg}">
+              <td><strong>${esc(c.produto)}</strong></td>
+              <td style="text-align:center;">${c.qtd || 1}</td>
+              <td>${c.portalMatch ? '<strong>' + esc(portalSku) + '</strong><div style="font-size:0.75rem;color:var(--muted);font-family:monospace;">' + esc(c.portalMatch.skuPartNumber) + '</div>' : '<span style="color:var(--muted);">—</span>'}</td>
+              <td><span style="color:${statusColor};font-weight:600;">${esc(portalStatus)}</span></td>
+              <td style="text-align:center;">${portalQtd}</td>
+              <td>${resultadoHtml}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      // Licenças extras no portal que não foram pedidas
+      const matchedSkus = new Set(comparacao.filter(c => c.portalMatch).map(c => c.portalMatch.skuPartNumber));
+      const extras = (data.portal || []).filter(p => !matchedSkus.has(p.skuPartNumber));
+      const extrasPanel = document.getElementById('licExtrasPanel');
+      const extrasBody = document.getElementById('licExtrasBody');
+
+      if (extras.length > 0 && data.gdapStatus === 'ativo') {
+        extrasPanel.style.display = 'block';
+        extrasBody.innerHTML = extras.map(p => {
+          const statusColor = p.capabilityStatus === 'Enabled' ? '#10b981' : p.capabilityStatus === 'Suspended' ? '#f59e0b' : '#6b7280';
+          return `
+            <tr>
+              <td>
+                <strong>${esc(skuFriendlyName(p.skuPartNumber))}</strong>
+                <div style="font-size:0.75rem;color:var(--muted);font-family:monospace;">${esc(p.skuPartNumber)}</div>
+              </td>
+              <td><span style="color:${statusColor};font-weight:600;">${esc(p.capabilityStatus)}</span></td>
+              <td>${p.total}</td>
+              <td>${p.consumed}</td>
+              <td style="color:${p.available <= 0 ? '#ef4444' : '#10b981'};font-weight:700;">${p.available}</td>
+            </tr>
+          `;
+        }).join('');
+      } else {
+        extrasPanel.style.display = 'none';
+      }
+    }
+
+    // Mapeamento SKU → nome amigável
+    function skuFriendlyName(sku) {
+      const map = {
+        'O365_BUSINESS_ESSENTIALS': 'Microsoft 365 Business Basic',
+        'O365_BUSINESS_PREMIUM': 'Microsoft 365 Business Standard',
+        'SPB': 'Microsoft 365 Business Premium',
+        'ENTERPRISEPACK': 'Office 365 E3',
+        'ENTERPRISEPREMIUM': 'Office 365 E5',
+        'ENTERPRISEPREMIUM_NOPSTNCONF': 'Office 365 E5 (sem PSTN)',
+        'DESKLESSPACK': 'Office 365 F1',
+        'SPE_E3': 'Microsoft 365 E3',
+        'SPE_E5': 'Microsoft 365 E5',
+        'SPE_F1': 'Microsoft 365 F1',
+        'FLOW_FREE': 'Power Automate Free',
+        'POWER_BI_STANDARD': 'Power BI Free',
+        'POWER_BI_PRO': 'Power BI Pro',
+        'POWER_BI_PREMIUM_PER_USER': 'Power BI Premium Per User',
+        'PROJECTPREMIUM': 'Project Plan 5',
+        'PROJECTPROFESSIONAL': 'Project Plan 3',
+        'VISIOCLIENT': 'Visio Plan 2',
+        'ATP_ENTERPRISE': 'Microsoft Defender for Office 365 P1',
+        'THREAT_INTELLIGENCE': 'Microsoft Defender for Office 365 P2',
+        'EMSPREMIUM': 'Enterprise Mobility + Security E5',
+        'EMS': 'Enterprise Mobility + Security E3',
+        'EXCHANGESTANDARD': 'Exchange Online Plan 1',
+        'EXCHANGEENTERPRISE': 'Exchange Online Plan 2',
+        'MCOSTANDARD': 'Skype for Business Online Plan 2',
+        'TEAMS_EXPLORATORY': 'Microsoft Teams Exploratory',
+        'TEAMS_FREE': 'Microsoft Teams Free',
+        'WIN_DEF_ATP': 'Microsoft Defender for Endpoint',
+        'IDENTITY_THREAT_PROTECTION': 'Microsoft 365 E5 Security',
+        'AAD_PREMIUM': 'Azure AD Premium P1',
+        'AAD_PREMIUM_P2': 'Azure AD Premium P2',
+        'RIGHTSMANAGEMENT': 'Azure Information Protection P1',
+        'INTUNE_A': 'Microsoft Intune Plan 1',
+        'SHAREPOINTSTANDARD': 'SharePoint Online Plan 1',
+        'SHAREPOINTENTERPRISE': 'SharePoint Online Plan 2',
+        'MCOIMP': 'Skype for Business Online Plan 1',
+        'OFFICESUBSCRIPTION': 'Microsoft 365 Apps for Enterprise',
+        'M365_F1': 'Microsoft 365 F1',
+        'SMB_BUSINESS': 'Microsoft 365 Apps for Business',
+        'SMB_BUSINESS_ESSENTIALS': 'Microsoft 365 Business Basic',
+        'SMB_BUSINESS_PREMIUM': 'Microsoft 365 Business Standard',
+        'Microsoft_365_Copilot': 'Microsoft 365 Copilot',
+      };
+      return map[sku?.toUpperCase()] || map[sku] || sku;
+    }
+
+    // CSS animation for spinner
+    if (!document.getElementById('spinStyle')) {
+      const style = document.createElement('style');
+      style.id = 'spinStyle';
+      style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
+      document.head.appendChild(style);
     }
 
     // ===== INIT =====
