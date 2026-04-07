@@ -119,16 +119,7 @@ app.use((req, res, next) => {
 
 // Security headers
 app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-            fontSrc: ["'self'", "https://fonts.gstatic.com"],
-            imgSrc: ["'self'", "data:"],
-            connectSrc: ["'self'"],
-        },
-    },
+    contentSecurityPolicy: false, // Desabilitado: páginas usam inline scripts + recursos externos (fonts, unpkg)
     crossOriginEmbedderPolicy: false
 }));
 
