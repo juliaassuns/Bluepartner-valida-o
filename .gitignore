@@ -5,3 +5,7 @@ data/
 logs/
 logs-azure/
 *.log
+*.zip
+jest-output*.txt
+test-results.txt
+%USERPROFILE%/

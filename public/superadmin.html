@@ -238,18 +238,7 @@
         }
         .pool-date { color: var(--gray-400); white-space: nowrap; font-size: 11px; }
 
-        /* ===== TOAST ===== */
-        .toast {
-            position: fixed; bottom: 24px; left: 50%;
-            transform: translateX(-50%) translateY(80px);
-            background: var(--gray-800); color: var(--white);
-            padding: 12px 24px; border-radius: 10px;
-            font-size: 14px; font-weight: 500;
-            box-shadow: var(--shadow-lg);
-            transition: transform 0.3s ease;
-            z-index: 9999;
-        }
-        .toast.show { transform: translateX(-50%) translateY(0); }
+        /* (toast CSS moved to bottom with upgraded system) */
 
         /* ===== SCROLLBAR ===== */
         ::-webkit-scrollbar { width: 5px; }
@@ -305,6 +294,64 @@
         .rvd-bar-fill { height: 100%; border-radius: 3px; background: var(--purple); transition: width 0.3s; }
         .rvd-badge-active { background: var(--green-light); color: var(--green-dark); }
         .rvd-badge-inactive { background: var(--red-light); color: var(--red); }
+
+        /* ===== UPGRADED TOAST ===== */
+        .toast-container {
+            position: fixed; top: 20px; right: 20px; z-index: 10000;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .toast-msg {
+            display: flex; align-items: center; gap: 10px;
+            padding: 14px 20px; border-radius: 12px;
+            font-size: 14px; font-weight: 500;
+            box-shadow: var(--shadow-lg);
+            animation: toastIn 0.3s ease;
+            color: var(--white); min-width: 260px; max-width: 420px;
+        }
+        .toast-msg.success { background: var(--green); }
+        .toast-msg.error { background: var(--red); }
+        .toast-msg.warning { background: var(--orange); }
+        .toast-msg.info { background: var(--blue); }
+        .toast-msg.toast-out { animation: toastOut 0.3s ease forwards; }
+        @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes toastOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+
+        /* ===== CONFIRM DIALOG ===== */
+        .confirm-overlay {
+            position: fixed; inset: 0; z-index: 9999;
+            background: rgba(0,0,0,0.45);
+            display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.2s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .confirm-box {
+            background: var(--white); border-radius: 16px;
+            max-width: 400px; width: 90%; padding: 28px;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.2);
+            animation: confirmIn 0.25s ease;
+            text-align: center;
+        }
+        @keyframes confirmIn { from { transform: scale(0.92) translateY(10px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+        .confirm-icon {
+            width: 56px; height: 56px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 16px; font-size: 24px;
+        }
+        .confirm-icon.danger { background: var(--red-light); color: var(--red); }
+        .confirm-icon.warning { background: var(--orange-light); color: var(--orange); }
+        .confirm-title { font-size: 17px; font-weight: 700; color: var(--gray-800); margin-bottom: 8px; }
+        .confirm-message { font-size: 13px; color: var(--gray-500); line-height: 1.6; margin-bottom: 24px; }
+        .confirm-actions { display: flex; gap: 8px; justify-content: center; }
+        .confirm-actions .btn { min-width: 100px; justify-content: center; }
+
+        /* ===== ACCESSIBILITY ===== */
+        :focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; }
+        .kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 20px; padding: 0 5px; background: var(--gray-100); border: 1px solid var(--gray-200); border-radius: 4px; font-size: 11px; font-weight: 600; color: var(--gray-400); font-family: inherit; }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+        }
     </style>
 </head>
 <body>
@@ -643,7 +690,7 @@
 
     </div>
 
-    <div class="toast" id="toast"></div>
+    <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
     <script>
     const API_BASE = '';
@@ -770,9 +817,9 @@
     async function addPoolLink() {
         const input = document.getElementById('poolLinkInput');
         const link = input.value.trim();
-        if (!link) { showToast('Cole um link GDAP'); return; }
+        if (!link) { showToast('Cole um link GDAP', 'warning'); return; }
         if (!link.includes('granularAdminRelationships')) {
-            showToast('Link não parece ser um convite GDAP válido');
+            showToast('Link não parece ser um convite GDAP válido', 'warning');
             return;
         }
         try {
@@ -783,19 +830,19 @@
             });
             const data = await res.json();
             if (res.ok) {
-                showToast(data.message || 'Link adicionado!');
+                showToast(data.message || 'Link adicionado!', 'success');
                 input.value = '';
                 loadPool();
             } else {
-                showToast(data.error || 'Erro');
+                showToast(data.error || 'Erro', 'error');
             }
-        } catch { showToast('Erro de conexão'); }
+        } catch { showToast('Erro de conexão', 'error'); }
     }
 
     async function addPoolBulk() {
         const textarea = document.getElementById('poolBulkInput');
         const lines = textarea.value.split('\n').map(l => l.trim()).filter(l => l && l.includes('granularAdminRelationships'));
-        if (!lines.length) { showToast('Nenhum link válido encontrado'); return; }
+        if (!lines.length) { showToast('Nenhum link válido encontrado', 'warning'); return; }
         try {
             const res = await authFetch(API_BASE + '/api/gdap/pool', {
                 method: 'POST',
@@ -804,38 +851,40 @@
             });
             const data = await res.json();
             if (res.ok) {
-                showToast(data.message || `${data.added} links adicionados!`);
+                showToast(data.message || `${data.added} links adicionados!`, 'success');
                 textarea.value = '';
                 loadPool();
             } else {
-                showToast(data.error || 'Erro');
+                showToast(data.error || 'Erro', 'error');
             }
-        } catch { showToast('Erro de conexão'); }
+        } catch { showToast('Erro de conexão', 'error'); }
     }
 
     async function removePoolLink(id) {
-        if (!confirm('Remover este link do banco?')) return;
+        const ok = await showConfirm({ title: 'Remover link', message: 'Deseja remover este link GDAP do banco?', confirmText: 'Remover', type: 'danger' });
+        if (!ok) return;
         try {
             const res = await authFetch(API_BASE + '/api/gdap/pool/' + id, { method: 'DELETE' });
             if (res.ok) {
-                showToast('Link removido');
+                showToast('Link removido', 'success');
                 loadPool();
             }
-        } catch { showToast('Erro de conexão'); }
+        } catch { showToast('Erro de conexão', 'error'); }
     }
 
     async function clearUsedLinks() {
-        if (!confirm('Tem certeza que deseja remover todos os links usados do banco?')) return;
+        const ok = await showConfirm({ title: 'Limpar links usados', message: 'Todos os links com status "usado" serão removidos permanentemente. Links disponíveis não serão afetados.', confirmText: 'Limpar usados', type: 'danger' });
+        if (!ok) return;
         try {
             const res = await authFetch(API_BASE + '/api/gdap/pool/clear-used', { method: 'DELETE' });
             const data = await res.json();
             if (res.ok) {
-                showToast(data.message || 'Links usados removidos');
+                showToast(data.message || 'Links usados removidos', 'success');
                 loadPool();
             } else {
-                showToast(data.error || 'Erro');
+                showToast(data.error || 'Erro', 'error');
             }
-        } catch { showToast('Erro de conexão'); }
+        } catch { showToast('Erro de conexão', 'error'); }
     }
 
     // ===== TAB SWITCHING =====
@@ -964,7 +1013,7 @@
         const partner_id = document.getElementById('revendaPartnerIdInput').value.trim();
         const link_base = document.getElementById('revendaLinkBaseInput').value.trim();
         const categoria = document.getElementById('revendaCategoriaInput').value;
-        if (!nome) { showToast('Informe o nome da revenda'); return; }
+        if (!nome) { showToast('Informe o nome da revenda', 'warning'); return; }
         try {
             const res = await authFetch(API_BASE + '/api/revendas', {
                 method: 'POST',
@@ -973,7 +1022,7 @@
             });
             const data = await res.json();
             if (res.ok) {
-                showToast('Revenda adicionada: ' + nome);
+                showToast('Revenda adicionada: ' + nome, 'success');
                 document.getElementById('revendaNomeInput').value = '';
                 document.getElementById('revendaContatoInput').value = '';
                 document.getElementById('revendaEmailInput').value = '';
@@ -982,15 +1031,15 @@
                 document.getElementById('revendaCategoriaInput').value = '';
                 loadRevendasDashboard();
             } else {
-                showToast(data.error || 'Erro ao adicionar');
+                showToast(data.error || 'Erro ao adicionar', 'error');
             }
-        } catch { showToast('Erro de conexão'); }
+        } catch { showToast('Erro de conexão', 'error'); }
     }
 
     async function importRevendas() {
         const text = document.getElementById('revendaBulkInput').value;
         const nomes = text.split('\n').map(l => l.trim()).filter(l => l);
-        if (!nomes.length) { showToast('Nenhum nome informado'); return; }
+        if (!nomes.length) { showToast('Nenhum nome informado', 'warning'); return; }
         try {
             const res = await authFetch(API_BASE + '/api/revendas/importar', {
                 method: 'POST',
@@ -999,13 +1048,13 @@
             });
             const data = await res.json();
             if (res.ok) {
-                showToast(data.message || 'Revendas importadas!');
+                showToast(data.message || 'Revendas importadas!', 'success');
                 document.getElementById('revendaBulkInput').value = '';
                 loadRevendasDashboard();
             } else {
-                showToast(data.error || 'Erro');
+                showToast(data.error || 'Erro', 'error');
             }
-        } catch { showToast('Erro de conexão'); }
+        } catch { showToast('Erro de conexão', 'error'); }
     }
 
     async function toggleRevenda(id, ativo) {
@@ -1016,24 +1065,25 @@
                 body: JSON.stringify({ ativo: !!ativo })
             });
             if (res.ok) {
-                showToast(ativo ? 'Revenda ativada' : 'Revenda desativada');
+                showToast(ativo ? 'Revenda ativada' : 'Revenda desativada', 'success');
                 loadRevendasDashboard();
             }
-        } catch { showToast('Erro de conexão'); }
+        } catch { showToast('Erro de conexão', 'error'); }
     }
 
     async function deleteRevenda(id, nome) {
-        if (!confirm('Remover a revenda "' + nome + '"?')) return;
+        const ok = await showConfirm({ title: 'Excluir revenda', message: 'Deseja excluir a revenda "' + nome + '"? Esta ação não pode ser desfeita.', confirmText: 'Excluir', type: 'danger' });
+        if (!ok) return;
         try {
             const res = await authFetch(API_BASE + '/api/revendas/' + id, { method: 'DELETE' });
             const data = await res.json();
             if (res.ok) {
-                showToast('Revenda removida');
+                showToast('Revenda removida', 'success');
                 loadRevendasDashboard();
             } else {
-                showToast(data.error || 'Erro');
+                showToast(data.error || 'Erro', 'error');
             }
-        } catch { showToast('Erro de conexão'); }
+        } catch { showToast('Erro de conexão', 'error'); }
     }
 
     // ===== USUARIOS =====
@@ -1121,7 +1171,7 @@
     async function addUser() {
         const email = document.getElementById('userEmailInput').value.trim();
         const role = document.getElementById('userRoleInput').value;
-        if (!email) { showToast('Informe o e-mail'); return; }
+        if (!email) { showToast('Informe o e-mail', 'warning'); return; }
         try {
             const res = await authFetch(API_BASE + '/api/usuarios', {
                 method: 'POST',
@@ -1130,13 +1180,13 @@
             });
             const data = await res.json();
             if (res.ok) {
-                showToast('Usuário adicionado: ' + email);
+                showToast('Usuário adicionado: ' + email, 'success');
                 document.getElementById('userEmailInput').value = '';
                 loadUsers();
             } else {
-                showToast(data.error || 'Erro ao adicionar');
+                showToast(data.error || 'Erro ao adicionar', 'error');
             }
-        } catch { showToast('Erro de conexão'); }
+        } catch { showToast('Erro de conexão', 'error'); }
     }
 
     async function toggleUserRole(id, newRole) {
@@ -1148,12 +1198,12 @@
             });
             const data = await res.json();
             if (res.ok) {
-                showToast('Role atualizada: ' + newRole);
+                showToast('Role atualizada: ' + newRole, 'success');
                 loadUsers();
             } else {
-                showToast(data.error || 'Erro');
+                showToast(data.error || 'Erro', 'error');
             }
-        } catch { showToast('Erro de conexão'); }
+        } catch { showToast('Erro de conexão', 'error'); }
     }
 
     async function toggleUserActive(id, ativo) {
@@ -1165,26 +1215,27 @@
             });
             const data = await res.json();
             if (res.ok) {
-                showToast(ativo ? 'Usuário ativado' : 'Usuário desativado');
+                showToast(ativo ? 'Usuário ativado' : 'Usuário desativado', 'success');
                 loadUsers();
             } else {
-                showToast(data.error || 'Erro');
+                showToast(data.error || 'Erro', 'error');
             }
-        } catch { showToast('Erro de conexão'); }
+        } catch { showToast('Erro de conexão', 'error'); }
     }
 
     async function deleteUser(id, email) {
-        if (!confirm('Remover o usuário "' + email + '"? Esta ação não pode ser desfeita.')) return;
+        const ok = await showConfirm({ title: 'Remover usuário', message: 'Remover o usuário "' + email + '"? Esta ação não pode ser desfeita.', confirmText: 'Remover', type: 'danger' });
+        if (!ok) return;
         try {
             const res = await authFetch(API_BASE + '/api/usuarios/' + id, { method: 'DELETE' });
             const data = await res.json();
             if (res.ok) {
-                showToast('Usuário removido');
+                showToast('Usuário removido', 'success');
                 loadUsers();
             } else {
-                showToast(data.error || 'Erro');
+                showToast(data.error || 'Erro', 'error');
             }
-        } catch { showToast('Erro de conexão'); }
+        } catch { showToast('Erro de conexão', 'error'); }
     }
 
     // ===== POWER BI / FABRIC =====
@@ -1219,7 +1270,7 @@
                 el.style.background = '#FEE2E2'; el.style.color = '#DC2626';
                 el.innerHTML = '✗ Falha: ' + esc(data.error || 'Erro desconhecido');
             }
-        } catch { showToast('Erro de conexão'); }
+        } catch { showToast('Erro de conexão', 'error'); }
         btn.disabled = false; btn.innerHTML = '<i data-lucide="zap"></i> Testar Conexão'; reinitIcons();
     }
 
@@ -1285,18 +1336,19 @@
     }
 
     async function syncRevendasFromFabric() {
-        if (!confirm('Sincronizar revendas do Fabric?')) return;
+        const ok = await showConfirm({ title: 'Sincronizar revendas', message: 'Importar revendas do Microsoft Fabric? Dados existentes serão atualizados.', confirmText: 'Sincronizar', type: 'warning' });
+        if (!ok) return;
         try {
             const res = await authFetch(API_BASE + '/api/fabric/sync-revendas', { method: 'POST' });
             const data = await res.json();
-            showToast(data.message || data.error || 'Concluído');
+            showToast(data.message || data.error || 'Concluído', 'success');
             loadRevendasDashboard();
-        } catch { showToast('Erro de conexão'); }
+        } catch { showToast('Erro de conexão', 'error'); }
     }
 
     async function describeFabricTable() {
         const name = document.getElementById('fabricTableName').value.trim();
-        if (!name) { showToast('Informe o nome da tabela'); return; }
+        if (!name) { showToast('Informe o nome da tabela', 'warning'); return; }
         const el = document.getElementById('fabricTableResult');
         el.innerHTML = '<div style="color:var(--gray-500);font-size:13px">Consultando...</div>';
         try {
@@ -1314,7 +1366,7 @@
 
     async function previewFabricTable() {
         const name = document.getElementById('fabricTableName').value.trim();
-        if (!name) { showToast('Informe o nome da tabela'); return; }
+        if (!name) { showToast('Informe o nome da tabela', 'warning'); return; }
         const el = document.getElementById('fabricTableResult');
         el.innerHTML = '<div style="color:var(--gray-500);font-size:13px">Consultando...</div>';
         try {
@@ -1340,14 +1392,58 @@
         return div.innerHTML;
     }
 
-    function showToast(msg) {
-        const t = document.getElementById('toast');
-        t.textContent = msg;
-        t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), 3500);
+    function showToast(msg, type = 'info', duration = 3500) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = 'toast-msg ' + type;
+        const icons = { success: '✓', error: '✗', warning: '⚠', info: 'ℹ' };
+        toast.innerHTML = '<span style="font-size:16px;font-weight:700">' + (icons[type] || 'ℹ') + '</span><span>' + esc(msg) + '</span>';
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.classList.add('toast-out');
+            toast.addEventListener('animationend', () => toast.remove());
+        }, duration);
+    }
+
+    function showConfirm({ title = 'Confirmar', message = '', confirmText = 'Confirmar', type = 'danger' } = {}) {
+        return new Promise(resolve => {
+            const overlay = document.createElement('div');
+            overlay.className = 'confirm-overlay';
+            overlay.innerHTML = `
+                <div class="confirm-box">
+                    <div class="confirm-icon ${type}">${type === 'danger' ? '🗑️' : '⚠️'}</div>
+                    <div class="confirm-title">${esc(title)}</div>
+                    <div class="confirm-message">${esc(message)}</div>
+                    <div class="confirm-actions">
+                        <button class="btn btn-outline" id="confirmCancel">Cancelar</button>
+                        <button class="btn ${type === 'danger' ? 'btn-danger' : 'btn-primary'}" id="confirmOk" style="${type === 'danger' ? 'background:var(--red);color:white' : ''}">${esc(confirmText)}</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(overlay);
+            const close = (val) => { overlay.remove(); resolve(val); };
+            overlay.querySelector('#confirmCancel').onclick = () => close(false);
+            overlay.querySelector('#confirmOk').onclick = () => close(true);
+            overlay.addEventListener('click', e => { if (e.target === overlay) close(false); });
+            const onKey = e => { if (e.key === 'Escape') { document.removeEventListener('keydown', onKey); close(false); } };
+            document.addEventListener('keydown', onKey);
+            overlay.querySelector('#confirmOk').focus();
+        });
     }
 
     document.addEventListener('DOMContentLoaded', () => { lucide.createIcons(); });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', e => {
+        if (e.key === '/' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) {
+            e.preventDefault();
+            const search = document.querySelector('.form-input-wrap input[type="text"]:not([style*="display:none"])');
+            if (search) search.focus();
+        }
+        if (e.key === 'Escape') {
+            const overlay = document.querySelector('.confirm-overlay');
+            if (overlay) overlay.remove();
+        }
+    });
     </script>
 </body>
 </html>

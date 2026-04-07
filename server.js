@@ -8,6 +8,7 @@ const crypto = require('crypto');
 const multer = require('multer');
 const XLSX = require('xlsx');
 const pdfParse = require('pdf-parse');
+const mammoth = require('mammoth');
 const helmet = require('helmet');
 const fetch = global.fetch;
 const rateLimit = require('express-rate-limit');
@@ -18,6 +19,19 @@ const { initDatabase, dbGet, dbAll, dbRun } = require('./db');
 const { criarConviteGDAP, isGdapConfigured, listarRelacoesAtivas, consultarRelacao, lerLicencasCliente } = require('./gdap');
 const { isFabricConfigured, fabricSqlQuery, executeDaxQuery, listDatasets, listDatasetTables, syncRevendasFromFabric, listWorkspaces, listWorkspaceItems, listLakehouses, listLakehouseTables, describeTable, previewTable, getDelegatedToken, resolveToken } = require('./fabric');
 const { isBiConfigured, fetchPontuacaoBI, getSugestoes } = require('./bi');
+const { isIngramConfigured, getIngramLicencasNormalizadas } = require('./ingram');
+const { isTdsConfigured, getTdsLicencasNormalizadas } = require('./tds');
+
+// ===== STATUS CONSTANTS =====
+const STATUS = {
+    PENDENTE: 'PENDENTE',
+    VALIDADO: 'VALIDADO',
+    DIVERGENTE: 'DIVERGENTE',
+};
+const GDAP_STATUS = {
+    DISPONIVEL: 'disponivel',
+    USADO: 'usado',
+};
 
 // Multer config — upload to temp dir
 const upload = multer({
@@ -25,7 +39,7 @@ const upload = multer({
     limits: { fileSize: 10 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
         const ext = path.extname(file.originalname).toLowerCase();
-        if (['.csv', '.xlsx', '.xls', '.pdf'].includes(ext)) cb(null, true);
+        if (['.csv', '.xlsx', '.xls', '.pdf', '.docx', '.doc'].includes(ext)) cb(null, true);
         else cb(new Error('Formato não suportado'), false);
     }
 });
@@ -75,6 +89,17 @@ app.use(session({
         maxAge: 8 * 60 * 60 * 1000 // 8h
     }
 }));
+
+// Test mode: permite injetar sessão fake para testes automatizados
+if (process.env.NODE_ENV === 'test') {
+    app.use((req, res, next) => {
+        if (app.__testSession) {
+            req.session = req.session || {};
+            req.session.user = app.__testSession;
+        }
+        next();
+    });
+}
 
 // ===== MIDDLEWARE =====
 
@@ -127,6 +152,13 @@ const authLimiter = rateLimit({
     message: { error: 'Muitas tentativas. Tente novamente em 15 minutos.' }
 });
 
+// Rate limit for public validation endpoint
+const validarLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+    message: { error: 'Muitas tentativas de validação. Tente novamente em 15 minutos.' }
+});
+
 // Request logging
 app.use((req, res, next) => {
     const ts = new Date().toISOString();
@@ -167,6 +199,20 @@ function requireSuperAdmin(req, res, next) {
         return res.status(403).json({ error: 'Acesso restrito ao super admin' });
     }
     next();
+}
+
+// ===== AUDIT LOG HELPER =====
+async function auditLog(req, acao, entidade, entidadeId, detalhes) {
+    try {
+        const usuario = req.session?.user?.email || 'sistema';
+        const ip = req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.connection?.remoteAddress || 'unknown';
+        await dbRun(
+            'INSERT INTO audit_log (acao, entidade, entidade_id, usuario, detalhes, ip) VALUES (?, ?, ?, ?, ?, ?)',
+            [acao, entidade, entidadeId || '', usuario, typeof detalhes === 'object' ? JSON.stringify(detalhes) : String(detalhes || ''), ip]
+        );
+    } catch (e) {
+        console.warn('[AUDIT] Falha ao gravar log:', e.message);
+    }
 }
 
 // ===== AUTH ROUTES (Microsoft Entra ID) =====
@@ -245,9 +291,18 @@ app.get('/auth/callback', async (req, res) => {
             ativo: !!userRow.ativo
         };
 
-        // Guarda access token para fluxo delegado (Fabric/Power BI)
+        // Audit log: login
+        try {
+            await dbRun(
+                'INSERT INTO audit_log (usuario, acao, detalhes) VALUES (?, ?, ?)',
+                [email, 'LOGIN', `Role: ${userRow.role}, IP: ${req.ip}`]
+            );
+        } catch (_) { /* não bloqueia login se audit falhar */ }
+
+        // Guarda access token para fluxo delegado (Fabric/Power BI e Graph/GDAP)
         if (tokenResponse.accessToken) {
             req.session.fabricToken = tokenResponse.accessToken;
+            req.session.graphToken = tokenResponse.accessToken;
         }
 
         // Redireciona baseado em role
@@ -263,6 +318,12 @@ app.get('/auth/callback', async (req, res) => {
  * GET /auth/logout → encerra sessão
  */
 app.get('/auth/logout', (req, res) => {
+    const userEmail = req.session?.user?.email || 'unknown';
+    // Audit log: logout
+    dbRun(
+        'INSERT INTO audit_log (usuario, acao, detalhes) VALUES (?, ?, ?)',
+        [userEmail, 'LOGOUT', `IP: ${req.ip}`]
+    ).catch(() => { /* não bloqueia logout */ });
     req.session.destroy(() => {
         res.clearCookie('bp.sid');
         res.redirect('/login');
@@ -290,6 +351,11 @@ app.get('/superadmin', (req, res) => {
     if (!req.session?.user) return res.redirect('/login');
     if (req.session.user.role !== 'superadmin') return res.status(403).send('Acesso restrito ao super admin');
     res.sendFile(path.join(__dirname, 'public', 'superadmin.html'));
+});
+
+// Bloquear acesso direto a .html protegidos
+app.get(['/admin.html', '/superadmin.html'], (req, res) => {
+    res.redirect('/login');
 });
 
 // Static files
@@ -327,6 +393,18 @@ async function validateToken(req, res, next) {
 }
 
 // ===== ROTAS API =====
+
+/**
+ * GET /health — Health check para monitoramento Azure
+ */
+app.get('/health', async (req, res) => {
+    try {
+        await dbGet('SELECT 1');
+        res.json({ status: 'ok', uptime: process.uptime() });
+    } catch (err) {
+        res.status(503).json({ status: 'error', error: 'Database unreachable' });
+    }
+});
 
 /**
  * GET /api/pedido/:pedidoId/:token
@@ -374,7 +452,7 @@ app.get('/api/pedido/:pedidoId/:token', validateToken, async (req, res) => {
  * POST /api/validar
  * Salva log completo da validação
  */
-app.post('/api/validar', async (req, res) => {
+app.post('/api/validar', validarLimiter, async (req, res) => {
     try {
         const { pedidoId, token, revenda, timestamp, status } = req.body;
 
@@ -432,18 +510,14 @@ app.post('/api/pedidos', requireAdminOrSuper, async (req, res) => {
             return res.status(400).json({ error: 'Nome do cliente e CNPJ são obrigatórios' });
         }
 
-        if (!Array.isArray(revendaIds) || revendaIds.length === 0) {
-            return res.status(400).json({ error: 'Selecione pelo menos uma revenda' });
-        }
-
-        // Validar que as revendas existem e estão ativas
-        const placeholders = revendaIds.map(() => '?').join(',');
-        const validRevendas = await dbAll(
-            `SELECT id, nome FROM revendas WHERE id IN (${placeholders}) AND ativo = 1`,
-            revendaIds
-        );
-        if (validRevendas.length === 0) {
-            return res.status(400).json({ error: 'Nenhuma revenda válida selecionada' });
+        // Revendas são opcionais
+        let validRevendas = [];
+        if (Array.isArray(revendaIds) && revendaIds.length > 0) {
+            const placeholders = revendaIds.map(() => '?').join(',');
+            validRevendas = await dbAll(
+                `SELECT id, nome FROM revendas WHERE id IN (${placeholders}) AND ativo = 1`,
+                revendaIds
+            );
         }
 
         // Gera pedidoId com componente aleatório (não sequencial)
@@ -458,15 +532,15 @@ app.post('/api/pedidos', requireAdminOrSuper, async (req, res) => {
         let gdapLink = null;
         let gdapRelationshipId = null;
 
-        // 1. Tenta pegar do pool de links pré-cadastrados
-        const poolLink = await dbGet("SELECT * FROM gdap_pool WHERE status = 'disponivel' ORDER BY criado_em ASC LIMIT 1");
-        if (poolLink) {
-            gdapLink = poolLink.link;
-            await dbRun(
-                "UPDATE gdap_pool SET status = 'usado', pedido_id = ?, usado_em = CURRENT_TIMESTAMP WHERE id = ?",
-                [pedidoId, poolLink.id]
-            );
-            console.log(`[GDAP Pool] Link #${poolLink.id} atribuído ao pedido ${pedidoId}`);
+        // 1. Tenta pegar do pool de links pré-cadastrados (atomic claim para evitar race condition)
+        const claimResult = await dbRun(
+            "UPDATE gdap_pool SET status = 'usado', pedido_id = ?, usado_em = CURRENT_TIMESTAMP WHERE id = (SELECT id FROM gdap_pool WHERE status = 'disponivel' ORDER BY criado_em ASC LIMIT 1)",
+            [pedidoId]
+        );
+        if (claimResult.changes > 0) {
+            const claimed = await dbGet("SELECT link FROM gdap_pool WHERE pedido_id = ? AND status = 'usado' ORDER BY usado_em DESC LIMIT 1", [pedidoId]);
+            if (claimed) gdapLink = claimed.link;
+            console.log(`[GDAP Pool] Link atribuído ao pedido ${pedidoId}`);
         }
 
         // 2. Se não tem no pool, tenta gerar via API (se configurada)
@@ -491,9 +565,9 @@ app.post('/api/pedidos', requireAdminOrSuper, async (req, res) => {
         }
 
         // Monta revenda legado (primeiro nome) e revenda_nome para backward compat
-        const primeiraRevenda = validRevendas[0];
-        const revendaVal = primeiraRevenda.nome.toLowerCase().replace(/\s+/g, '_');
-        const revendaNome = validRevendas.map(r => r.nome).join(', ');
+        const primeiraRevenda = validRevendas.length > 0 ? validRevendas[0] : null;
+        const revendaVal = primeiraRevenda ? primeiraRevenda.nome.toLowerCase().replace(/\s+/g, '_') : null;
+        const revendaNome = validRevendas.length > 0 ? validRevendas.map(r => r.nome).join(', ') : null;
 
         await dbRun(
             'INSERT INTO pedidos (pedido_id, token, cliente, cnpj, revenda, revenda_nome, gdap_link, gdap_relationship_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
@@ -509,7 +583,8 @@ app.post('/api/pedidos', requireAdminOrSuper, async (req, res) => {
         }
 
         const revendaNomes = validRevendas.map(r => r.nome);
-        console.log(`📋 Novo pedido criado: ${pedidoId} → ${cliente} [Revendas: ${revendaNomes.join(', ')}]`);
+        console.log(`📋 Novo pedido criado: ${pedidoId} → ${cliente} [Revendas: ${revendaNomes.join(', ') || 'nenhuma'}]`);
+        await auditLog(req, 'CRIAR_PEDIDO', 'pedido', pedidoId, { cliente: cliente.trim(), cnpj: cnpj.trim(), revendas: revendaNomes });
 
         res.json({
             success: true,
@@ -607,14 +682,14 @@ app.post('/api/pedidos/batch', requireAdminOrSuper, async (req, res) => {
             let gdapLink = null;
             let gdapRelationshipId = null;
 
-            const poolLink = await dbGet("SELECT * FROM gdap_pool WHERE status = 'disponivel' ORDER BY criado_em ASC LIMIT 1");
-            if (poolLink) {
-                gdapLink = poolLink.link;
-                await dbRun(
-                    "UPDATE gdap_pool SET status = 'usado', pedido_id = ?, usado_em = CURRENT_TIMESTAMP WHERE id = ?",
-                    [pedidoId, poolLink.id]
-                );
-            } else if (!gdapLink && isGdapConfigured()) {
+            const claimResult = await dbRun(
+                "UPDATE gdap_pool SET status = 'usado', pedido_id = ?, usado_em = CURRENT_TIMESTAMP WHERE id = (SELECT id FROM gdap_pool WHERE status = 'disponivel' ORDER BY criado_em ASC LIMIT 1)",
+                [pedidoId]
+            );
+            if (claimResult.changes > 0) {
+                const claimed = await dbGet("SELECT link FROM gdap_pool WHERE pedido_id = ? AND status = 'usado' ORDER BY usado_em DESC LIMIT 1", [pedidoId]);
+                if (claimed) gdapLink = claimed.link;
+            } else if (isGdapConfigured()) {
                 try {
                     const gdapResult = await criarConviteGDAP({ displayName: `Licenças - ${cliente || cnpjRaw} (${pedidoId})` });
                     gdapLink = gdapResult.inviteLink;
@@ -733,6 +808,7 @@ app.put('/api/pedidos/:pedidoId', requireAdminOrSuper, async (req, res) => {
         );
 
         console.log(`✏️ Pedido editado: ${pedidoId}`);
+        await auditLog(req, 'EDITAR_PEDIDO', 'pedido', pedidoId, { cliente: newCliente, cnpj: newCnpj, revendas: revendaNomes });
         res.json({ success: true, pedidoId, cliente: newCliente, cnpj: newCnpj, revendas: revendaNomes, gdapLink: newGdapLink });
     } catch (err) {
         console.error('Erro ao editar pedido:', err);
@@ -854,6 +930,27 @@ app.post('/api/proposta/:pedidoId', requireAdminOrSuper, upload.single('arquivo'
                 const item = mapColumns(headers, cols);
                 if (item.produto) items.push(item);
             }
+        } else if (['.docx', '.doc'].includes(ext)) {
+            // Parse Word
+            const result = await mammoth.extractRawText({ path: req.file.path });
+            const text = result.value || '';
+            const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l);
+
+            for (const line of lines) {
+                const pricePattern = /R\$\s*[\d.,]+/g;
+                const prices = line.match(pricePattern);
+                if (prices && prices.length >= 1) {
+                    let productName = line;
+                    prices.forEach(p => { productName = productName.replace(p, ''); });
+                    const qtyMatch = productName.match(/(\d+)\s*$/);
+                    const qty = qtyMatch ? parseInt(qtyMatch[1]) : 1;
+                    if (qtyMatch) productName = productName.replace(qtyMatch[0], '');
+                    productName = productName.replace(/\s+/g, ' ').replace(/^[\s,\-]+|[\s,\-]+$/g, '').trim();
+                    if (productName.length > 3) {
+                        items.push({ produto: productName, qtd: qty, duracao: '12 meses NCE', preco: prices[0] });
+                    }
+                }
+            }
         } else if (ext === '.pdf') {
             // Parse PDF — extract table from BluePartner proposal format
             const pdfBuffer = fs.readFileSync(req.file.path);
@@ -973,6 +1070,12 @@ app.post('/api/proposta/:pedidoId', requireAdminOrSuper, upload.single('arquivo'
         }
 
         console.log(`[PROPOSTA] ${inserted} itens importados para ${pedidoId}`);
+        await auditLog(req, 'UPLOAD_PROPOSTA', 'pedido', pedidoId, {
+            arquivo: req.file.originalname,
+            tipo: ext,
+            itensImportados: inserted,
+            itens: items.map(i => ({ produto: i.produto, qtd: i.qtd }))
+        });
         res.json({ success: true, imported: inserted, items });
     } catch (err) {
         console.error('Erro ao processar proposta:', err);
@@ -1004,6 +1107,146 @@ function mapColumns(headers, cols) {
 }
 
 /**
+ * GET /api/pedidos/:pedidoId/historico
+ * Retorna histórico completo de um pedido: dados, licenças, revendas, validações, e eventos do audit_log
+ */
+app.get('/api/pedidos/:pedidoId/historico', requireAdminOrSuper, async (req, res) => {
+    try {
+        const { pedidoId } = req.params;
+        const pedido = await dbGet('SELECT * FROM pedidos WHERE pedido_id = ?', [pedidoId]);
+        if (!pedido) return res.status(404).json({ error: 'Pedido não encontrado' });
+
+        // Licenças atuais
+        const licencas = await dbAll(
+            'SELECT id, produto, qtd, duracao, preco FROM licencas WHERE pedido_id = ? ORDER BY id ASC',
+            [pedidoId]
+        );
+
+        // Revendas associadas
+        const revendas = await dbAll(
+            `SELECT r.id, r.nome, r.categoria 
+             FROM pedido_revendas pr 
+             JOIN revendas r ON r.id = pr.revenda_id 
+             WHERE pr.pedido_id = ?`,
+            [pedidoId]
+        );
+
+        // Logs de validação (acessos do cliente)
+        const validacoes = await dbAll(
+            'SELECT id, timestamp, ip, user_agent, status, criado_em FROM logs WHERE pedido_id = ? ORDER BY criado_em DESC',
+            [pedidoId]
+        );
+
+        // Eventos do audit_log (ações do admin)
+        const eventos = await dbAll(
+            'SELECT id, acao, usuario, detalhes, ip, criado_em FROM audit_log WHERE entidade_id = ? ORDER BY criado_em DESC',
+            [pedidoId]
+        );
+
+        // Montar timeline unificada
+        const timeline = [];
+
+        // Criação do pedido
+        timeline.push({
+            tipo: 'criacao',
+            icone: '🆕',
+            titulo: 'Pedido criado',
+            descricao: `Cliente: ${pedido.cliente} | CNPJ: ${pedido.cnpj}`,
+            data: pedido.criado_em,
+            usuario: null
+        });
+
+        // Eventos do audit_log
+        for (const ev of eventos) {
+            let titulo = ev.acao;
+            let descricao = '';
+            let icone = '📝';
+            let detalhes = {};
+            try { detalhes = JSON.parse(ev.detalhes || '{}'); } catch(e) {}
+
+            switch (ev.acao) {
+                case 'CRIAR_PEDIDO':
+                    continue; // Já adicionamos acima
+                case 'EDITAR_PEDIDO':
+                    icone = '✏️';
+                    titulo = 'Pedido editado';
+                    descricao = detalhes.alteracoes || JSON.stringify(detalhes);
+                    break;
+                case 'UPLOAD_PROPOSTA':
+                    icone = '📄';
+                    titulo = 'Proposta importada';
+                    descricao = `Arquivo: ${detalhes.arquivo || '?'} | ${detalhes.itensImportados || 0} licenças importadas`;
+                    break;
+                case 'EXCLUIR_PEDIDO':
+                    icone = '🗑️';
+                    titulo = 'Pedido excluído';
+                    break;
+                default:
+                    descricao = JSON.stringify(detalhes).substring(0, 200);
+            }
+
+            timeline.push({
+                tipo: 'evento',
+                icone,
+                titulo,
+                descricao,
+                data: ev.criado_em,
+                usuario: ev.usuario
+            });
+        }
+
+        // Validações do cliente
+        for (const v of validacoes) {
+            timeline.push({
+                tipo: 'validacao',
+                icone: v.status === 'VALIDADO' ? '✅' : '📋',
+                titulo: v.status === 'VALIDADO' ? 'Cliente validou o pedido' : 'Cliente acessou o link',
+                descricao: `IP: ${v.ip || '?'}`,
+                data: v.criado_em || v.timestamp,
+                usuario: null
+            });
+        }
+
+        // Ordenar timeline por data (mais recente primeiro)
+        timeline.sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0));
+
+        // GDAP info
+        let gdapInfo = null;
+        if (pedido.gdap_link || pedido.gdap_relationship_id) {
+            gdapInfo = {
+                link: pedido.gdap_link,
+                relationshipId: pedido.gdap_relationship_id,
+                status: pedido.gdap_relationship_id ? 'configurado' : 'link_manual'
+            };
+        }
+
+        res.json({
+            pedido: {
+                pedidoId: pedido.pedido_id,
+                cliente: pedido.cliente,
+                cnpj: pedido.cnpj,
+                status: pedido.status,
+                revendaNome: pedido.revenda_nome || pedido.revenda,
+                gdapLink: pedido.gdap_link,
+                criadoEm: pedido.criado_em,
+                atualizadoEm: pedido.atualizado_em
+            },
+            licencas,
+            revendas,
+            gdapInfo,
+            validacoes,
+            timeline,
+            totalLicencas: licencas.length,
+            totalValidacoes: validacoes.length
+        });
+
+    } catch (err) {
+        console.error('❌ Erro ao buscar histórico:', err);
+        res.status(500).json({ error: 'Erro ao buscar histórico', message: err.message });
+    }
+});
+
+/**
  * DELETE /api/pedidos/:pedidoId
  * Remove um pedido
  */
@@ -1017,6 +1260,7 @@ app.delete('/api/pedidos/:pedidoId', requireAdminOrSuper, async (req, res) => {
         if (result.changes === 0) {
             return res.status(404).json({ error: 'Pedido não encontrado' });
         }
+        await auditLog(req, 'EXCLUIR_PEDIDO', 'pedido', pedidoId, {});
         res.json({ success: true, message: `Pedido ${pedidoId} removido` });
     } catch (err) {
         console.error('Erro ao remover pedido:', err);
@@ -1108,13 +1352,65 @@ app.get('/api/logs', requireAdminOrSuper, async (req, res) => {
 
 /**
  * GET /api/pedidos
- * Lista todos os pedidos (uso interno/admin) com revendas associadas
+ * Lista pedidos com filtros opcionais e paginação
+ * Query: search, status, revenda, from, to, page, pageSize
  */
 app.get('/api/pedidos', requireAdminOrSuper, async (req, res) => {
     try {
-        const pedidos = await dbAll(
-            'SELECT pedido_id, cliente, cnpj, revenda, revenda_nome, status, criado_em, atualizado_em FROM pedidos ORDER BY criado_em DESC'
-        );
+        const search = (req.query.search || '').trim();
+        const statusFilter = (req.query.status || '').trim().toUpperCase();
+        const revendaFilter = (req.query.revenda || '').trim();
+        const from = (req.query.from || '').trim();
+        const to = (req.query.to || '').trim();
+
+        const where = [];
+        const params = [];
+
+        if (search) {
+            where.push("(p.pedido_id LIKE ? OR p.cliente LIKE ? OR p.cnpj LIKE ? OR p.revenda_nome LIKE ?)");
+            const like = `%${search}%`;
+            params.push(like, like, like, like);
+        }
+        if (statusFilter && ['PENDENTE', 'VALIDADO', 'DIVERGENTE'].includes(statusFilter)) {
+            where.push("p.status = ?");
+            params.push(statusFilter);
+        }
+        if (revendaFilter) {
+            where.push("(p.revenda_nome LIKE ? OR p.pedido_id IN (SELECT pr2.pedido_id FROM pedido_revendas pr2 JOIN revendas r2 ON r2.id = pr2.revenda_id WHERE r2.nome LIKE ?))");
+            params.push(`%${revendaFilter}%`, `%${revendaFilter}%`);
+        }
+        if (from) {
+            where.push("p.criado_em >= datetime(? || ' 00:00:00')");
+            params.push(from);
+        }
+        if (to) {
+            where.push("p.criado_em <= datetime(? || ' 23:59:59')");
+            params.push(to);
+        }
+
+        const whereSql = where.length ? 'WHERE ' + where.join(' AND ') : '';
+
+        const totalRow = await dbGet(`SELECT COUNT(*) as total FROM pedidos p ${whereSql}`, params);
+        const total = totalRow?.total || 0;
+
+        // Paginação opcional (se page vier, pagina; senão retorna tudo para backward compat)
+        const pageRaw = parseInt(req.query.page || '0', 10);
+        const pageSizeRaw = parseInt(req.query.pageSize || '50', 10);
+        const page = pageRaw > 0 ? pageRaw : 0;
+        const pageSize = Math.min(200, Math.max(1, pageSizeRaw));
+
+        let sql = `SELECT p.pedido_id, p.cliente, p.cnpj, p.revenda, p.revenda_nome, p.status, p.criado_em, p.atualizado_em FROM pedidos p ${whereSql} ORDER BY p.criado_em DESC`;
+        const queryParams = [...params];
+
+        if (page > 0) {
+            sql += ` LIMIT ? OFFSET ?`;
+            queryParams.push(pageSize, (page - 1) * pageSize);
+        } else {
+            // Safeguard: limita mesmo sem paginação explícita
+            sql += ` LIMIT 1000`;
+        }
+
+        const pedidos = await dbAll(sql, queryParams);
 
         // Buscar revendas de todos os pedidos de uma vez
         const allPR = await dbAll(
@@ -1133,7 +1429,13 @@ app.get('/api/pedidos', requireAdminOrSuper, async (req, res) => {
             revendas: prMap[p.pedido_id] || []
         }));
 
-        res.json({ total: result.length, pedidos: result });
+        const resp = { total, pedidos: result };
+        if (page > 0) {
+            resp.page = page;
+            resp.pageSize = pageSize;
+            resp.totalPages = Math.max(1, Math.ceil(total / pageSize));
+        }
+        res.json(resp);
     } catch (err) {
         console.error('Erro ao listar pedidos:', err);
         res.status(500).json({ error: 'Erro ao listar pedidos' });
@@ -1141,13 +1443,167 @@ app.get('/api/pedidos', requireAdminOrSuper, async (req, res) => {
 });
 
 /**
- * GET /api/admin/dashboard
- * Métricas para o dashboard do admin:
- * - pedidosNoMes: pedidos criados no mês corrente
- * - clientes: quantidade de clientes únicos (por CNPJ)
- * - usuariosEmRisco: pedidos pendentes com mais de 7 dias
- * - usuariosNoPrazo7Dias: pedidos pendentes com até 7 dias
+ * GET /api/pedidos/exportar
+ * Exporta pedidos como CSV (com mesmos filtros)
  */
+app.get('/api/pedidos/exportar', requireAdminOrSuper, async (req, res) => {
+    try {
+        const search = (req.query.search || '').trim();
+        const statusFilter = (req.query.status || '').trim().toUpperCase();
+        const revendaFilter = (req.query.revenda || '').trim();
+        const from = (req.query.from || '').trim();
+        const to = (req.query.to || '').trim();
+
+        const where = [];
+        const params = [];
+
+        if (search) {
+            where.push("(p.pedido_id LIKE ? OR p.cliente LIKE ? OR p.cnpj LIKE ? OR p.revenda_nome LIKE ?)");
+            const like = `%${search}%`;
+            params.push(like, like, like, like);
+        }
+        if (statusFilter && ['PENDENTE', 'VALIDADO', 'DIVERGENTE'].includes(statusFilter)) {
+            where.push("p.status = ?");
+            params.push(statusFilter);
+        }
+        if (revendaFilter) {
+            where.push("p.revenda_nome LIKE ?");
+            params.push(`%${revendaFilter}%`);
+        }
+        if (from) {
+            where.push("p.criado_em >= datetime(? || ' 00:00:00')");
+            params.push(from);
+        }
+        if (to) {
+            where.push("p.criado_em <= datetime(? || ' 23:59:59')");
+            params.push(to);
+        }
+
+        const whereSql = where.length ? 'WHERE ' + where.join(' AND ') : '';
+        const pedidos = await dbAll(
+            `SELECT p.pedido_id, p.cliente, p.cnpj, p.revenda_nome, p.status, p.criado_em FROM pedidos p ${whereSql} ORDER BY p.criado_em DESC`,
+            params
+        );
+
+        // CSV header
+        const header = 'Pedido ID;Cliente;CNPJ;Revenda;Status;Data Criação';
+        const rows = pedidos.map(p => {
+            const dt = p.criado_em ? new Date(p.criado_em).toLocaleString('pt-BR') : '';
+            return [p.pedido_id, p.cliente, p.cnpj, p.revenda_nome, p.status, dt]
+                .map(v => `"${String(v || '').replace(/"/g, '""')}"`)
+                .join(';');
+        });
+
+        const csv = '\uFEFF' + header + '\n' + rows.join('\n');
+        await auditLog(req, 'EXPORTAR_PEDIDOS', 'pedido', '', { filtros: { search, statusFilter, revendaFilter, from, to }, total: pedidos.length });
+
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="pedidos_${new Date().toISOString().slice(0,10)}.csv"`);
+        res.send(csv);
+    } catch (err) {
+        console.error('Erro ao exportar pedidos:', err);
+        res.status(500).json({ error: 'Erro ao exportar' });
+    }
+});
+
+/**
+ * GET /api/audit-log
+ * Lista histórico de alterações (audit log)
+ * Query: page, pageSize, acao, entidade
+ */
+app.get('/api/audit-log', requireAdminOrSuper, async (req, res) => {
+    try {
+        const acao = (req.query.acao || '').trim();
+        const entidade = (req.query.entidade || '').trim();
+        const page = Math.max(1, parseInt(req.query.page || '1', 10) || 1);
+        const pageSize = Math.min(100, Math.max(1, parseInt(req.query.pageSize || '25', 10) || 25));
+        const offset = (page - 1) * pageSize;
+
+        const where = [];
+        const params = [];
+        if (acao) { where.push('acao = ?'); params.push(acao); }
+        if (entidade) { where.push('entidade = ?'); params.push(entidade); }
+
+        const whereSql = where.length ? 'WHERE ' + where.join(' AND ') : '';
+        const totalRow = await dbGet(`SELECT COUNT(*) as total FROM audit_log ${whereSql}`, params);
+        const logs = await dbAll(
+            `SELECT * FROM audit_log ${whereSql} ORDER BY criado_em DESC LIMIT ? OFFSET ?`,
+            [...params, pageSize, offset]
+        );
+
+        res.json({
+            page, pageSize,
+            total: totalRow?.total || 0,
+            totalPages: Math.max(1, Math.ceil((totalRow?.total || 0) / pageSize)),
+            logs
+        });
+    } catch (err) {
+        console.error('Erro ao listar audit log:', err);
+        res.status(500).json({ error: 'Erro ao listar histórico' });
+    }
+});
+
+/**
+ * GET /api/admin/dashboard
+ * Métricas aprimoradas para o dashboard
+ */
+app.get('/api/admin/dashboard', requireAdminOrSuper, async (req, res) => {
+    try {
+        const pedidosNoMesRow = await dbGet(
+            `SELECT COUNT(*) as total FROM pedidos
+             WHERE criado_em >= datetime('now', 'start of month')
+               AND criado_em < datetime('now', 'start of month', '+1 month')`
+        );
+        const clientesRow = await dbGet(`SELECT COUNT(DISTINCT cnpj) as total FROM pedidos`);
+        const usuariosNoPrazo7DiasRow = await dbGet(
+            `SELECT COUNT(*) as total FROM pedidos WHERE status = 'PENDENTE' AND criado_em >= datetime('now', '-7 days')`
+        );
+        const usuariosEmRiscoRow = await dbGet(
+            `SELECT COUNT(*) as total FROM pedidos WHERE status = 'PENDENTE' AND criado_em < datetime('now', '-7 days')`
+        );
+
+        // Dados para gráfico mensal agrupado por revenda/categoria
+        const chartData = await dbAll(`
+            SELECT 
+                CAST(strftime('%m', p.criado_em) AS INTEGER) as mes,
+                COALESCE(r.categoria, p.revenda, 'outros') as categoria,
+                COUNT(*) as total
+            FROM pedidos p
+            LEFT JOIN pedido_revendas pr ON pr.pedido_id = p.pedido_id
+            LEFT JOIN revendas r ON r.id = pr.revenda_id
+            WHERE p.criado_em >= datetime('now', 'start of year')
+            GROUP BY mes, categoria
+            ORDER BY mes
+        `);
+
+        // Top revendas
+        const topRevendas = await dbAll(`
+            SELECT r.nome, r.categoria, COUNT(pr.pedido_id) as total
+            FROM revendas r
+            JOIN pedido_revendas pr ON pr.revenda_id = r.id
+            GROUP BY r.id
+            ORDER BY total DESC
+            LIMIT 5
+        `);
+
+        // Pedidos por status
+        const porStatus = await dbAll(`SELECT status, COUNT(*) as total FROM pedidos GROUP BY status`);
+
+        res.json({
+            pedidosNoMes: pedidosNoMesRow?.total || 0,
+            clientes: clientesRow?.total || 0,
+            usuariosEmRisco: usuariosEmRiscoRow?.total || 0,
+            usuariosNoPrazo7Dias: usuariosNoPrazo7DiasRow?.total || 0,
+            chartData,
+            topRevendas,
+            porStatus,
+        });
+    } catch (err) {
+        console.error('Erro ao gerar dashboard admin:', err);
+        res.status(500).json({ error: 'Erro ao gerar dashboard admin' });
+    }
+});
+
 /**
  * GET /api/cnpj/:cnpj
  * Consulta dados de CNPJ via OpenCNPJ API e retorna dados normalizados
@@ -1199,47 +1655,6 @@ app.get('/api/cnpj/:cnpj', requireAdminOrSuper, async (req, res) => {
     }
 });
 
-app.get('/api/admin/dashboard', requireAdminOrSuper, async (req, res) => {
-    try {
-        // Month boundaries in SQLite: start of current month to start of next month
-        const pedidosNoMesRow = await dbGet(
-            `SELECT COUNT(*) as total
-             FROM pedidos
-             WHERE criado_em >= datetime('now', 'start of month')
-               AND criado_em < datetime('now', 'start of month', '+1 month')`
-        );
-
-        const clientesRow = await dbGet(
-            `SELECT COUNT(DISTINCT cnpj) as total FROM pedidos`
-        );
-
-        // Pending age buckets based on criado_em
-        const usuariosNoPrazo7DiasRow = await dbGet(
-            `SELECT COUNT(*) as total
-             FROM pedidos
-             WHERE status = 'PENDENTE'
-               AND criado_em >= datetime('now', '-7 days')`
-        );
-
-        const usuariosEmRiscoRow = await dbGet(
-            `SELECT COUNT(*) as total
-             FROM pedidos
-             WHERE status = 'PENDENTE'
-               AND criado_em < datetime('now', '-7 days')`
-        );
-
-        res.json({
-            pedidosNoMes: pedidosNoMesRow?.total || 0,
-            clientes: clientesRow?.total || 0,
-            usuariosEmRisco: usuariosEmRiscoRow?.total || 0,
-            usuariosNoPrazo7Dias: usuariosNoPrazo7DiasRow?.total || 0,
-        });
-    } catch (err) {
-        console.error('Erro ao gerar dashboard admin:', err);
-        res.status(500).json({ error: 'Erro ao gerar dashboard admin' });
-    }
-});
-
 // ===== ROTAS REVENDAS =====
 
 /**
@@ -1274,7 +1689,7 @@ app.get('/api/revendas', requireAdminOrSuper, async (req, res) => {
  */
 app.get('/api/revendas/ativas', requireAdminOrSuper, async (req, res) => {
     try {
-        const revendas = await dbAll('SELECT id, nome, partner_id, link_base FROM revendas WHERE ativo = 1 ORDER BY nome ASC');
+        const revendas = await dbAll('SELECT id, nome, partner_id, link_base, categoria FROM revendas WHERE ativo = 1 ORDER BY nome ASC');
         res.json({ revendas });
     } catch (err) {
         res.status(500).json({ error: 'Erro ao listar revendas ativas' });
@@ -1872,6 +2287,320 @@ app.get('/api/gdap/comparar/:pedidoId', requireAdminOrSuper, async (req, res) =>
     }
 });
 
+/**
+ * GET /api/gdap/comparar-completo/:pedidoId
+ * Comparação 3 vias: Proposta (licenças locais) vs Portal (GDAP) vs Distribuidor (Ingram/TDS)
+ * 
+ * Fluxo:
+ * 1. Busca licenças do pedido (proposta local)
+ * 2. Busca licenças do portal do cliente via GDAP (se configurado)
+ * 3. Identifica o distribuidor pela categoria da revenda do pedido
+ * 4. Busca licenças no distribuidor (Ingram ou TDS, se configurado)
+ * 5. Faz matching fuzzy entre as 3 fontes
+ */
+app.get('/api/gdap/comparar-completo/:pedidoId', requireAdminOrSuper, async (req, res) => {
+    try {
+        const { pedidoId } = req.params;
+        const pedido = await dbGet('SELECT * FROM pedidos WHERE pedido_id = ?', [pedidoId]);
+        if (!pedido) return res.status(404).json({ error: 'Pedido não encontrado' });
+
+        // 1. Licenças locais (proposta)
+        const licencasLocal = await dbAll(
+            'SELECT id, produto, qtd, duracao, preco FROM licencas WHERE pedido_id = ? ORDER BY id ASC',
+            [pedidoId]
+        );
+
+        if (!licencasLocal.length) {
+            return res.json({
+                pedidoId,
+                cliente: pedido.cliente,
+                cnpj: pedido.cnpj,
+                gdapStatus: 'sem_licencas',
+                distribuidorStatus: 'sem_licencas',
+                message: 'Nenhuma licença cadastrada neste pedido.',
+                proposta: [],
+                portal: [],
+                distribuidor: [],
+                comparacao: []
+            });
+        }
+
+        // 2. Identificar distribuidor pela revenda do pedido
+        const revendasPedido = await dbAll(
+            `SELECT r.id, r.nome, r.categoria 
+             FROM pedido_revendas pr 
+             JOIN revendas r ON r.id = pr.revenda_id 
+             WHERE pr.pedido_id = ?`,
+            [pedidoId]
+        );
+
+        // Determinar a categoria do distribuidor
+        let distribuidorCategoria = null;
+        let distribuidorNome = null;
+        for (const rv of revendasPedido) {
+            const cat = (rv.categoria || '').toLowerCase().trim();
+            if (cat === 'ingram' || cat === 'tds') {
+                distribuidorCategoria = cat;
+                distribuidorNome = rv.nome;
+                break;
+            }
+        }
+
+        // 3. Buscar licenças do portal (GDAP)
+        let portalLicencas = [];
+        let gdapStatus = 'sem_relacao';
+        let gdapMessage = '';
+        let customerTenantId = null;
+
+        if (!isGdapConfigured()) {
+            gdapStatus = 'nao_configurado';
+            gdapMessage = 'GDAP não configurado no servidor.';
+        } else if (pedido.gdap_relationship_id) {
+            try {
+                const relacao = await consultarRelacao(pedido.gdap_relationship_id);
+                if (relacao.status === 'active' && relacao.customer?.tenantId) {
+                    customerTenantId = relacao.customer.tenantId;
+                    gdapStatus = 'ativo';
+                    portalLicencas = await lerLicencasCliente(customerTenantId);
+                } else if (relacao.status === 'approvalPending') {
+                    gdapStatus = 'pendente';
+                    gdapMessage = 'O cliente ainda não aceitou o convite GDAP.';
+                } else {
+                    gdapStatus = relacao.status || 'inativo';
+                    gdapMessage = `Relação GDAP com status "${relacao.status}".`;
+                }
+            } catch (err) {
+                gdapStatus = 'erro';
+                gdapMessage = 'Erro ao consultar GDAP: ' + err.message;
+            }
+        } else {
+            gdapMessage = 'Pedido sem link GDAP gerado.';
+        }
+
+        // 4. Buscar licenças do distribuidor
+        let distribuidorLicencas = [];
+        let distribuidorStatus = 'nao_configurado';
+        let distribuidorMessage = '';
+
+        if (!distribuidorCategoria) {
+            distribuidorStatus = 'sem_revenda';
+            distribuidorMessage = 'Nenhuma revenda com categoria Ingram ou TDS associada a este pedido.';
+        } else if (distribuidorCategoria === 'ingram') {
+            if (!isIngramConfigured()) {
+                distribuidorStatus = 'nao_configurado';
+                distribuidorMessage = 'API Ingram Micro não configurada. Defina INGRAM_CLIENT_ID e INGRAM_CLIENT_SECRET no .env';
+            } else {
+                try {
+                    // Usar CNPJ ou tenant como identificador do cliente na Ingram
+                    const ingramCustomerId = pedido.cnpj || pedido.cliente;
+                    distribuidorLicencas = await getIngramLicencasNormalizadas(ingramCustomerId);
+                    distribuidorStatus = 'ativo';
+                } catch (err) {
+                    distribuidorStatus = 'erro';
+                    distribuidorMessage = 'Erro ao consultar Ingram: ' + err.message;
+                }
+            }
+        } else if (distribuidorCategoria === 'tds') {
+            if (!isTdsConfigured()) {
+                distribuidorStatus = 'nao_configurado';
+                distribuidorMessage = 'API TD SYNNEX não configurada. Defina TDS_CLIENT_ID e TDS_CLIENT_SECRET no .env';
+            } else {
+                try {
+                    const tdsCustomerId = pedido.cnpj || pedido.cliente;
+                    distribuidorLicencas = await getTdsLicencasNormalizadas(tdsCustomerId);
+                    distribuidorStatus = 'ativo';
+                } catch (err) {
+                    distribuidorStatus = 'erro';
+                    distribuidorMessage = 'Erro ao consultar TD SYNNEX: ' + err.message;
+                }
+            }
+        }
+
+        // 5. Matching fuzzy 3 vias
+        const skuNameMap = {
+            'microsoft 365 business basic': ['O365_BUSINESS_ESSENTIALS', 'SMB_BUSINESS_ESSENTIALS'],
+            'microsoft 365 business standard': ['O365_BUSINESS_PREMIUM', 'SMB_BUSINESS_PREMIUM'],
+            'microsoft 365 business premium': ['SPB'],
+            'microsoft 365 apps for business': ['SMB_BUSINESS'],
+            'microsoft 365 apps for enterprise': ['OFFICESUBSCRIPTION'],
+            'office 365 e1': ['STANDARDPACK'],
+            'office 365 e3': ['ENTERPRISEPACK'],
+            'office 365 e5': ['ENTERPRISEPREMIUM', 'ENTERPRISEPREMIUM_NOPSTNCONF'],
+            'microsoft 365 e3': ['SPE_E3'],
+            'microsoft 365 e5': ['SPE_E5'],
+            'microsoft 365 f1': ['SPE_F1', 'M365_F1'],
+            'microsoft 365 f3': ['SPE_F1', 'M365_F1'],
+            'office 365 f1': ['DESKLESSPACK'],
+            'office 365 f3': ['DESKLESSPACK'],
+            'power bi pro': ['POWER_BI_PRO'],
+            'power bi premium': ['POWER_BI_PREMIUM_PER_USER'],
+            'project plan 3': ['PROJECTPROFESSIONAL'],
+            'project plan 5': ['PROJECTPREMIUM'],
+            'visio plan 2': ['VISIOCLIENT'],
+            'exchange online plan 1': ['EXCHANGESTANDARD'],
+            'exchange online plan 2': ['EXCHANGEENTERPRISE'],
+            'defender for office 365': ['ATP_ENTERPRISE', 'THREAT_INTELLIGENCE'],
+            'defender for endpoint': ['WIN_DEF_ATP'],
+            'enterprise mobility': ['EMS', 'EMSPREMIUM'],
+            'azure ad premium p1': ['AAD_PREMIUM'],
+            'azure ad premium p2': ['AAD_PREMIUM_P2'],
+            'entra id p1': ['AAD_PREMIUM'],
+            'entra id p2': ['AAD_PREMIUM_P2'],
+            'intune': ['INTUNE_A'],
+            'teams exploratory': ['TEAMS_EXPLORATORY'],
+            'sharepoint online plan 1': ['SHAREPOINTSTANDARD'],
+            'sharepoint online plan 2': ['SHAREPOINTENTERPRISE'],
+            'power automate': ['FLOW_FREE'],
+            'azure information protection': ['RIGHTSMANAGEMENT'],
+            'copilot': ['Microsoft_365_Copilot'],
+        };
+
+        function fuzzyMatchPortal(produtoLower, portalList) {
+            // 1. Match direto
+            let match = portalList.find(p => p.skuPartNumber.toLowerCase() === produtoLower);
+            // 2. Nome → SKU map
+            if (!match) {
+                for (const [nome, skus] of Object.entries(skuNameMap)) {
+                    if (produtoLower.includes(nome) || nome.includes(produtoLower)) {
+                        match = portalList.find(p => skus.includes(p.skuPartNumber));
+                        if (match) break;
+                    }
+                }
+            }
+            // 3. Match parcial
+            if (!match) {
+                const palavras = produtoLower.split(/[\s\-\_\(\)]+/).filter(w => w.length > 2);
+                match = portalList.find(p => {
+                    const skuLow = p.skuPartNumber.toLowerCase();
+                    return palavras.filter(w => skuLow.includes(w)).length >= 2;
+                });
+            }
+            return match;
+        }
+
+        function fuzzyMatchDistribuidor(produtoLower, distList) {
+            // Match pelo nome do produto ou SKU
+            let match = distList.find(d =>
+                d.skuPartNumber.toLowerCase() === produtoLower ||
+                d.productName.toLowerCase() === produtoLower
+            );
+            // Match parcial pelo nome
+            if (!match) {
+                for (const [nome, skus] of Object.entries(skuNameMap)) {
+                    if (produtoLower.includes(nome) || nome.includes(produtoLower)) {
+                        match = distList.find(d =>
+                            skus.includes(d.skuPartNumber) ||
+                            d.productName.toLowerCase().includes(nome)
+                        );
+                        if (match) break;
+                    }
+                }
+            }
+            // Match por palavras-chave
+            if (!match) {
+                const palavras = produtoLower.split(/[\s\-\_\(\)]+/).filter(w => w.length > 2);
+                match = distList.find(d => {
+                    const dLow = (d.productName + ' ' + d.skuPartNumber).toLowerCase();
+                    return palavras.filter(w => dLow.includes(w)).length >= 2;
+                });
+            }
+            return match;
+        }
+
+        const comparacao = licencasLocal.map(licLocal => {
+            const produtoLower = (licLocal.produto || '').toLowerCase().trim();
+
+            // Match no portal
+            const portalMatch = fuzzyMatchPortal(produtoLower, portalLicencas);
+
+            // Match no distribuidor
+            const distMatch = fuzzyMatchDistribuidor(produtoLower, distribuidorLicencas);
+
+            // Resultado portal
+            let resultadoPortal = 'indisponivel';
+            if (portalMatch) {
+                if (portalMatch.capabilityStatus === 'Enabled') {
+                    resultadoPortal = portalMatch.total >= (licLocal.qtd || 1) ? 'ok' : 'qtd_divergente';
+                } else {
+                    resultadoPortal = 'suspensa';
+                }
+            } else if (gdapStatus === 'ativo') {
+                resultadoPortal = 'nao_encontrada';
+            }
+
+            // Resultado distribuidor
+            let resultadoDist = 'indisponivel';
+            if (distMatch) {
+                const distAtivo = (distMatch.status || '').toLowerCase();
+                if (['active', 'ativo', 'enabled', 'provisioned'].includes(distAtivo)) {
+                    resultadoDist = distMatch.quantity >= (licLocal.qtd || 1) ? 'ok' : 'qtd_divergente';
+                } else {
+                    resultadoDist = 'suspensa';
+                }
+            } else if (distribuidorStatus === 'ativo') {
+                resultadoDist = 'nao_encontrada';
+            }
+
+            // Resultado geral (consolidado)
+            let resultadoGeral = 'pendente';
+            if (resultadoPortal === 'ok' && resultadoDist === 'ok') {
+                resultadoGeral = 'ok';
+            } else if (resultadoPortal === 'ok' && distribuidorStatus !== 'ativo') {
+                resultadoGeral = 'parcial_portal';
+            } else if (resultadoDist === 'ok' && gdapStatus !== 'ativo') {
+                resultadoGeral = 'parcial_distribuidor';
+            } else if (resultadoPortal === 'qtd_divergente' || resultadoDist === 'qtd_divergente') {
+                resultadoGeral = 'qtd_divergente';
+            } else if (resultadoPortal === 'suspensa' || resultadoDist === 'suspensa') {
+                resultadoGeral = 'suspensa';
+            } else if (resultadoPortal === 'nao_encontrada' || resultadoDist === 'nao_encontrada') {
+                resultadoGeral = 'nao_encontrada';
+            }
+
+            return {
+                ...licLocal,
+                portalMatch: portalMatch ? {
+                    skuPartNumber: portalMatch.skuPartNumber,
+                    capabilityStatus: portalMatch.capabilityStatus,
+                    total: portalMatch.total,
+                    consumed: portalMatch.consumed,
+                    available: portalMatch.available
+                } : null,
+                distribuidorMatch: distMatch ? {
+                    skuPartNumber: distMatch.skuPartNumber,
+                    productName: distMatch.productName,
+                    quantity: distMatch.quantity,
+                    status: distMatch.status
+                } : null,
+                resultadoPortal,
+                resultadoDist,
+                resultadoGeral
+            };
+        });
+
+        res.json({
+            pedidoId,
+            cliente: pedido.cliente,
+            cnpj: pedido.cnpj,
+            customerTenantId,
+            gdapStatus,
+            gdapMessage,
+            distribuidorCategoria: distribuidorCategoria || null,
+            distribuidorNome: distribuidorNome || null,
+            distribuidorStatus,
+            distribuidorMessage,
+            proposta: licencasLocal,
+            portal: portalLicencas,
+            distribuidor: distribuidorLicencas,
+            comparacao
+        });
+
+    } catch (err) {
+        console.error('❌ Erro na comparação completa:', err);
+        res.status(500).json({ error: 'Erro na comparação completa', message: err.message });
+    }
+});
+
 // ===== ROTAS GESTÃO DE USUÁRIOS (superadmin) =====
 
 /**
@@ -2357,4 +3086,8 @@ async function start() {
     }
 }
 
-start();
+if (require.main === module) {
+    start();
+}
+
+module.exports = { app, start };

@@ -147,7 +147,24 @@ function initDatabase() {
                     usado_em DATETIME
                 )
             `);
-            db.run(`CREATE INDEX IF NOT EXISTS idx_gdap_pool_status ON gdap_pool(status)`, (err) => {
+            db.run(`CREATE INDEX IF NOT EXISTS idx_gdap_pool_status ON gdap_pool(status)`);
+
+            // Tabela de audit log (histórico de alterações)
+            db.run(`
+                CREATE TABLE IF NOT EXISTS audit_log (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    acao TEXT NOT NULL,
+                    entidade TEXT NOT NULL,
+                    entidade_id TEXT,
+                    usuario TEXT,
+                    detalhes TEXT DEFAULT '',
+                    ip TEXT,
+                    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            `);
+            db.run(`CREATE INDEX IF NOT EXISTS idx_audit_log_acao ON audit_log(acao)`);
+            db.run(`CREATE INDEX IF NOT EXISTS idx_audit_log_entidade ON audit_log(entidade)`);
+            db.run(`CREATE INDEX IF NOT EXISTS idx_audit_log_criado ON audit_log(criado_em)`, (err) => {
                 if (err) reject(err);
                 else resolve();
             });
@@ -183,4 +200,14 @@ function dbRun(sql, params = []) {
     });
 }
 
-module.exports = { getDb, initDatabase, dbGet, dbAll, dbRun };
+function closeDb() {
+    return new Promise((resolve) => {
+        if (db) {
+            db.close(() => { db = null; resolve(); });
+        } else {
+            resolve();
+        }
+    });
+}
+
+module.exports = { getDb, initDatabase, dbGet, dbAll, dbRun, closeDb };

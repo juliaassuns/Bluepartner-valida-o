@@ -4,15 +4,23 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>BluePartner - Login</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='20' width='100' height='100' fill='%237C3AED'/><path d='M25 25h20v20H25zM55 25h20v20H55zM25 55h20v20H25zM55 55h20v20H55z' fill='white'/></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{
       font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
       min-height:100vh;
       display:flex;align-items:center;justify-content:center;
+      background:#7C3AED;
       background:linear-gradient(135deg,#7C3AED 0%,#4C1D95 50%,#1E1B4B 100%);
       padding:24px;
       -webkit-font-smoothing:antialiased;
+    }
+    @media(prefers-reduced-motion:reduce){
+      .login-wrapper,.login-btn{animation:none!important;transition:none!important}
     }
     .login-wrapper{
       display:flex;flex-direction:column;align-items:center;gap:32px;
@@ -62,6 +70,17 @@
 
     .card-body{padding:32px}
 
+    /* Error alert for failed logins */
+    .login-error{
+      display:none;
+      background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;
+      padding:12px 16px;margin-bottom:16px;text-align:left;
+      font-size:13px;color:#991B1B;
+      align-items:center;gap:10px;
+    }
+    .login-error.show{display:flex}
+    .login-error svg{width:18px;height:18px;stroke:#DC2626;flex-shrink:0}
+
     .login-btn{
       display:flex;align-items:center;justify-content:center;gap:12px;
       width:100%;padding:14px 20px;border-radius:10px;
@@ -69,9 +88,16 @@
       font-size:15px;font-weight:600;font-family:inherit;
       cursor:pointer;text-decoration:none;
       transition:background .2s,transform .1s,box-shadow .2s;
+      position:relative;
     }
     .login-btn:hover{background:#1a1a1a;box-shadow:0 4px 16px rgba(0,0,0,.2)}
     .login-btn:active{transform:scale(.98)}
+    .login-btn:focus-visible{outline:2px solid #7C3AED;outline-offset:2px}
+    .login-btn .btn-loading{display:none;width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;position:absolute;right:20px}
+    .login-btn.loading .btn-text{opacity:.7}
+    .login-btn.loading .btn-loading{display:block}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
     .ms-logo{display:grid;grid-template-columns:1fr 1fr;gap:2px;width:18px;height:18px;flex-shrink:0}
     .ms-logo span{border-radius:1px}
     .ms-logo .ms-r{background:#F25022}.ms-logo .ms-g{background:#7FBA00}
@@ -100,16 +126,16 @@
 </head>
 <body>
   <div class="login-wrapper">
-    <div class="brand">
+    <div class="brand" aria-label="BluePartner Validação">
       <div class="brand-icon">
-        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       </div>
       <div class="brand-name">BluePartner <span>Validação</span></div>
     </div>
 
     <div class="card">
       <div class="card-top">
-        <div class="shield-icon">
+        <div class="shield-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         </div>
         <h1>Acesso ao Sistema</h1>
@@ -117,18 +143,25 @@
       </div>
 
       <div class="card-body">
-        <a class="login-btn" href="/auth/login" aria-label="Entrar com conta Microsoft">
-          <div class="ms-logo">
+        <!-- Error message shown on failed auth -->
+        <div class="login-error" id="loginError" role="alert">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+          <span id="loginErrorMsg">Falha na autenticação. Tente novamente.</span>
+        </div>
+
+        <a class="login-btn" href="/auth/login" aria-label="Entrar com conta Microsoft 365" id="loginBtn" onclick="this.classList.add('loading')">
+          <div class="ms-logo" aria-hidden="true">
             <span class="ms-r"></span><span class="ms-g"></span>
             <span class="ms-b"></span><span class="ms-y"></span>
           </div>
-          Entrar com conta Microsoft
+          <span class="btn-text">Entrar com conta Microsoft</span>
+          <span class="btn-loading" aria-hidden="true"></span>
         </a>
 
         <div class="divider">acesso seguro</div>
 
         <div class="info">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
           <p>Você será redirecionado para <strong>login.microsoftonline.com</strong>. Nenhuma senha é armazenada neste sistema.</p>
         </div>
       </div>
@@ -138,5 +171,20 @@
       <p>&copy; BluePartner — Painel de Validação</p>
     </div>
   </div>
+  <script>
+    // Show error message if redirected with error param
+    (function(){
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('error')) {
+        const errorEl = document.getElementById('loginError');
+        const msgEl = document.getElementById('loginErrorMsg');
+        const msg = params.get('error');
+        if (msg === 'unauthorized') msgEl.textContent = 'Acesso negado. Você não tem permissão para acessar o sistema.';
+        else if (msg === 'expired') msgEl.textContent = 'Sua sessão expirou. Faça login novamente.';
+        else msgEl.textContent = 'Falha na autenticação. Tente novamente.';
+        errorEl.classList.add('show');
+      }
+    })();
+  </script>
 </body>
 </html>

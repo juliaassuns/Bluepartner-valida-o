@@ -1040,6 +1040,34 @@
         .stagger-3 { animation-delay: 0.2s; }
         .stagger-4 { animation-delay: 0.28s; }
 
+        /* ===== TOAST NOTIFICATION ===== */
+        .toast-notify {
+            position: fixed; top: 20px; right: 20px; z-index: 300;
+            display: flex; align-items: center; gap: 10px;
+            padding: 14px 20px; border-radius: 12px;
+            font-size: 14px; font-weight: 500;
+            box-shadow: var(--shadow-lg); color: white;
+            animation: toastSlideIn 0.3s ease;
+            max-width: 420px;
+        }
+        .toast-notify.warning { background: #d97706; }
+        .toast-notify.error { background: #ef4444; }
+        .toast-notify.toast-out { animation: toastSlideOut 0.3s ease forwards; }
+        @keyframes toastSlideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes toastSlideOut { from { opacity: 1; } to { opacity: 0; transform: translateX(100%); } }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+            .page-bg .orb { display: none; }
+            .hero-particle { display: none; }
+            .confetti-piece { display: none; }
+        }
+
         /* ===== DARK MODE TOGGLE ===== */
         .theme-toggle {
             width: 38px; height: 38px; border-radius: 11px;
@@ -1197,6 +1225,7 @@
                 <span class="logo-text">Blue<span>Partner</span></span>
             </a>
             <div class="header-badges">
+                <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Alternar tema claro/escuro" title="Alternar tema">🌙</button>
                 <span class="header-badge secure">🔒 Seguro</span>
                 <span class="header-badge">Microsoft CSP</span>
             </div>
@@ -1785,7 +1814,7 @@
     function openGdapLink() {
         const gdapUrl = pedidoData && pedidoData.gdapLink;
         if (!gdapUrl) {
-            alert('Link GDAP não disponível para este pedido. Entre em contato com a BluePartner.');
+            showNotify('Link GDAP não disponível para este pedido. Entre em contato com a BluePartner.', 'warning');
             return;
         }
         window.open(gdapUrl, '_blank');
@@ -1875,6 +1904,37 @@
                 if (!document.getElementById('timeoutBanner').classList.contains('show')) startInactivityTimer();
             }, { passive: true });
         });
+    }
+
+    // ===== THEME TOGGLE =====
+    function toggleTheme() {
+        const html = document.documentElement;
+        const isDark = html.getAttribute('data-theme') === 'dark';
+        html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+        document.getElementById('themeToggle').textContent = isDark ? '🌙' : '☀️';
+        try { localStorage.setItem('bp-theme', isDark ? 'light' : 'dark'); } catch {}
+    }
+    (function() {
+        try {
+            const saved = localStorage.getItem('bp-theme');
+            if (saved === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                const btn = document.getElementById('themeToggle');
+                if (btn) btn.textContent = '☀️';
+            }
+        } catch {}
+    })();
+
+    // ===== TOAST NOTIFY =====
+    function showNotify(msg, type = 'warning', duration = 5000) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-notify ' + type;
+        toast.textContent = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.classList.add('toast-out');
+            toast.addEventListener('animationend', () => toast.remove());
+        }, duration);
     }
     </script>
 </body>

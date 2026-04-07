@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BluePartner — Admin</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='20' width='100' height='100' fill='%232563eb'/><path d='M25 25h20v20H25zM55 25h20v20H55zM25 55h20v20H25zM55 55h20v20H55z' fill='white'/></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root{
       --brand:#2563eb;
@@ -463,6 +467,38 @@
     .modal-close svg{ width: 18px; height: 18px; stroke: var(--muted); stroke-width:2; fill:none; }
 
     .modal-body{ padding: 16px; }
+
+    /* History tabs */
+    .hist-tab{
+      padding:10px 16px; border:none; background:none; cursor:pointer;
+      font-size:0.85rem; font-weight:600; color:var(--muted);
+      border-bottom:2px solid transparent; transition:all 0.2s;
+    }
+    .hist-tab:hover{ color:var(--text); }
+    .hist-tab.active{ color:var(--brand); border-bottom-color:var(--brand); }
+    .hist-tab-badge{
+      display:inline-block; background:var(--brand); color:#fff;
+      font-size:10px; font-weight:700; padding:1px 6px; border-radius:10px; margin-left:4px;
+    }
+    .hist-panel{ min-height:200px; }
+    .timeline-item{
+      display:flex; gap:12px; padding:12px 0;
+      border-bottom:1px solid #f1f5f9;
+    }
+    .timeline-item:last-child{ border-bottom:none; }
+    .timeline-icon{
+      width:36px; height:36px; border-radius:10px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:16px; flex-shrink:0;
+    }
+    .timeline-icon.criacao{ background:#ecfdf5; }
+    .timeline-icon.evento{ background:#eff6ff; }
+    .timeline-icon.validacao{ background:#f5f3ff; }
+    .timeline-body{ flex:1; min-width:0; }
+    .timeline-title{ font-weight:700; font-size:0.85rem; color:var(--text); }
+    .timeline-desc{ font-size:0.8rem; color:var(--muted); margin-top:2px; word-break:break-word; }
+    .timeline-meta{ font-size:0.75rem; color:#94a3b8; margin-top:4px; display:flex; gap:12px; }
+
     .form-grid{
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -578,10 +614,90 @@
       .form-grid{ grid-template-columns: 1fr; }
       .input{ width: 100%; min-width: 0; }
     }
+    @media(prefers-reduced-motion:reduce){
+      *{animation-duration:0.01ms!important;transition-duration:0.01ms!important}
+    }
+
+    /* ===== TOAST NOTIFICATIONS ===== */
+    .toast-container{
+      position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;
+    }
+    .toast{
+      display:flex;align-items:center;gap:10px;
+      padding:12px 18px;border-radius:12px;
+      background:#fff;color:#1e293b;
+      box-shadow:0 8px 30px rgba(0,0,0,.12),0 0 0 1px rgba(0,0,0,.04);
+      font-size:13px;font-weight:600;
+      pointer-events:auto;
+      animation:toastIn .3s ease-out;
+      max-width:380px;
+    }
+    .toast.toast-out{animation:toastOut .25s ease-in forwards}
+    .toast svg{width:18px;height:18px;flex-shrink:0}
+    .toast.success{border-left:4px solid #16a34a}
+    .toast.success svg{stroke:#16a34a}
+    .toast.error{border-left:4px solid #dc2626}
+    .toast.error svg{stroke:#dc2626}
+    .toast.warning{border-left:4px solid #ca8a04}
+    .toast.warning svg{stroke:#ca8a04}
+    .toast.info{border-left:4px solid #2563eb}
+    .toast.info svg{stroke:#2563eb}
+    @keyframes toastIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+    @keyframes toastOut{to{transform:translateX(100%);opacity:0}}
+
+    /* ===== CONFIRM DIALOG ===== */
+    .confirm-overlay{
+      position:fixed;inset:0;background:rgba(15,23,42,.55);
+      display:flex;align-items:center;justify-content:center;
+      z-index:200;padding:18px;animation:fadeInOverlay .15s ease-out;
+    }
+    @keyframes fadeInOverlay{from{opacity:0}to{opacity:1}}
+    .confirm-box{
+      background:#fff;border-radius:16px;max-width:400px;width:100%;
+      box-shadow:0 30px 80px rgba(0,0,0,.25);overflow:hidden;
+      animation:confirmIn .2s ease-out;
+    }
+    @keyframes confirmIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+    .confirm-body{padding:24px;text-align:center}
+    .confirm-icon{
+      width:48px;height:48px;border-radius:14px;margin:0 auto 14px;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .confirm-icon.danger{background:rgba(220,38,38,.1)}
+    .confirm-icon.danger svg{stroke:#dc2626}
+    .confirm-icon.warning{background:rgba(202,138,4,.1)}
+    .confirm-icon.warning svg{stroke:#ca8a04}
+    .confirm-icon svg{width:24px;height:24px;fill:none;stroke-width:2}
+    .confirm-title{font-size:16px;font-weight:800;color:#1e293b;margin-bottom:6px}
+    .confirm-desc{font-size:13px;color:#64748b;line-height:1.5}
+    .confirm-actions{display:flex;gap:8px;padding:14px 24px;border-top:1px solid #e2e8f0;justify-content:flex-end}
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state{
+      display:flex;flex-direction:column;align-items:center;gap:8px;
+      padding:40px 20px;color:#64748b;
+    }
+    .empty-state svg{width:48px;height:48px;stroke:#cbd5e1;stroke-width:1.5;fill:none;margin-bottom:4px}
+    .empty-state .empty-title{font-size:15px;font-weight:700;color:#475569}
+    .empty-state .empty-desc{font-size:13px;color:#94a3b8}
+
+    /* ===== SKELETON LOADER ===== */
+    .skeleton{background:linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
+    @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+    /* ===== KEYBOARD SHORTCUT HINT ===== */
+    .kbd{
+      display:inline-flex;align-items:center;justify-content:center;
+      min-width:22px;height:20px;padding:0 5px;
+      background:#f1f5f9;border:1px solid #d1d5db;border-radius:4px;
+      font-size:10px;font-weight:700;color:#64748b;font-family:inherit;
+    }
   </style>
 </head>
 <body>
   <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+  <!-- Toast container -->
+  <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
   <div class="app">
     <!-- SIDEBAR -->
@@ -618,6 +734,10 @@
           <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4V4Zm4 4h8M8 12h8M8 16h6"/></svg>
           Logs
         </div>
+        <div class="menu-item" data-page="historico" onclick="gotoPage('historico')">
+          <svg viewBox="0 0 24 24"><path d="M12 8v5l3 3"/><path d="M3 12a9 9 0 1 1 9 9 9 9 0 0 1-9-9Z"/></svg>
+          Histórico
+        </div>
       </nav>
 
       <div class="sidebar-footer">BluePartner © 2026</div>
@@ -630,6 +750,11 @@
           <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
         <div class="topbar-title" id="topbarTitle">Dashboard</div>
+        <div style="flex:1;max-width:360px;margin-left:auto;margin-right:16px;position:relative;">
+          <input class="input" id="globalSearch" placeholder="Buscar pedidos, clientes, CNPJ..." style="width:100%;height:36px;font-size:13px;border-radius:20px;padding:0 16px 0 38px;" onkeydown="if(event.key==='Enter')globalSearchGo()" aria-label="Busca global" />
+          <svg viewBox="0 0 24 24" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:#94a3b8;stroke-width:2;fill:none;pointer-events:none"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <span class="kbd" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none">/</span>
+        </div>
       </header>
 
       <div class="content">
@@ -730,17 +855,34 @@
               <h1 class="page-title">Pedidos</h1>
               <div class="page-subtitle">Gerencie pedidos e status de validação</div>
             </div>
-            <button class="btn btn-primary" type="button" onclick="openNewPedidoModal()">
-              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-              Novo Pedido
-            </button>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-muted" type="button" onclick="exportarPedidosCSV()" title="Exportar CSV">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Exportar
+              </button>
+              <button class="btn btn-primary" type="button" onclick="openNewPedidoModal()">
+                <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                Novo Pedido
+              </button>
+            </div>
           </div>
 
-          <div class="toolbar">
-            <div class="filters">
-              <input class="input" id="pedidosSearch" placeholder="Buscar por cliente, CNPJ ou pedido..." oninput="renderPedidosTable()" />
+          <div class="toolbar" style="flex-wrap:wrap;gap:8px;">
+            <div class="filters" style="flex-wrap:wrap;gap:8px;">
+              <input class="input" id="pedidosSearch" placeholder="Buscar cliente, CNPJ ou pedido..." oninput="debouncePedidosFilter()" style="min-width:200px;" />
+              <select class="input" id="pedidosStatusFilter" onchange="pedidosApplyFilters()" style="width:auto;min-width:130px;">
+                <option value="">Todos os status</option>
+                <option value="PENDENTE">Pendente</option>
+                <option value="VALIDADO">Validado</option>
+                <option value="DIVERGENTE">Divergente</option>
+              </select>
+              <select class="input" id="pedidosRevendaFilter" onchange="pedidosApplyFilters()" style="width:auto;min-width:140px;">
+                <option value="">Todas as revendas</option>
+              </select>
+              <input class="input small" id="pedidosDateFrom" type="date" onchange="pedidosApplyFilters()" title="Data de" />
+              <input class="input small" id="pedidosDateTo" type="date" onchange="pedidosApplyFilters()" title="Data até" />
             </div>
-            <button class="btn btn-muted" type="button" onclick="loadAllData()">
+            <button class="btn btn-muted" type="button" onclick="pedidosApplyFilters()">
               <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>
               Atualizar
             </button>
@@ -763,6 +905,14 @@
                 <tr><td colspan="7" style="color:var(--muted);font-weight:700;">Carregando...</td></tr>
               </tbody>
             </table>
+          </div>
+
+          <div class="pagination" id="pedidosPagination" style="display:flex;align-items:center;gap:12px;justify-content:space-between;padding:12px 0;">
+            <span id="pedidosPageInfo" style="font-size:13px;color:var(--muted);">—</span>
+            <div style="display:flex;gap:6px;">
+              <button class="page-btn" id="pedidosPrevBtn" onclick="pedidosPrevPage()" disabled>Anterior</button>
+              <button class="page-btn" id="pedidosNextBtn" onclick="pedidosNextPage()" disabled>Próxima</button>
+            </div>
           </div>
         </section>
 
@@ -794,12 +944,12 @@
           </div>
         </section>
 
-        <!-- LICENÇAS — Comparação Pedido vs Portal -->
+        <!-- LICENÇAS — Comparação Pedido vs Portal vs Distribuidor -->
         <section class="page" id="page-licencas">
           <div class="page-header">
             <div>
               <h1 class="page-title">Comparar Licenças</h1>
-              <div class="page-subtitle">Compare o que foi pedido na Ingram/TDS com o que está no portal do cliente</div>
+              <div class="page-subtitle">Compare proposta vs portal do cliente vs distribuidor (Ingram/TDS)</div>
             </div>
           </div>
 
@@ -816,6 +966,10 @@
                 <svg viewBox="0 0 24 24"><path d="M8 21V3m8 18V3M4 7h4M4 17h4m8-10h4m-4 10h4"/></svg>
                 Comparar com Portal
               </button>
+              <button class="btn" type="button" onclick="executarComparacaoCompleta()" id="btnCompararCompleto" disabled style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;">
+                <svg viewBox="0 0 24 24" style="width:16px;height:16px;"><path d="M4 6h4M4 12h4M4 18h4m4-12h4m0 0h4m-4 6h4m0 0h4m-4 6h4m0 0h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                Comparação 3 Vias
+              </button>
             </div>
             <div id="licPedidoInfo" style="display:none; margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
               <div style="display:flex; gap:24px; flex-wrap:wrap; font-size:0.9rem;">
@@ -827,7 +981,7 @@
             </div>
           </div>
 
-          <!-- Resultado da comparação -->
+          <!-- Resultado da comparação simples (2 vias) -->
           <div id="licComparacaoResultado" style="display:none;">
             <!-- Status GDAP -->
             <div id="licGdapAlert" style="display:none; border-radius:12px; padding:16px; margin-bottom:16px; font-size:0.9rem;"></div>
@@ -871,10 +1025,63 @@
             </div>
           </div>
 
+          <!-- Resultado da comparação completa (3 vias) -->
+          <div id="licComparacaoCompleta" style="display:none;">
+            <!-- Alertas de status -->
+            <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px;">
+              <div id="lic3GdapAlert" style="flex:1; min-width:250px; border-radius:12px; padding:16px; font-size:0.85rem;"></div>
+              <div id="lic3DistAlert" style="flex:1; min-width:250px; border-radius:12px; padding:16px; font-size:0.85rem;"></div>
+            </div>
+
+            <!-- Tabela comparação 3 vias -->
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="min-width:180px;">Produto (Proposta)</th>
+                    <th style="text-align:center;">Qtd Proposta</th>
+                    <th style="min-width:140px;">Portal (GDAP)</th>
+                    <th style="text-align:center;">Qtd Portal</th>
+                    <th style="min-width:140px;" id="lic3DistHeader">Distribuidor</th>
+                    <th style="text-align:center;">Qtd Dist.</th>
+                    <th style="min-width:130px;">Resultado</th>
+                  </tr>
+                </thead>
+                <tbody id="lic3ComparacaoBody">
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Licenças extras -->
+            <div id="lic3ExtrasPanel" style="display:none; margin-top:20px;">
+              <h3 style="font-size:1rem; font-weight:700; margin-bottom:8px;">📦 Outras licenças encontradas</h3>
+              <div style="display:flex; gap:16px; flex-wrap:wrap;">
+                <div id="lic3ExtrasPortal" style="flex:1; min-width:300px; display:none;">
+                  <h4 style="font-size:0.9rem; font-weight:600; margin-bottom:8px; color:#6366f1;">Portal do Cliente</h4>
+                  <div class="table-wrap">
+                    <table>
+                      <thead><tr><th>SKU</th><th>Status</th><th>Total</th><th>Usadas</th><th>Disp.</th></tr></thead>
+                      <tbody id="lic3ExtrasPortalBody"></tbody>
+                    </table>
+                  </div>
+                </div>
+                <div id="lic3ExtrasDist" style="flex:1; min-width:300px; display:none;">
+                  <h4 style="font-size:0.9rem; font-weight:600; margin-bottom:8px; color:#8b5cf6;" id="lic3ExtrasDistTitle">Distribuidor</h4>
+                  <div class="table-wrap">
+                    <table>
+                      <thead><tr><th>Produto</th><th>SKU</th><th>Qtd</th><th>Status</th></tr></thead>
+                      <tbody id="lic3ExtrasDistBody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Loading -->
           <div id="licLoading" style="display:none; color:var(--muted); font-weight:700; padding:20px; text-align:center;">
             <svg width="24" height="24" viewBox="0 0 24 24" style="animation:spin 1s linear infinite; vertical-align:middle;"><path d="M21 12a9 9 0 1 1-2.64-6.36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            Consultando portal do cliente via GDAP...
+            <span id="licLoadingText">Consultando portal do cliente via GDAP...</span>
           </div>
         </section>
 
@@ -924,9 +1131,127 @@
           </div>
         </section>
 
+        <!-- HISTÓRICO (AUDIT LOG) -->
+        <section class="page" id="page-historico">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Histórico de Alterações</h1>
+              <div class="page-subtitle">Registro de todas as ações realizadas no sistema</div>
+            </div>
+          </div>
+
+          <div class="toolbar" style="flex-wrap:wrap;gap:8px;">
+            <div class="filters" style="flex-wrap:wrap;gap:8px;">
+              <select class="input" id="auditAcaoFilter" onchange="loadAuditLog()" style="width:auto;min-width:160px;">
+                <option value="">Todas as ações</option>
+                <option value="CRIAR_PEDIDO">Criar Pedido</option>
+                <option value="EDITAR_PEDIDO">Editar Pedido</option>
+                <option value="UPLOAD_PROPOSTA">Upload Proposta</option>
+                <option value="EXCLUIR_PEDIDO">Excluir Pedido</option>
+                <option value="EXPORTAR_PEDIDOS">Exportar Pedidos</option>
+              </select>
+            </div>
+            <button class="btn btn-muted" type="button" onclick="loadAuditLog()">
+              <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>
+              Atualizar
+            </button>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Usuário</th>
+                  <th>Ação</th>
+                  <th>Entidade</th>
+                  <th>ID</th>
+                  <th>Detalhes</th>
+                </tr>
+              </thead>
+              <tbody id="auditBody">
+                <tr><td colspan="6" style="color:var(--muted);font-weight:700;">Carregando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pagination">
+            <span id="auditPageInfo">Página 1</span>
+            <button class="page-btn" id="auditPrevBtn" onclick="auditPrevPage()">Anterior</button>
+            <button class="page-btn" id="auditNextBtn" onclick="auditNextPage()">Próxima</button>
+          </div>
+        </section>
+
 
       </div>
     </main>
+  </div>
+
+  <!-- MODAL: COMPARTILHAR PEDIDO -->
+  <div class="modal-overlay" id="sharePedidoModal">
+    <div class="modal" role="dialog" aria-modal="true" style="max-width:560px">
+      <div class="modal-header">
+        <div class="modal-title">
+          <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          Compartilhar Pedido
+        </div>
+        <button class="modal-close" type="button" onclick="closeShareModal()">
+          <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal-body" style="padding:20px">
+        <!-- Info do pedido -->
+        <div style="background:#f0f7ff;border:1px solid #b3d9f2;border-radius:10px;padding:14px;margin-bottom:16px">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Pedido criado com sucesso</div>
+          <div style="font-weight:800;font-size:16px;color:var(--brand)" id="sharePedidoId"></div>
+          <div style="font-size:13px;color:var(--text);margin-top:4px" id="sharePedidoCliente"></div>
+        </div>
+
+        <!-- Resultado da importação de proposta -->
+        <div id="sharePropostaInfo" style="display:none;margin-bottom:14px;padding:10px 14px;border-radius:8px;background:#f0fdf4;border:1px solid #bbf7d0"></div>
+
+        <!-- Link -->
+        <label style="margin-bottom:4px">Link do pedido</label>
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+          <input id="sharePedidoLink" readonly style="flex:1;background:#f8fafc;font-size:13px;cursor:text" />
+          <button class="btn btn-primary" onclick="copyShareLink()" style="white-space:nowrap;gap:6px">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copiar
+          </button>
+        </div>
+
+        <!-- Botões de compartilhamento -->
+        <div style="display:flex;gap:10px;margin-bottom:18px">
+          <button class="btn" onclick="shareViaWhatsApp()" style="flex:1;background:#25D366;color:#fff;border:none;gap:8px;justify-content:center">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            WhatsApp
+          </button>
+          <button class="btn" onclick="shareViaEmail()" style="flex:1;background:#EA4335;color:#fff;border:none;gap:8px;justify-content:center">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            E-mail
+          </button>
+        </div>
+
+        <!-- Template de e-mail editável -->
+        <details id="shareEmailDetails">
+          <summary style="cursor:pointer;font-size:13px;color:var(--brand);font-weight:600;user-select:none;margin-bottom:8px">
+            Editar modelo do e-mail
+          </summary>
+          <div style="margin-top:8px">
+            <label>Assunto</label>
+            <input id="shareEmailSubject" style="width:100%;margin-bottom:10px;font-size:13px" />
+            <label>Corpo do e-mail</label>
+            <textarea id="shareEmailBody" rows="8" style="width:100%;border-radius:10px;border:1px solid var(--border);padding:12px;font-size:13px;resize:vertical;font-family:inherit;line-height:1.5"></textarea>
+            <div style="font-size:11px;color:var(--muted);margin-top:6px">
+              Use <code>{CLIENTE}</code>, <code>{CNPJ}</code>, <code>{PEDIDO_ID}</code> e <code>{LINK}</code> como variáveis no template.
+            </div>
+          </div>
+        </details>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-muted" type="button" onclick="closeShareModal()">Fechar</button>
+      </div>
+    </div>
   </div>
 
   <!-- MODAL: NOVO PEDIDO -->
@@ -961,16 +1286,166 @@
             <input id="npCliente" readonly style="background:#f0f2f5;cursor:default" />
           </div>
           <div class="form-group full">
-            <label>Revendas</label>
+            <label>Revendas <span style="color:var(--muted);font-weight:400;font-size:12px">(opcional)</span></label>
             <div id="npRevendasContainer" style="display:flex;flex-wrap:wrap;gap:8px;padding:8px 0;min-height:36px;align-items:center">
               <span style="color:var(--muted);font-size:13px">Carregando revendas...</span>
             </div>
+          </div>
+          <div class="form-group full">
+            <label>Proposta do cliente <span style="color:var(--muted);font-weight:400;font-size:12px">(opcional — PDF, Word, Excel)</span></label>
+            <div id="npUploadArea" style="border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:all 0.2s;background:var(--white)"
+                 onclick="document.getElementById('npFileInput').click()"
+                 ondragover="event.preventDefault();this.style.borderColor='var(--brand)';this.style.background='#f0f4ff'"
+                 ondragleave="this.style.borderColor='var(--border)';this.style.background='var(--white)'"
+                 ondrop="event.preventDefault();this.style.borderColor='var(--border)';this.style.background='var(--white)';handleFileDrop(event)">
+              <div id="npUploadContent">
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--muted)" stroke-width="1.5" style="margin-bottom:6px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <div style="font-size:13px;color:var(--muted)">Arraste o arquivo aqui ou <strong style="color:var(--brand)">clique para selecionar</strong></div>
+                <div style="font-size:11px;color:var(--muted);margin-top:4px">PDF, DOCX, XLSX, XLS, CSV — máx 10MB</div>
+              </div>
+              <div id="npFileSelected" style="display:none">
+                <div style="display:flex;align-items:center;gap:8px;justify-content:center">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--brand)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  <span id="npFileName" style="font-size:13px;font-weight:600;color:var(--text)"></span>
+                  <button type="button" onclick="event.stopPropagation();clearFileUpload()" style="background:none;border:none;cursor:pointer;padding:2px">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                  </button>
+                </div>
+                <div id="npFileSize" style="font-size:11px;color:var(--muted);margin-top:2px"></div>
+              </div>
+            </div>
+            <input type="file" id="npFileInput" accept=".pdf,.docx,.doc,.xlsx,.xls,.csv" style="display:none" onchange="handleFileSelect(this)" />
           </div>
         </div>
       </div>
       <div class="modal-actions">
         <button class="btn btn-muted" type="button" onclick="closeNewPedidoModal()">Cancelar</button>
         <button class="btn btn-primary" type="button" onclick="createPedidoFromModal()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: HISTÓRICO DO PEDIDO -->
+  <div class="modal-overlay" id="historicoPedidoModal">
+    <div class="modal" role="dialog" aria-modal="true" style="max-width:700px; max-height:90vh; display:flex; flex-direction:column;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
+          Histórico do Pedido
+        </div>
+        <span id="histPedidoId" style="font-family:monospace;font-size:12px;color:var(--muted);margin-left:8px;"></span>
+        <button class="modal-close" type="button" onclick="closeHistoricoModal()">
+          <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal-body" style="padding:0; overflow-y:auto; flex:1;">
+        <!-- Loading -->
+        <div id="histLoading" style="padding:40px;text-align:center;color:var(--muted);">
+          <svg width="24" height="24" viewBox="0 0 24 24" style="animation:spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-2.64-6.36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Carregando histórico...
+        </div>
+
+        <!-- Conteúdo -->
+        <div id="histContent" style="display:none;">
+          <!-- Resumo do pedido -->
+          <div style="padding:16px 20px; background:#f8fafc; border-bottom:1px solid var(--border);">
+            <div style="display:flex; gap:16px; flex-wrap:wrap; font-size:0.85rem;">
+              <div><strong>Cliente:</strong> <span id="histCliente"></span></div>
+              <div><strong>CNPJ:</strong> <span id="histCnpj"></span></div>
+              <div><strong>Status:</strong> <span id="histStatus"></span></div>
+              <div><strong>Revenda:</strong> <span id="histRevenda"></span></div>
+              <div><strong>Criado:</strong> <span id="histCriado"></span></div>
+            </div>
+            <div id="histGdapInfo" style="display:none; margin-top:8px; font-size:0.8rem; color:var(--muted);">
+              🔗 GDAP: <span id="histGdapStatus"></span>
+            </div>
+          </div>
+
+          <!-- Tabs -->
+          <div style="display:flex; border-bottom:1px solid var(--border); padding:0 16px;">
+            <button class="hist-tab active" data-tab="timeline" onclick="switchHistTab('timeline')">📋 Timeline</button>
+            <button class="hist-tab" data-tab="licencas" onclick="switchHistTab('licencas')">📦 Licenças <span id="histLicCount" class="hist-tab-badge">0</span></button>
+            <button class="hist-tab" data-tab="validacoes" onclick="switchHistTab('validacoes')">✅ Validações <span id="histValCount" class="hist-tab-badge">0</span></button>
+          </div>
+
+          <!-- Tab: Timeline -->
+          <div class="hist-panel" id="histTabTimeline" style="display:block;">
+            <div id="histTimeline" style="padding:16px 20px;"></div>
+          </div>
+
+          <!-- Tab: Licenças -->
+          <div class="hist-panel" id="histTabLicencas" style="display:none;">
+            <div style="padding:16px 20px;">
+              <!-- Upload de proposta -->
+              <div id="histUploadArea" style="border:2px dashed var(--border);border-radius:10px;padding:18px;text-align:center;cursor:pointer;transition:all 0.2s;background:var(--white);margin-bottom:16px"
+                   onclick="document.getElementById('histFileInput').click()"
+                   ondragover="event.preventDefault();this.style.borderColor='var(--brand)';this.style.background='#f0f4ff'"
+                   ondragleave="this.style.borderColor='var(--border)';this.style.background='var(--white)'"
+                   ondrop="event.preventDefault();this.style.borderColor='var(--border)';this.style.background='var(--white)';handleHistFileDrop(event)">
+                <div id="histUploadContent">
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="var(--muted)" stroke-width="1.5" style="margin-bottom:4px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  <div style="font-size:13px;color:var(--muted)">Arraste a proposta aqui ou <strong style="color:var(--brand)">clique para selecionar</strong></div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:4px">PDF, DOCX, XLSX, XLS, CSV — máx 10MB</div>
+                </div>
+                <div id="histFileSelected" style="display:none">
+                  <div style="display:flex;align-items:center;gap:8px;justify-content:center">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--brand)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    <span id="histFileName" style="font-size:13px;font-weight:600;color:var(--text)"></span>
+                    <button type="button" onclick="event.stopPropagation();clearHistFileUpload()" style="background:none;border:none;cursor:pointer;padding:2px">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                    </button>
+                  </div>
+                  <div id="histFileSize" style="font-size:11px;color:var(--muted);margin-top:2px"></div>
+                  <button type="button" onclick="event.stopPropagation();uploadPropostaFromHist()" class="btn btn-primary" style="margin-top:10px;font-size:13px;padding:6px 18px">
+                    <svg viewBox="0 0 24 24" style="width:14px;height:14px;margin-right:4px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    Importar Proposta
+                  </button>
+                </div>
+                <div id="histUploadLoading" style="display:none">
+                  <div style="font-size:13px;color:var(--brand);font-weight:600;">Processando arquivo...</div>
+                </div>
+              </div>
+              <div id="histUploadResult" style="display:none;margin-bottom:14px;padding:10px 14px;border-radius:8px;background:#f0fdf4;border:1px solid #bbf7d0;font-size:13px"></div>
+              <input type="file" id="histFileInput" accept=".pdf,.docx,.doc,.xlsx,.xls,.csv" style="display:none" onchange="handleHistFileSelect(this)" />
+
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr><th>Produto</th><th style="text-align:center;">Qtd</th><th>Duração</th><th>Preço</th></tr>
+                  </thead>
+                  <tbody id="histLicBody"></tbody>
+                </table>
+              </div>
+              <div id="histLicEmpty" style="display:none; padding:20px; text-align:center; color:var(--muted); font-weight:600;">
+                Nenhuma licença cadastrada. Importe uma proposta para adicionar.
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab: Validações -->
+          <div class="hist-panel" id="histTabValidacoes" style="display:none;">
+            <div style="padding:16px 20px;">
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr><th>Data</th><th>Status</th><th>IP</th><th>Navegador</th></tr>
+                  </thead>
+                  <tbody id="histValBody"></tbody>
+                </table>
+              </div>
+              <div id="histValEmpty" style="display:none; padding:20px; text-align:center; color:var(--muted); font-weight:600;">
+                Nenhuma validação registrada ainda.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions" style="border-top:1px solid var(--border);">
+        <button class="btn btn-muted" type="button" onclick="closeHistoricoModal()">Fechar</button>
+        <button class="btn btn-primary" type="button" onclick="compareLicencasFromHist()">
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px;"><path d="M8 21V3m8 18V3M4 7h4M4 17h4m8-10h4m-4 10h4"/></svg>
+          Comparar Licenças
+        </button>
       </div>
     </div>
   </div>
@@ -985,9 +1460,20 @@
     let gdapPoolCache = [];
     let logsCache = [];
 
+    // pedidos pagination
+    let pedidosPage = 1;
+    const pedidosPageSize = 25;
+    let pedidosTotalPages = 1;
+
     // logs pagination
     let logsPage = 1;
     const logsPageSize = 10;
+
+    // audit pagination
+    let auditPage = 1;
+    const auditPageSize = 25;
+
+    let pedidosFilterTimer = null;
 
     const monthLabels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
@@ -1001,6 +1487,7 @@
       const res = await fetch(url, { ...opts, credentials: 'same-origin' });
       if (res.status === 401) {
         window.location.href = '/login';
+        throw new Error('SESSION_EXPIRED');
       }
       return res;
     }
@@ -1027,6 +1514,7 @@
         page === 'pedidos' ? 'Pedidos' :
         page === 'gdap' ? 'GDAP Pool' :
         page === 'licencas' ? 'Licenças' :
+        page === 'historico' ? 'Histórico' :
         'Logs';
 
       closeSidebar();
@@ -1044,6 +1532,170 @@
       document.getElementById('npClienteGroup').style.display = 'none';
       document.getElementById('npCnpjStatus').style.display = 'none';
       document.getElementById('biSugestoesPanel').style.display = 'none';
+      clearFileUpload();
+    }
+
+    // ===== MODAL: COMPARTILHAR PEDIDO =====
+    const DEFAULT_EMAIL_SUBJECT = 'Validação de Parceria Microsoft — {CLIENTE}';
+    const DEFAULT_EMAIL_BODY = `Prezado(a),
+
+Somos parceiros Microsoft e precisamos realizar a validação de licenciamento da sua empresa.
+
+Dados do pedido:
+• Cliente: {CLIENTE}
+• CNPJ: {CNPJ}
+• Pedido: {PEDIDO_ID}
+
+Para concluir a validação, por favor acesse o link abaixo e siga as instruções:
+
+{LINK}
+
+Caso tenha dúvidas, não hesite em nos contatar.
+
+Atenciosamente,
+Equipe BluePartner`;
+
+    function openShareModal(pedidoData){
+      const fullLink = window.location.origin + pedidoData.link;
+      document.getElementById('sharePedidoId').textContent = pedidoData.pedidoId;
+      document.getElementById('sharePedidoCliente').textContent = pedidoData.cliente + ' — ' + pedidoData.cnpj;
+      document.getElementById('sharePedidoLink').value = fullLink;
+
+      // Mostra resultado da proposta se houve upload
+      const propostaInfo = document.getElementById('sharePropostaInfo');
+      if (pedidoData.proposta && pedidoData.proposta.success) {
+        propostaInfo.style.display = 'block';
+        propostaInfo.innerHTML = `<div style="display:flex;align-items:center;gap:8px">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#16a34a" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span style="font-size:13px;color:#16a34a;font-weight:600">${pedidoData.proposta.imported} licença(s) importada(s) da proposta</span>
+        </div>`;
+      } else if (pedidoData.proposta && pedidoData.proposta.error) {
+        propostaInfo.style.display = 'block';
+        propostaInfo.innerHTML = `<div style="display:flex;align-items:center;gap:8px">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#dc2626" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+          <span style="font-size:13px;color:#dc2626">${esc(pedidoData.proposta.error)}</span>
+        </div>`;
+      } else {
+        propostaInfo.style.display = 'none';
+      }
+
+      // Preenche template de e-mail
+      document.getElementById('shareEmailSubject').value = DEFAULT_EMAIL_SUBJECT;
+      document.getElementById('shareEmailBody').value = DEFAULT_EMAIL_BODY;
+
+      // Fecha detalhes do email ao abrir
+      document.getElementById('shareEmailDetails').removeAttribute('open');
+
+      // Guarda dados para uso nos botões
+      document.getElementById('sharePedidoModal')._data = {
+        link: fullLink,
+        cliente: pedidoData.cliente,
+        cnpj: pedidoData.cnpj,
+        pedidoId: pedidoData.pedidoId
+      };
+
+      document.getElementById('sharePedidoModal').classList.add('show');
+    }
+
+    function closeShareModal(){
+      document.getElementById('sharePedidoModal').classList.remove('show');
+    }
+
+    function copyShareLink(){
+      const input = document.getElementById('sharePedidoLink');
+      navigator.clipboard.writeText(input.value).then(() => {
+        const btn = input.nextElementSibling;
+        const origText = btn.innerHTML;
+        btn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Copiado!';
+        btn.style.background = '#16a34a';
+        setTimeout(() => { btn.innerHTML = origText; btn.style.background = ''; }, 2000);
+      }).catch(() => {
+        input.select();
+        document.execCommand('copy');
+      });
+    }
+
+    function _resolveTemplate(template, data){
+      return template
+        .replace(/\{CLIENTE\}/g, data.cliente || '')
+        .replace(/\{CNPJ\}/g, data.cnpj || '')
+        .replace(/\{PEDIDO_ID\}/g, data.pedidoId || '')
+        .replace(/\{LINK\}/g, data.link || '');
+    }
+
+    function shareViaWhatsApp(){
+      const data = document.getElementById('sharePedidoModal')._data;
+      const msg = `Olá! Segue o link para validação de parceria Microsoft:\n\n` +
+                  `Cliente: ${data.cliente}\nCNPJ: ${data.cnpj}\nPedido: ${data.pedidoId}\n\n` +
+                  `Acesse aqui: ${data.link}`;
+      window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+    }
+
+    function shareViaEmail(){
+      const data = document.getElementById('sharePedidoModal')._data;
+      const subjectTemplate = document.getElementById('shareEmailSubject').value;
+      const bodyTemplate = document.getElementById('shareEmailBody').value;
+      const subject = _resolveTemplate(subjectTemplate, data);
+      const body = _resolveTemplate(bodyTemplate, data);
+      window.open('mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body), '_self');
+    }
+
+    // ===== FILE UPLOAD HELPERS =====
+    let pendingFile = null;
+
+    function handleFileSelect(input){
+      if (input.files && input.files[0]) {
+        setFilePreview(input.files[0]);
+      }
+    }
+
+    function handleFileDrop(event){
+      const files = event.dataTransfer.files;
+      if (files && files[0]) {
+        const ext = files[0].name.split('.').pop().toLowerCase();
+        if (['pdf','docx','doc','xlsx','xls','csv'].includes(ext)) {
+          setFilePreview(files[0]);
+          // Sync to file input
+          const dt = new DataTransfer();
+          dt.items.add(files[0]);
+          document.getElementById('npFileInput').files = dt.files;
+        } else {
+          showToast('Formato não suportado. Use PDF, DOCX, XLSX, XLS ou CSV.', 'warning');
+        }
+      }
+    }
+
+    function setFilePreview(file){
+      pendingFile = file;
+      document.getElementById('npUploadContent').style.display = 'none';
+      document.getElementById('npFileSelected').style.display = 'block';
+      document.getElementById('npFileName').textContent = file.name;
+      const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+      document.getElementById('npFileSize').textContent = sizeMB + ' MB';
+    }
+
+    function clearFileUpload(){
+      pendingFile = null;
+      document.getElementById('npFileInput').value = '';
+      document.getElementById('npUploadContent').style.display = 'block';
+      document.getElementById('npFileSelected').style.display = 'none';
+    }
+
+    async function uploadPropostaForPedido(pedidoId){
+      if (!pendingFile) return null;
+      const formData = new FormData();
+      formData.append('arquivo', pendingFile);
+      try {
+        const res = await authFetch(API_BASE + '/api/proposta/' + pedidoId, {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json().catch(() => ({}));
+        return data;
+      } catch(e) {
+        console.warn('Erro ao enviar proposta:', e);
+        return null;
+      }
     }
 
     // ===== BI SUGESTÕES =====
@@ -1167,11 +1819,7 @@
       const revendaIds = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
 
       if (!cliente || !cnpj){
-        alert('Preencha Nome do Cliente e CNPJ.');
-        return;
-      }
-      if (revendaIds.length === 0){
-        alert('Selecione pelo menos uma revenda.');
+        showToast('Preencha Nome do Cliente e CNPJ.', 'warning');
         return;
       }
 
@@ -1182,8 +1830,14 @@
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok){
-        alert(data.error || 'Erro ao criar pedido');
+        showToast(data.error || 'Erro ao criar pedido', 'error');
         return;
+      }
+
+      // Upload da proposta se houver arquivo
+      let propostaResult = null;
+      if (pendingFile) {
+        propostaResult = await uploadPropostaForPedido(data.pedidoId);
       }
 
       closeNewPedidoModal();
@@ -1191,9 +1845,18 @@
       document.getElementById('npCnpj').value = '';
       // Desmarca checkboxes
       document.querySelectorAll('#npRevendasContainer input[type="checkbox"]').forEach(cb => cb.checked = false);
+      clearFileUpload();
       await loadAllData();
       gotoPage('pedidos');
-      alert('Pedido criado: ' + data.pedidoId);
+
+      // Abre modal de compartilhamento
+      openShareModal({
+        pedidoId: data.pedidoId,
+        cliente: data.cliente,
+        cnpj: data.cnpj,
+        link: data.link,
+        proposta: propostaResult
+      });
     }
 
     // ===== DATA LOADING =====
@@ -1214,18 +1877,104 @@
         container.innerHTML = '<span style="color:var(--muted);font-size:13px">Nenhuma revenda cadastrada</span>';
         return;
       }
-      container.innerHTML = revendasAtivasCache.map(r => `
-        <label style="display:inline-flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--border);border-radius:8px;background:var(--white);user-select:none">
-          <input type="checkbox" value="${r.id}" style="accent-color:var(--brand);cursor:pointer">
-          ${esc(r.nome)}
-        </label>
-      `).join('');
+      // Agrupa por categoria
+      const categorias = {};
+      revendasAtivasCache.forEach(r => {
+        const cat = (r.categoria || '').toLowerCase();
+        const label = cat === 'ingram' ? 'Ingram' : cat === 'tds' ? 'TDS' : 'Outras';
+        if (!categorias[label]) categorias[label] = [];
+        categorias[label].push(r);
+      });
+      const catOrder = ['Ingram', 'TDS', 'Outras'];
+      const catColors = { 'Ingram': '#1D4ED8', 'TDS': '#92400E', 'Outras': '#64748b' };
+      const catBgs = { 'Ingram': '#DBEAFE', 'TDS': '#FEF3C7', 'Outras': '#F1F5F9' };
+      let html = '';
+      catOrder.forEach(cat => {
+        if (!categorias[cat]) return;
+        html += `<div style="width:100%;margin-bottom:4px">`;
+        html += `<span style="font-size:11px;font-weight:600;color:${catColors[cat]};background:${catBgs[cat]};padding:2px 8px;border-radius:6px;margin-bottom:4px;display:inline-block">${cat}</span>`;
+        html += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">`;
+        categorias[cat].forEach(r => {
+          html += `<label style="display:inline-flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--border);border-radius:8px;background:var(--white);user-select:none">
+            <input type="checkbox" value="${r.id}" style="accent-color:var(--brand);cursor:pointer">
+            ${esc(r.nome)}
+          </label>`;
+        });
+        html += `</div></div>`;
+      });
+      container.innerHTML = html;
     }
 
     async function loadPedidos(){
-      const res = await authFetch(API_BASE + '/api/pedidos');
+      const search = (document.getElementById('pedidosSearch')?.value || '').trim();
+      const status = (document.getElementById('pedidosStatusFilter')?.value || '').trim();
+      const revenda = (document.getElementById('pedidosRevendaFilter')?.value || '').trim();
+      const from = (document.getElementById('pedidosDateFrom')?.value || '').trim();
+      const to = (document.getElementById('pedidosDateTo')?.value || '').trim();
+
+      const params = new URLSearchParams();
+      if (search) params.set('search', search);
+      if (status) params.set('status', status);
+      if (revenda) params.set('revenda', revenda);
+      if (from) params.set('from', from);
+      if (to) params.set('to', to);
+      params.set('page', String(pedidosPage));
+      params.set('pageSize', String(pedidosPageSize));
+
+      const res = await authFetch(API_BASE + '/api/pedidos?' + params.toString());
       const data = await res.json().catch(() => ({}));
       pedidosCache = data.pedidos || [];
+      pedidosTotalPages = data.totalPages || 1;
+
+      // Update pagination UI
+      const info = document.getElementById('pedidosPageInfo');
+      const prevBtn = document.getElementById('pedidosPrevBtn');
+      const nextBtn = document.getElementById('pedidosNextBtn');
+      if (info) info.textContent = `Página ${data.page || pedidosPage} de ${pedidosTotalPages} (${data.total || 0} pedidos)`;
+      if (prevBtn) prevBtn.disabled = pedidosPage <= 1;
+      if (nextBtn) nextBtn.disabled = pedidosPage >= pedidosTotalPages;
+    }
+
+    function debouncePedidosFilter(){
+      clearTimeout(pedidosFilterTimer);
+      pedidosFilterTimer = setTimeout(() => { pedidosPage = 1; pedidosApplyFilters(); }, 400);
+    }
+
+    async function pedidosApplyFilters(){
+      pedidosPage = 1;
+      await loadPedidos();
+      renderPedidosTable();
+    }
+
+    function pedidosPrevPage() { pedidosPage = Math.max(1, pedidosPage - 1); pedidosApplyFilters(); }
+    function pedidosNextPage() { pedidosPage++; pedidosApplyFilters(); }
+
+    async function exportarPedidosCSV(){
+      const search = (document.getElementById('pedidosSearch')?.value || '').trim();
+      const status = (document.getElementById('pedidosStatusFilter')?.value || '').trim();
+      const revenda = (document.getElementById('pedidosRevendaFilter')?.value || '').trim();
+      const from = (document.getElementById('pedidosDateFrom')?.value || '').trim();
+      const to = (document.getElementById('pedidosDateTo')?.value || '').trim();
+
+      const params = new URLSearchParams();
+      if (search) params.set('search', search);
+      if (status) params.set('status', status);
+      if (revenda) params.set('revenda', revenda);
+      if (from) params.set('from', from);
+      if (to) params.set('to', to);
+
+      try {
+        const res = await authFetch(API_BASE + '/api/pedidos/exportar?' + params.toString());
+        if (!res.ok) { showToast('Erro ao exportar', 'error'); return; }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `pedidos_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('CSV exportado com sucesso', 'success');
+      } catch(e) { showToast('Erro ao exportar: ' + e.message, 'error'); }
     }
 
     async function loadGdapPool(){
@@ -1252,7 +2001,7 @@
       if (!res.ok){
         logsCache = [];
         renderLogsTable();
-        alert(data.error || 'Erro ao carregar logs');
+        console.warn('Erro ao carregar logs:', data.error);
         return;
       }
 
@@ -1281,7 +2030,6 @@
     }
 
     async function loadAllData(){
-      // keep existing loads for other pages/widgets
       await loadRevendasAtivas();
       await loadPedidos();
       await loadGdapPool();
@@ -1292,6 +2040,20 @@
       renderPedidosTable();
       renderGdapTable();
       populateLicSelectPedido();
+
+      // Populate revenda dropdown in pedidos filter
+      const revendaSelect = document.getElementById('pedidosRevendaFilter');
+      if (revendaSelect && revendaSelect.options.length <= 1) {
+        (revendasAtivasCache || []).forEach(r => {
+          const opt = document.createElement('option');
+          opt.value = r.nome || r.id;
+          opt.textContent = r.nome;
+          revendaSelect.appendChild(opt);
+        });
+      }
+
+      // Load audit log for Histórico page
+      loadAuditLog();
     }
 
     // ===== DASHBOARD RENDER =====
@@ -1383,7 +2145,13 @@
 
       const tbody = document.getElementById('pedidosBody');
       if (!rows.length){
-        tbody.innerHTML = `<tr><td colspan="7" style="color:var(--muted);font-weight:700;">Nenhum pedido encontrado</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7">
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+            <div class="empty-title">Nenhum pedido encontrado</div>
+            <div class="empty-desc">Tente ajustar os filtros ou crie um novo pedido</div>
+          </div>
+        </td></tr>`;
         return;
       }
 
@@ -1401,13 +2169,16 @@
             <td>${dt}</td>
             <td>
               <div class="table-actions">
-                <button class="icon-btn" title="Ver" onclick="viewPedido('${esc(p.pedido_id)}')">
+                <button class="icon-btn" title="Histórico" aria-label="Ver histórico do pedido ${esc(p.pedido_id)}" onclick="openHistorico('${esc(p.pedido_id)}')">
+                  <svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
+                </button>
+                <button class="icon-btn" title="Ver link" aria-label="Abrir link do pedido ${esc(p.pedido_id)}" onclick="viewPedido('${esc(p.pedido_id)}')">
                   <svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg>
                 </button>
-                <button class="icon-btn" title="Comparar Licenças" onclick="compareLicencas('${esc(p.pedido_id)}')">
+                <button class="icon-btn" title="Comparar Licenças" aria-label="Comparar licenças do pedido ${esc(p.pedido_id)}" onclick="compareLicencas('${esc(p.pedido_id)}')">
                   <svg viewBox="0 0 24 24"><path d="M8 21V3m8 18V3M4 7h4M4 17h4m8-10h4m-4 10h4"/></svg>
                 </button>
-                <button class="icon-btn" title="Excluir" onclick="deletePedido('${esc(p.pedido_id)}')">
+                <button class="icon-btn" title="Excluir" aria-label="Excluir pedido ${esc(p.pedido_id)}" onclick="deletePedido('${esc(p.pedido_id)}')" style="color:var(--danger)">
                   <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 16h10l1-16"/></svg>
                 </button>
               </div>
@@ -1418,9 +2189,8 @@
     }
 
     async function viewPedido(pedidoId){
-      // abre a tela de aceite (cliente)
       window.open(`/?pedidoId=${encodeURIComponent(pedidoId)}&token=`, '_blank');
-      alert('Abrindo link do cliente. Se não abrir, gere/recupere o token do pedido e complete o link.');
+      showToast('Link do cliente aberto em nova aba', 'info');
     }
 
     async function compareLicencas(pedidoId){
@@ -1428,14 +2198,264 @@
     }
 
     async function deletePedido(pedidoId){
-      if (!confirm('Excluir pedido ' + pedidoId + '?')) return;
+      const confirmed = await showConfirm({
+        title: 'Excluir pedido',
+        message: 'Tem certeza que deseja excluir o pedido <strong>' + esc(pedidoId) + '</strong>? Esta ação não pode ser desfeita.',
+        confirmText: 'Excluir',
+        type: 'danger'
+      });
+      if (!confirmed) return;
       const res = await authFetch(API_BASE + '/api/pedidos/' + encodeURIComponent(pedidoId), { method:'DELETE' });
       const data = await res.json().catch(() => ({}));
       if (!res.ok){
-        alert(data.error || 'Erro ao excluir');
+        showToast(data.error || 'Erro ao excluir', 'error');
         return;
       }
+      showToast('Pedido excluído com sucesso', 'success');
       await loadAllData();
+    }
+
+    // ===== HISTÓRICO DO PEDIDO =====
+    let currentHistPedidoId = null;
+
+    async function openHistorico(pedidoId) {
+      currentHistPedidoId = pedidoId;
+      histPendingFile = null;
+      const modal = document.getElementById('historicoPedidoModal');
+      modal.classList.add('show');
+      document.getElementById('histPedidoId').textContent = pedidoId;
+      document.getElementById('histLoading').style.display = 'block';
+      document.getElementById('histContent').style.display = 'none';
+      // Reset upload area
+      document.getElementById('histUploadContent').style.display = 'block';
+      document.getElementById('histFileSelected').style.display = 'none';
+      document.getElementById('histUploadLoading').style.display = 'none';
+      document.getElementById('histUploadResult').style.display = 'none';
+      document.getElementById('histFileInput').value = '';
+
+      try {
+        const res = await authFetch(API_BASE + '/api/pedidos/' + encodeURIComponent(pedidoId) + '/historico');
+        const data = await res.json();
+        document.getElementById('histLoading').style.display = 'none';
+
+        if (!res.ok) {
+          showToast(data.error || 'Erro ao buscar histórico', 'error');
+          closeHistoricoModal();
+          return;
+        }
+
+        document.getElementById('histContent').style.display = 'block';
+        renderHistorico(data);
+      } catch (err) {
+        document.getElementById('histLoading').style.display = 'none';
+        showToast('Erro de conexão: ' + err.message, 'error');
+        closeHistoricoModal();
+      }
+    }
+
+    function closeHistoricoModal() {
+      document.getElementById('historicoPedidoModal').classList.remove('show');
+      currentHistPedidoId = null;
+    }
+
+    function switchHistTab(tab) {
+      document.querySelectorAll('.hist-tab').forEach(t => t.classList.remove('active'));
+      document.querySelector(`.hist-tab[data-tab="${tab}"]`).classList.add('active');
+      document.querySelectorAll('.hist-panel').forEach(p => p.style.display = 'none');
+      if (tab === 'timeline') document.getElementById('histTabTimeline').style.display = 'block';
+      else if (tab === 'licencas') document.getElementById('histTabLicencas').style.display = 'block';
+      else if (tab === 'validacoes') document.getElementById('histTabValidacoes').style.display = 'block';
+    }
+
+    function renderHistorico(data) {
+      const p = data.pedido;
+
+      // Resumo
+      document.getElementById('histCliente').textContent = p.cliente || '—';
+      document.getElementById('histCnpj').textContent = p.cnpj || '—';
+      document.getElementById('histStatus').innerHTML = renderPedidoStatusBadge(p.status);
+      document.getElementById('histRevenda').textContent = p.revendaNome || '—';
+      document.getElementById('histCriado').textContent = p.criadoEm ? new Date(p.criadoEm).toLocaleString('pt-BR') : '—';
+
+      if (data.gdapInfo) {
+        document.getElementById('histGdapInfo').style.display = 'block';
+        document.getElementById('histGdapStatus').textContent = data.gdapInfo.relationshipId
+          ? 'Relationship ID: ' + data.gdapInfo.relationshipId
+          : 'Link manual configurado';
+      } else {
+        document.getElementById('histGdapInfo').style.display = 'none';
+      }
+
+      // Badges
+      document.getElementById('histLicCount').textContent = data.totalLicencas;
+      document.getElementById('histValCount').textContent = data.totalValidacoes;
+
+      // Timeline
+      const timelineEl = document.getElementById('histTimeline');
+      if (!data.timeline.length) {
+        timelineEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted);font-weight:600;">Nenhum evento registrado</div>';
+      } else {
+        timelineEl.innerHTML = data.timeline.map(item => {
+          const dt = item.data ? new Date(item.data).toLocaleString('pt-BR') : '—';
+          return `
+            <div class="timeline-item">
+              <div class="timeline-icon ${item.tipo}">${item.icone}</div>
+              <div class="timeline-body">
+                <div class="timeline-title">${esc(item.titulo)}</div>
+                ${item.descricao ? '<div class="timeline-desc">' + esc(item.descricao) + '</div>' : ''}
+                <div class="timeline-meta">
+                  <span>🕐 ${dt}</span>
+                  ${item.usuario ? '<span>👤 ' + esc(item.usuario) + '</span>' : ''}
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Licenças
+      const licBody = document.getElementById('histLicBody');
+      const licEmpty = document.getElementById('histLicEmpty');
+      if (!data.licencas.length) {
+        licBody.innerHTML = '';
+        licEmpty.style.display = 'block';
+      } else {
+        licEmpty.style.display = 'none';
+        licBody.innerHTML = data.licencas.map(l => `
+          <tr>
+            <td><strong>${esc(l.produto)}</strong></td>
+            <td style="text-align:center;font-weight:600;">${l.qtd}</td>
+            <td>${esc(l.duracao)}</td>
+            <td>${esc(l.preco)}</td>
+          </tr>
+        `).join('');
+      }
+
+      // Validações
+      const valBody = document.getElementById('histValBody');
+      const valEmpty = document.getElementById('histValEmpty');
+      if (!data.validacoes.length) {
+        valBody.innerHTML = '';
+        valEmpty.style.display = 'block';
+      } else {
+        valEmpty.style.display = 'none';
+        valBody.innerHTML = data.validacoes.map(v => {
+          const dt = v.criado_em ? new Date(v.criado_em).toLocaleString('pt-BR') : (v.timestamp || '—');
+          const statusBadge = v.status === 'VALIDADO'
+            ? '<span class="badge validado">VALIDADO</span>'
+            : '<span class="badge pending">' + esc(v.status) + '</span>';
+          const ua = (v.user_agent || '').substring(0, 60);
+          return `
+            <tr>
+              <td style="white-space:nowrap;">${dt}</td>
+              <td>${statusBadge}</td>
+              <td style="font-family:monospace;font-size:0.8rem;">${esc(v.ip || '—')}</td>
+              <td style="font-size:0.75rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;" title="${esc(v.user_agent || '')}">${esc(ua)}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      // Default to timeline tab
+      switchHistTab('timeline');
+    }
+
+    function compareLicencasFromHist() {
+      if (currentHistPedidoId) {
+        closeHistoricoModal();
+        executarComparacao(currentHistPedidoId);
+      }
+    }
+
+    // ===== UPLOAD PROPOSTA NO HISTÓRICO =====
+    let histPendingFile = null;
+
+    function handleHistFileSelect(input) {
+      if (input.files && input.files[0]) {
+        setHistFilePreview(input.files[0]);
+      }
+    }
+
+    function handleHistFileDrop(event) {
+      const files = event.dataTransfer.files;
+      if (files && files.length > 0) {
+        const ext = files[0].name.split('.').pop().toLowerCase();
+        if (['pdf','docx','doc','xlsx','xls','csv'].includes(ext)) {
+          setHistFilePreview(files[0]);
+          const dt = new DataTransfer();
+          dt.items.add(files[0]);
+          document.getElementById('histFileInput').files = dt.files;
+        } else {
+          showToast('Formato não suportado. Use PDF, DOCX, XLSX, XLS ou CSV.', 'warning');
+        }
+      }
+    }
+
+    function setHistFilePreview(file) {
+      histPendingFile = file;
+      document.getElementById('histUploadContent').style.display = 'none';
+      document.getElementById('histFileSelected').style.display = 'block';
+      document.getElementById('histUploadLoading').style.display = 'none';
+      document.getElementById('histFileName').textContent = file.name;
+      const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+      document.getElementById('histFileSize').textContent = sizeMB + ' MB';
+    }
+
+    function clearHistFileUpload() {
+      histPendingFile = null;
+      document.getElementById('histFileInput').value = '';
+      document.getElementById('histUploadContent').style.display = 'block';
+      document.getElementById('histFileSelected').style.display = 'none';
+      document.getElementById('histUploadLoading').style.display = 'none';
+    }
+
+    async function uploadPropostaFromHist() {
+      if (!histPendingFile || !currentHistPedidoId) return;
+      const formData = new FormData();
+      formData.append('arquivo', histPendingFile);
+
+      document.getElementById('histFileSelected').style.display = 'none';
+      document.getElementById('histUploadLoading').style.display = 'block';
+      document.getElementById('histUploadResult').style.display = 'none';
+
+      try {
+        const res = await authFetch(API_BASE + '/api/proposta/' + currentHistPedidoId, {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json().catch(() => ({}));
+
+        document.getElementById('histUploadLoading').style.display = 'none';
+
+        if (data.success) {
+          const resultEl = document.getElementById('histUploadResult');
+          resultEl.style.display = 'block';
+          resultEl.style.background = '#f0fdf4';
+          resultEl.style.borderColor = '#bbf7d0';
+          resultEl.innerHTML = '✅ <strong>' + data.imported + ' itens</strong> importados com sucesso do arquivo <em>' + esc(histPendingFile.name) + '</em>';
+          clearHistFileUpload();
+          // Reload historico to show new licenses
+          openHistoricoModal(currentHistPedidoId);
+          switchHistTab('licencas');
+          // Refresh pedidos list
+          loadPedidos();
+        } else {
+          const resultEl = document.getElementById('histUploadResult');
+          resultEl.style.display = 'block';
+          resultEl.style.background = '#fef2f2';
+          resultEl.style.borderColor = '#fecaca';
+          resultEl.innerHTML = '❌ ' + esc(data.error || 'Erro ao processar arquivo');
+          clearHistFileUpload();
+        }
+      } catch (e) {
+        document.getElementById('histUploadLoading').style.display = 'none';
+        const resultEl = document.getElementById('histUploadResult');
+        resultEl.style.display = 'block';
+        resultEl.style.background = '#fef2f2';
+        resultEl.style.borderColor = '#fecaca';
+        resultEl.innerHTML = '❌ Erro de conexão: ' + esc(e.message);
+        clearHistFileUpload();
+      }
     }
 
     // ===== GDAP TABLE =====
@@ -1449,7 +2469,13 @@
     function renderGdapTable(){
       const tbody = document.getElementById('gdapBody');
       if (!gdapPoolCache.length){
-        tbody.innerHTML = `<tr><td colspan="6" style="color:var(--muted);font-weight:700;">Nenhum registro no pool</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6">
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24"><path d="M12 22a7 7 0 1 0-7-7m7 7a7 7 0 0 0 7-7m-7 7V15m7 0a7 7 0 1 0-7-7m7 7H15M12 8V2"/></svg>
+            <div class="empty-title">Nenhuma relação GDAP registrada</div>
+            <div class="empty-desc">As relações GDAP aparecerão aqui quando forem criadas</div>
+          </div>
+        </td></tr>`;
         return;
       }
 
@@ -1494,19 +2520,19 @@
         const res = await authFetch(API_BASE + '/api/gdap/status/' + encodeURIComponent(relationshipId));
         const data = await res.json();
         if (!res.ok) {
-          alert('Erro: ' + (data.message || data.error));
+          showToast('Erro: ' + (data.message || data.error), 'error');
           return;
         }
         const status = data.status || '—';
         const cliente = data.customer?.displayName || '—';
         const tenantId = data.customer?.tenantId || '—';
         const criado = data.createdDateTime ? new Date(data.createdDateTime).toLocaleString('pt-BR') : '—';
-        alert(`Status GDAP:\n\nRelação: ${data.displayName || relationshipId}\nStatus: ${status}\nCliente: ${cliente}\nTenant ID: ${tenantId}\nCriado em: ${criado}`);
+        showToast(`GDAP ${data.displayName || relationshipId}: ${status} — ${cliente}`, status === 'active' ? 'success' : 'warning', 5000);
         // Reload pool to update status
         await loadGdapPool();
         renderGdapTable();
       } catch (err) {
-        alert('Erro ao verificar: ' + err.message);
+        showToast('Erro ao verificar: ' + err.message, 'error');
       }
     }
 
@@ -1516,14 +2542,14 @@
         const res = await authFetch(API_BASE + '/api/gdap/status/' + encodeURIComponent(relationshipId));
         const data = await res.json();
         if (!res.ok || !data.customer?.tenantId) {
-          alert('Não foi possível obter o tenant ID do cliente para esta relação.');
+          showToast('Não foi possível obter o tenant ID do cliente', 'error');
           return;
         }
         // Navegar para a página de licenças e abrir o cliente
         gotoPage('licencas');
         verLicencasCliente(data.customer.tenantId, data.customer.displayName || 'Cliente');
       } catch (err) {
-        alert('Erro: ' + err.message);
+        showToast('Erro: ' + err.message, 'error');
       }
     }
 
@@ -1590,16 +2616,20 @@
     function onSelectPedidoComparar() {
       const pedidoId = document.getElementById('licSelectPedido').value;
       const btn = document.getElementById('btnComparar');
+      const btn3 = document.getElementById('btnCompararCompleto');
       const info = document.getElementById('licPedidoInfo');
 
       if (!pedidoId) {
         btn.disabled = true;
+        btn3.disabled = true;
         info.style.display = 'none';
         document.getElementById('licComparacaoResultado').style.display = 'none';
+        document.getElementById('licComparacaoCompleta').style.display = 'none';
         return;
       }
 
       btn.disabled = false;
+      btn3.disabled = false;
       const p = pedidosCache.find(x => x.pedido_id === pedidoId);
       if (p) {
         info.style.display = 'block';
@@ -1625,6 +2655,8 @@
 
       document.getElementById('licLoading').style.display = 'block';
       document.getElementById('licComparacaoResultado').style.display = 'none';
+      document.getElementById('licComparacaoCompleta').style.display = 'none';
+      document.getElementById('licLoadingText').textContent = 'Consultando portal do cliente via GDAP...';
 
       try {
         const res = await authFetch(API_BASE + '/api/gdap/comparar/' + encodeURIComponent(pedidoId));
@@ -1632,14 +2664,14 @@
         document.getElementById('licLoading').style.display = 'none';
 
         if (!res.ok) {
-          alert(data.error || data.message || 'Erro ao comparar');
+          showToast(data.error || data.message || 'Erro ao comparar', 'error');
           return;
         }
 
         renderComparacao(data);
       } catch (err) {
         document.getElementById('licLoading').style.display = 'none';
-        alert('Erro de conexão: ' + err.message);
+        showToast('Erro de conexão: ' + err.message, 'error');
       }
     }
 
@@ -1821,6 +2853,205 @@
       return map[sku?.toUpperCase()] || map[sku] || sku;
     }
 
+    // ===== COMPARAÇÃO COMPLETA 3 VIAS =====
+
+    async function executarComparacaoCompleta(pedidoIdParam) {
+      const pedidoId = pedidoIdParam || document.getElementById('licSelectPedido').value;
+      if (!pedidoId) return;
+
+      if (pedidoIdParam) {
+        gotoPage('licencas');
+        await new Promise(r => setTimeout(r, 100));
+        populateLicSelectPedido();
+        document.getElementById('licSelectPedido').value = pedidoId;
+        onSelectPedidoComparar();
+      }
+
+      document.getElementById('licLoading').style.display = 'block';
+      document.getElementById('licComparacaoResultado').style.display = 'none';
+      document.getElementById('licComparacaoCompleta').style.display = 'none';
+      document.getElementById('licLoadingText').textContent = 'Consultando portal e distribuidor...';
+
+      try {
+        const res = await authFetch(API_BASE + '/api/gdap/comparar-completo/' + encodeURIComponent(pedidoId));
+        const data = await res.json();
+        document.getElementById('licLoading').style.display = 'none';
+
+        if (!res.ok) {
+          showToast(data.error || data.message || 'Erro ao comparar', 'error');
+          return;
+        }
+
+        renderComparacaoCompleta(data);
+      } catch (err) {
+        document.getElementById('licLoading').style.display = 'none';
+        showToast('Erro de conexão: ' + err.message, 'error');
+      }
+    }
+
+    function renderComparacaoCompleta(data) {
+      document.getElementById('licComparacaoCompleta').style.display = 'block';
+
+      // Alerta GDAP
+      const gdapAlert = document.getElementById('lic3GdapAlert');
+      if (data.gdapStatus === 'ativo') {
+        gdapAlert.style.background = '#ecfdf5'; gdapAlert.style.border = '1px solid #6ee7b7'; gdapAlert.style.color = '#065f46';
+        gdapAlert.innerHTML = '✅ <strong>Portal (GDAP)</strong> — Dados do portal do cliente lidos com sucesso.';
+      } else if (data.gdapStatus === 'nao_configurado') {
+        gdapAlert.style.background = '#fef2f2'; gdapAlert.style.border = '1px solid #fca5a5'; gdapAlert.style.color = '#991b1b';
+        gdapAlert.innerHTML = '❌ <strong>Portal (GDAP)</strong> — Não configurado.';
+      } else if (data.gdapStatus === 'pendente') {
+        gdapAlert.style.background = '#fffbeb'; gdapAlert.style.border = '1px solid #fcd34d'; gdapAlert.style.color = '#92400e';
+        gdapAlert.innerHTML = '⏳ <strong>Portal (GDAP)</strong> — Aguardando aceitação do cliente.';
+      } else {
+        gdapAlert.style.background = '#fef3c7'; gdapAlert.style.border = '1px solid #fbbf24'; gdapAlert.style.color = '#92400e';
+        gdapAlert.innerHTML = '⚠️ <strong>Portal (GDAP)</strong> — ' + esc(data.gdapMessage || 'Indisponível.');
+      }
+
+      // Alerta Distribuidor
+      const distAlert = document.getElementById('lic3DistAlert');
+      const distLabel = data.distribuidorCategoria === 'ingram' ? 'Ingram Micro' : data.distribuidorCategoria === 'tds' ? 'TD SYNNEX' : 'Distribuidor';
+      document.getElementById('lic3DistHeader').textContent = distLabel;
+
+      if (data.distribuidorStatus === 'ativo') {
+        distAlert.style.background = '#ecfdf5'; distAlert.style.border = '1px solid #6ee7b7'; distAlert.style.color = '#065f46';
+        distAlert.innerHTML = '✅ <strong>' + esc(distLabel) + '</strong> — Dados de assinaturas lidos com sucesso.';
+      } else if (data.distribuidorStatus === 'nao_configurado') {
+        distAlert.style.background = '#fef2f2'; distAlert.style.border = '1px solid #fca5a5'; distAlert.style.color = '#991b1b';
+        distAlert.innerHTML = '❌ <strong>' + esc(distLabel) + '</strong> — API não configurada. ' + esc(data.distribuidorMessage || '');
+      } else if (data.distribuidorStatus === 'sem_revenda') {
+        distAlert.style.background = '#fef3c7'; distAlert.style.border = '1px solid #fbbf24'; distAlert.style.color = '#92400e';
+        distAlert.innerHTML = '⚠️ <strong>Distribuidor</strong> — ' + esc(data.distribuidorMessage || 'Nenhuma revenda Ingram/TDS no pedido.');
+      } else {
+        distAlert.style.background = '#fef2f2'; distAlert.style.border = '1px solid #fca5a5'; distAlert.style.color = '#991b1b';
+        distAlert.innerHTML = '❌ <strong>' + esc(distLabel) + '</strong> — ' + esc(data.distribuidorMessage || 'Erro.');
+      }
+
+      // Tabela principal
+      const comparacao = data.comparacao || [];
+      const tbody = document.getElementById('lic3ComparacaoBody');
+
+      if (!comparacao.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="color:var(--muted);font-weight:700;">Nenhuma licença para comparar</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = comparacao.map(c => {
+        // Resultado geral
+        let resultadoHtml = '';
+        let rowBg = '';
+        switch (c.resultadoGeral) {
+          case 'ok':
+            resultadoHtml = '<span style="color:#10b981;font-weight:700;">✅ OK (3 vias)</span>';
+            rowBg = 'background:#f0fdf4;';
+            break;
+          case 'parcial_portal':
+            resultadoHtml = '<span style="color:#3b82f6;font-weight:700;">🔵 OK Portal</span>';
+            rowBg = 'background:#eff6ff;';
+            break;
+          case 'parcial_distribuidor':
+            resultadoHtml = '<span style="color:#8b5cf6;font-weight:700;">🟣 OK Dist.</span>';
+            rowBg = 'background:#f5f3ff;';
+            break;
+          case 'qtd_divergente':
+            resultadoHtml = '<span style="color:#f59e0b;font-weight:700;">⚠️ Qtd diverge</span>';
+            rowBg = 'background:#fffbeb;';
+            break;
+          case 'suspensa':
+            resultadoHtml = '<span style="color:#ef4444;font-weight:700;">🔴 Suspensa</span>';
+            rowBg = 'background:#fef2f2;';
+            break;
+          case 'nao_encontrada':
+            resultadoHtml = '<span style="color:#ef4444;font-weight:700;">❌ Não encontrada</span>';
+            rowBg = 'background:#fef2f2;';
+            break;
+          default:
+            resultadoHtml = '<span style="color:#6b7280;font-weight:600;">⏳ Pendente</span>';
+            break;
+        }
+
+        // Portal
+        const portalSku = c.portalMatch ? skuFriendlyName(c.portalMatch.skuPartNumber) : '—';
+        const portalQtd = c.portalMatch ? c.portalMatch.total : '—';
+        let portalStatusIcon = '';
+        if (c.resultadoPortal === 'ok') portalStatusIcon = '✅';
+        else if (c.resultadoPortal === 'qtd_divergente') portalStatusIcon = '⚠️';
+        else if (c.resultadoPortal === 'suspensa') portalStatusIcon = '🔴';
+        else if (c.resultadoPortal === 'nao_encontrada') portalStatusIcon = '❌';
+        else portalStatusIcon = '—';
+
+        // Distribuidor
+        const distName = c.distribuidorMatch ? (c.distribuidorMatch.productName || c.distribuidorMatch.skuPartNumber) : '—';
+        const distQtd = c.distribuidorMatch ? c.distribuidorMatch.quantity : '—';
+        let distStatusIcon = '';
+        if (c.resultadoDist === 'ok') distStatusIcon = '✅';
+        else if (c.resultadoDist === 'qtd_divergente') distStatusIcon = '⚠️';
+        else if (c.resultadoDist === 'suspensa') distStatusIcon = '🔴';
+        else if (c.resultadoDist === 'nao_encontrada') distStatusIcon = '❌';
+        else distStatusIcon = '—';
+
+        return `
+          <tr style="${rowBg}">
+            <td><strong>${esc(c.produto)}</strong></td>
+            <td style="text-align:center;font-weight:600;">${c.qtd || 1}</td>
+            <td>${portalStatusIcon} ${c.portalMatch ? '<strong>' + esc(portalSku) + '</strong><div style="font-size:0.7rem;color:var(--muted);font-family:monospace;">' + esc(c.portalMatch.skuPartNumber) + '</div>' : '<span style="color:var(--muted);">—</span>'}</td>
+            <td style="text-align:center;">${portalQtd}</td>
+            <td>${distStatusIcon} ${c.distribuidorMatch ? '<strong>' + esc(distName) + '</strong><div style="font-size:0.7rem;color:var(--muted);font-family:monospace;">' + esc(c.distribuidorMatch.skuPartNumber || '') + '</div>' : '<span style="color:var(--muted);">—</span>'}</td>
+            <td style="text-align:center;">${distQtd}</td>
+            <td>${resultadoHtml}</td>
+          </tr>
+        `;
+      }).join('');
+
+      // Extras do portal não matching
+      const matchedPortalSkus = new Set(comparacao.filter(c => c.portalMatch).map(c => c.portalMatch.skuPartNumber));
+      const extrasPortal = (data.portal || []).filter(p => !matchedPortalSkus.has(p.skuPartNumber));
+
+      const matchedDistSkus = new Set(comparacao.filter(c => c.distribuidorMatch).map(c => c.distribuidorMatch.skuPartNumber));
+      const extrasDist = (data.distribuidor || []).filter(d => !matchedDistSkus.has(d.skuPartNumber));
+
+      const extrasPanel = document.getElementById('lic3ExtrasPanel');
+      const hasExtras = (extrasPortal.length > 0 && data.gdapStatus === 'ativo') || (extrasDist.length > 0 && data.distribuidorStatus === 'ativo');
+
+      extrasPanel.style.display = hasExtras ? 'block' : 'none';
+
+      // Portal extras
+      const portalExtrasDiv = document.getElementById('lic3ExtrasPortal');
+      if (extrasPortal.length > 0 && data.gdapStatus === 'ativo') {
+        portalExtrasDiv.style.display = 'block';
+        document.getElementById('lic3ExtrasPortalBody').innerHTML = extrasPortal.map(p => {
+          const sc = p.capabilityStatus === 'Enabled' ? '#10b981' : '#f59e0b';
+          return `<tr>
+            <td><strong>${esc(skuFriendlyName(p.skuPartNumber))}</strong><div style="font-size:0.7rem;color:var(--muted);font-family:monospace;">${esc(p.skuPartNumber)}</div></td>
+            <td><span style="color:${sc};font-weight:600;">${esc(p.capabilityStatus)}</span></td>
+            <td>${p.total}</td><td>${p.consumed}</td>
+            <td style="color:${p.available<=0?'#ef4444':'#10b981'};font-weight:700;">${p.available}</td>
+          </tr>`;
+        }).join('');
+      } else {
+        portalExtrasDiv.style.display = 'none';
+      }
+
+      // Distribuidor extras
+      const distExtrasDiv = document.getElementById('lic3ExtrasDist');
+      if (extrasDist.length > 0 && data.distribuidorStatus === 'ativo') {
+        distExtrasDiv.style.display = 'block';
+        document.getElementById('lic3ExtrasDistTitle').textContent = distLabel;
+        document.getElementById('lic3ExtrasDistBody').innerHTML = extrasDist.map(d => {
+          const ds = (d.status || '').toLowerCase();
+          const dColor = ['active','ativo','enabled'].includes(ds) ? '#10b981' : '#f59e0b';
+          return `<tr>
+            <td><strong>${esc(d.productName || d.skuPartNumber)}</strong></td>
+            <td style="font-family:monospace;font-size:0.8rem;">${esc(d.skuPartNumber)}</td>
+            <td style="text-align:center;">${d.quantity}</td>
+            <td><span style="color:${dColor};font-weight:600;">${esc(d.status)}</span></td>
+          </tr>`;
+        }).join('');
+      } else {
+        distExtrasDiv.style.display = 'none';
+      }
+    }
+
     // CSS animation for spinner
     if (!document.getElementById('spinStyle')) {
       const style = document.createElement('style');
@@ -1829,24 +3060,150 @@
       document.head.appendChild(style);
     }
 
-    // ===== INIT =====
+    // ===== GLOBAL SEARCH =====
+    function globalSearchGo(){
+      const q = (document.getElementById('globalSearch')?.value || '').trim();
+      if (!q) return;
+      // Navigate to Pedidos page and apply search
+      gotoPage('pedidos');
+      const searchInput = document.getElementById('pedidosSearch');
+      if (searchInput) { searchInput.value = q; }
+      pedidosPage = 1;
+      loadPedidos().then(() => renderPedidosTable());
+    }
+
+    // ===== AUDIT LOG =====
+    async function loadAuditLog(){
+      const acao = (document.getElementById('auditAcaoFilter')?.value || '').trim();
+      const params = new URLSearchParams();
+      if (acao) params.set('acao', acao);
+      params.set('page', String(auditPage));
+      params.set('pageSize', String(auditPageSize));
+
+      const res = await authFetch(API_BASE + '/api/audit-log?' + params.toString());
+      const data = await res.json().catch(() => ({}));
+      const body = document.getElementById('auditBody');
+      if (!res.ok || !data.logs?.length){
+        body.innerHTML = '<tr><td colspan="6" style="color:var(--muted);font-weight:700;">Nenhum registro encontrado</td></tr>';
+        return;
+      }
+
+      body.innerHTML = data.logs.map(l => {
+        const dt = l.criado_em ? new Date(l.criado_em).toLocaleString('pt-BR') : '—';
+        const acaoBadge = {
+          'CRIAR_PEDIDO': '<span class="badge badge-success">Criar Pedido</span>',
+          'EDITAR_PEDIDO': '<span class="badge badge-warning">Editar Pedido</span>',
+          'EXCLUIR_PEDIDO': '<span class="badge badge-danger">Excluir Pedido</span>',
+          'EXPORTAR_PEDIDOS': '<span class="badge badge-muted">Exportar</span>',
+        }[l.acao] || `<span class="badge">${esc(l.acao)}</span>`;
+
+        let detalhes = '';
+        if (l.detalhes) {
+          try {
+            const d = JSON.parse(l.detalhes);
+            detalhes = Object.entries(d).map(([k,v]) => `<b>${esc(k)}:</b> ${esc(String(v))}`).join('<br>');
+          } catch { detalhes = esc(l.detalhes); }
+        }
+
+        return `<tr>
+          <td style="white-space:nowrap;">${dt}</td>
+          <td>${esc(l.usuario || '—')}</td>
+          <td>${acaoBadge}</td>
+          <td>${esc(l.entidade || '—')}</td>
+          <td>${esc(l.entidade_id || '—')}</td>
+          <td style="font-size:12px;max-width:300px;word-break:break-all;">${detalhes || '—'}</td>
+        </tr>`;
+      }).join('');
+
+      // pagination
+      const totalPages = data.totalPages || 1;
+      const info = document.getElementById('auditPageInfo');
+      const prevBtn = document.getElementById('auditPrevBtn');
+      const nextBtn = document.getElementById('auditNextBtn');
+      if (info) info.textContent = `Página ${data.page || auditPage} de ${totalPages}`;
+      if (prevBtn) prevBtn.disabled = auditPage <= 1;
+      if (nextBtn) nextBtn.disabled = auditPage >= totalPages;
+    }
+
+    function auditPrevPage() { auditPage = Math.max(1, auditPage - 1); loadAuditLog(); }
+    function auditNextPage() { auditPage++; loadAuditLog(); }
+
+    // ===== TOAST NOTIFICATION SYSTEM =====
+    function showToast(message, type = 'info', duration = 3500) {
+      const container = document.getElementById('toastContainer');
+      const icons = {
+        success: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>',
+        error: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>',
+        warning: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4m0 4h.01"/></svg>',
+        info: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>'
+      };
+      const toast = document.createElement('div');
+      toast.className = 'toast ' + type;
+      toast.innerHTML = (icons[type] || icons.info) + '<span>' + message + '</span>';
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.add('toast-out');
+        toast.addEventListener('animationend', () => toast.remove());
+      }, duration);
+    }
+
+    // ===== CONFIRM DIALOG =====
+    function showConfirm({ title, message, confirmText = 'Confirmar', cancelText = 'Cancelar', type = 'danger' }) {
+      return new Promise((resolve) => {
+        const overlay = document.createElement('div');
+        overlay.className = 'confirm-overlay';
+        const iconSvg = type === 'danger'
+          ? '<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 16h10l1-16"/></svg>'
+          : '<svg viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>';
+        overlay.innerHTML = `
+          <div class="confirm-box">
+            <div class="confirm-body">
+              <div class="confirm-icon ${type}">${iconSvg}</div>
+              <div class="confirm-title">${title}</div>
+              <div class="confirm-desc">${message}</div>
+            </div>
+            <div class="confirm-actions">
+              <button class="btn btn-muted" id="confirmCancel">${cancelText}</button>
+              <button class="btn ${type === 'danger' ? 'btn-danger' : 'btn-primary'}" id="confirmOk">${confirmText}</button>
+            </div>
+          </div>`;
+        document.body.appendChild(overlay);
+        overlay.querySelector('#confirmCancel').onclick = () => { overlay.remove(); resolve(false); };
+        overlay.querySelector('#confirmOk').onclick = () => { overlay.remove(); resolve(true); };
+        overlay.addEventListener('keydown', (e) => { if (e.key === 'Escape') { overlay.remove(); resolve(false); } });
+        overlay.querySelector('#confirmOk').focus();
+      });
+    }
+
+    // ===== KEYBOARD SHORTCUTS =====
     document.addEventListener('keydown', (e) => {
+      // Escape closes modals/sidebar
       if (e.key === 'Escape'){
         closeNewPedidoModal();
+        closeShareModal();
+        closeHistoricoModal();
         closeSidebar();
+      }
+      // "/" focuses global search (when not in input)
+      if (e.key === '/' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) {
+        e.preventDefault();
+        document.getElementById('globalSearch').focus();
+      }
+      // Ctrl+K also focuses global search
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        document.getElementById('globalSearch').focus();
       }
     });
 
     function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 
-    // initial load
-    if (!authToken) {
-      // evita spam de 401 no console: admin é uma área autenticada
-      // (e mantém o backend protegendo as rotas)
-      window.location.href = '/login.html';
-    } else {
-      loadAllData();
-    }
+    // initial load — auth já é validada pelo servidor via sessão
+    loadAllData().catch(err => {
+      if (err.message !== 'SESSION_EXPIRED') {
+        console.error('Erro ao carregar dados:', err);
+      }
+    });
   </script>
 </body>
 </html>
