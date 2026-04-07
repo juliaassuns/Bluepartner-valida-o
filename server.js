@@ -13,6 +13,7 @@ const helmet = require('helmet');
 const fetch = global.fetch;
 const rateLimit = require('express-rate-limit');
 const session = require('express-session');
+const SQLiteStore = require('connect-sqlite3')(session);
 const { ConfidentialClientApplication } = require('@azure/msal-node');
 const { jwtVerify, createRemoteJWKSet } = require('jose');
 const { initDatabase, dbGet, dbAll, dbRun } = require('./db');
@@ -80,6 +81,9 @@ app.set('trust proxy', 1);
 app.use(session({
     name: 'bp.sid',
     secret: SESSION_SECRET,
+    store: process.env.NODE_ENV !== 'test'
+        ? new SQLiteStore({ db: 'sessions.db', dir: path.join(__dirname, 'data') })
+        : undefined,
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -115,7 +119,16 @@ app.use((req, res, next) => {
 
 // Security headers
 app.use(helmet({
-    contentSecurityPolicy: false, // CSP can break inline scripts
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com"],
+            imgSrc: ["'self'", "data:"],
+            connectSrc: ["'self'"],
+        },
+    },
     crossOriginEmbedderPolicy: false
 }));
 
@@ -127,7 +140,7 @@ app.use((req, res, next) => {
 
 // CORS
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: process.env.CORS_ORIGIN || false,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -144,6 +157,12 @@ const globalLimiter = rateLimit({
     message: { error: 'Muitas requisições. Tente novamente em 1 minuto.' }
 });
 app.use(globalLimiter);
+
+// GUID validation helper
+const GUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function isValidGuid(value) {
+    return typeof value === 'string' && GUID_REGEX.test(value);
+}
 
 // Strict rate limit for auth + validation
 const authLimiter = rateLimit({
@@ -458,6 +477,12 @@ app.post('/api/validar', validarLimiter, async (req, res) => {
 
         if (!pedidoId || !token) {
             return res.status(400).json({ error: 'pedidoId e token são obrigatórios' });
+        }
+
+        // Verifica se pedido existe e token confere antes de qualquer operação
+        const pedido = await dbGet('SELECT pedido_id FROM pedidos WHERE pedido_id = ? AND token = ?', [pedidoId, token]);
+        if (!pedido) {
+            return res.status(404).json({ error: 'Pedido não encontrado ou token inválido' });
         }
 
         // Captura IP real (considera proxy reverso)
@@ -2069,6 +2094,9 @@ app.get('/api/gdap/relacoes-ativas', requireAdminOrSuper, async (req, res) => {
  */
 app.get('/api/gdap/status/:relationshipId', requireAdminOrSuper, async (req, res) => {
     try {
+        if (!isValidGuid(req.params.relationshipId)) {
+            return res.status(400).json({ error: 'relationshipId inválido (deve ser GUID)' });
+        }
         if (!isGdapConfigured()) {
             return res.status(503).json({ error: 'GDAP não configurado' });
         }
@@ -2090,6 +2118,9 @@ app.get('/api/gdap/status/:relationshipId', requireAdminOrSuper, async (req, res
  */
 app.get('/api/gdap/licencas/:customerTenantId', requireAdminOrSuper, async (req, res) => {
     try {
+        if (!isValidGuid(req.params.customerTenantId)) {
+            return res.status(400).json({ error: 'customerTenantId inválido (deve ser GUID)' });
+        }
         if (!isGdapConfigured()) {
             return res.status(503).json({ error: 'GDAP não configurado' });
         }

@@ -148,6 +148,20 @@ describe('POST /api/validar (público)', () => {
         expect(pedido.status).toBe('VALIDADO');
     });
 
+    test('deve retornar 404 com token inválido no body', async () => {
+        const res = await request(app)
+            .post('/api/validar')
+            .send({ pedidoId: 'PED-API-001', token: 'token_errado', revenda: 'ingram' });
+        expect(res.status).toBe(404);
+    });
+
+    test('deve retornar 404 com pedidoId inexistente', async () => {
+        const res = await request(app)
+            .post('/api/validar')
+            .send({ pedidoId: 'PED-NOPE', token: 'qualquer', revenda: 'ingram' });
+        expect(res.status).toBe(404);
+    });
+
     test('deve retornar 400 sem pedidoId', async () => {
         const res = await request(app)
             .post('/api/validar')
@@ -837,5 +851,88 @@ describe('Páginas estáticas', () => {
         const res = await request(app).get('/superadmin');
         expect(res.status).toBe(302);
         expect(res.headers.location).toBe('/login');
+    });
+});
+
+// =============================================
+// GDAP ENDPOINTS (admin) — validação de params e GDAP não configurado
+// =============================================
+
+describe('GDAP licenças e comparação (admin)', () => {
+    beforeAll(() => loginAsAdmin());
+
+    test('GET /api/gdap/licencas/:id deve retornar 400 para GUID inválido', async () => {
+        const res = await request(app).get('/api/gdap/licencas/nao-e-um-guid');
+        expect(res.status).toBe(400);
+        expect(res.body.error).toContain('inválido');
+    });
+
+    test('GET /api/gdap/licencas/:id deve retornar 503 quando GDAP não configurado', async () => {
+        const res = await request(app).get('/api/gdap/licencas/00000000-0000-0000-0000-000000000000');
+        expect(res.status).toBe(503);
+        expect(res.body.error).toContain('GDAP');
+    });
+
+    test('GET /api/gdap/status/:id deve retornar 400 para GUID inválido', async () => {
+        const res = await request(app).get('/api/gdap/status/invalido');
+        expect(res.status).toBe(400);
+        expect(res.body.error).toContain('inválido');
+    });
+
+    test('GET /api/gdap/status/:id deve retornar 503 quando GDAP não configurado', async () => {
+        const res = await request(app).get('/api/gdap/status/00000000-0000-0000-0000-000000000000');
+        expect(res.status).toBe(503);
+        expect(res.body.error).toContain('GDAP');
+    });
+
+    test('GET /api/gdap/comparar/:pedidoId deve retornar 404 para pedido inexistente', async () => {
+        const res = await request(app).get('/api/gdap/comparar/PED-NOPE');
+        expect(res.status).toBe(404);
+    });
+
+    test('GET /api/gdap/comparar/:pedidoId com pedido sem licenças', async () => {
+        // Criar pedido sem licenças
+        await dbRun(
+            'INSERT OR IGNORE INTO pedidos (pedido_id, token, cliente, cnpj) VALUES (?, ?, ?, ?)',
+            ['PED-GDAP-EMPTY', 'tok_empty', 'Sem Licenças SA', '99.999.999/0001-99']
+        );
+        const res = await request(app).get('/api/gdap/comparar/PED-GDAP-EMPTY');
+        expect(res.status).toBe(200);
+        expect(res.body.gdapStatus).toBe('sem_licencas');
+    });
+
+    test('GET /api/gdap/comparar/:pedidoId sem GDAP configurado retorna nao_configurado', async () => {
+        const res = await request(app).get('/api/gdap/comparar/PED-API-001');
+        expect(res.status).toBe(200);
+        expect(res.body.gdapStatus).toBe('nao_configurado');
+        expect(res.body.comparacao).toBeInstanceOf(Array);
+        expect(res.body.comparacao.length).toBeGreaterThan(0);
+        expect(res.body.comparacao[0].resultado).toBe('gdap_nao_configurado');
+    });
+
+    test('GET /api/gdap/comparar-completo/:pedidoId sem GDAP retorna info completa', async () => {
+        const res = await request(app).get('/api/gdap/comparar-completo/PED-API-001');
+        expect(res.status).toBe(200);
+        expect(res.body.gdapStatus).toBe('nao_configurado');
+        expect(res.body.proposta).toBeInstanceOf(Array);
+    });
+
+    test('GET /api/gdap/comparar-completo/:pedidoId pedido inexistente retorna 404', async () => {
+        const res = await request(app).get('/api/gdap/comparar-completo/PED-NOPE');
+        expect(res.status).toBe(404);
+    });
+});
+
+describe('GDAP endpoints requerem auth', () => {
+    beforeAll(() => logout());
+
+    test('GET /api/gdap/licencas/:id sem sessão retorna 401', async () => {
+        const res = await request(app).get('/api/gdap/licencas/00000000-0000-0000-0000-000000000000');
+        expect(res.status).toBe(401);
+    });
+
+    test('GET /api/gdap/comparar/:pedidoId sem sessão retorna 401', async () => {
+        const res = await request(app).get('/api/gdap/comparar/PED-API-001');
+        expect(res.status).toBe(401);
     });
 });

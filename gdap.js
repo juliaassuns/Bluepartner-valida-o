@@ -17,8 +17,11 @@ const LICENSE_READER_ROLE_ID = '4d6ac14f-3453-41d0-bef9-a3e0c569773a';
 const DIRECTORY_READERS_ROLE_ID = '88d8e3e3-8f55-4a1e-953a-9b9898b8876b';
 const DEFAULT_DURATION = 'P730D';          // 730 dias (máximo)
 const GRAPH_TIMEOUT = 30000;              // 30s timeout para chamadas Graph
-const LICENSE_RETRY_ATTEMPTS = 4;         // Tentativas de retry (licenças podem demorar a aparecer)
-const LICENSE_RETRY_DELAY_MS = 15000;     // 15s entre tentativas
+const LICENSE_RETRY_ATTEMPTS = 2;         // Tentativas de retry (reduzido para não bloquear HTTP)
+const LICENSE_RETRY_DELAY_MS = 5000;      // 5s entre tentativas
+
+// Cache de MSAL clients por tenant (evita recriar a cada retry)
+const customerMsalCache = new Map();
 
 // ===== MSAL CLIENT (singleton) =====
 let msalClient = null;
@@ -229,13 +232,16 @@ async function lerLicencasCliente(customerTenantId, options = {}) {
         // --- Método 2: Fallback — token direto no tenant do cliente ---
         try {
             console.log(`[GDAP] Tentativa ${attempt}/${maxRetries} — fallback via token no tenant do cliente...`);
-            const customerMsal = new msal.ConfidentialClientApplication({
-                auth: {
-                    clientId: process.env.GDAP_CLIENT_ID,
-                    clientSecret: process.env.GDAP_CLIENT_SECRET,
-                    authority: `https://login.microsoftonline.com/${customerTenantId}`,
-                },
-            });
+            if (!customerMsalCache.has(customerTenantId)) {
+                customerMsalCache.set(customerTenantId, new msal.ConfidentialClientApplication({
+                    auth: {
+                        clientId: process.env.GDAP_CLIENT_ID,
+                        clientSecret: process.env.GDAP_CLIENT_SECRET,
+                        authority: `https://login.microsoftonline.com/${customerTenantId}`,
+                    },
+                }));
+            }
+            const customerMsal = customerMsalCache.get(customerTenantId);
             const customerToken = await customerMsal.acquireTokenByClientCredential({
                 scopes: [GRAPH_SCOPE],
             });

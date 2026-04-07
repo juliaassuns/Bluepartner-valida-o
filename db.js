@@ -25,6 +25,13 @@ function initDatabase() {
     return new Promise((resolve, reject) => {
         const db = getDb();
 
+        // Helper: loga erros de migration exceto "duplicate column"
+        const migrationCb = (err) => {
+            if (err && !err.message.includes('duplicate column')) {
+                console.error('[DB Migration]', err.message);
+            }
+        };
+
         db.serialize(() => {
             // Tabela de pedidos
             db.run(`
@@ -44,8 +51,8 @@ function initDatabase() {
             `);
 
             // Migração: adiciona colunas GDAP se tabela já existir sem elas
-            db.run(`ALTER TABLE pedidos ADD COLUMN gdap_link TEXT`, () => {});
-            db.run(`ALTER TABLE pedidos ADD COLUMN gdap_relationship_id TEXT`, () => {});
+            db.run(`ALTER TABLE pedidos ADD COLUMN gdap_link TEXT`, migrationCb);
+            db.run(`ALTER TABLE pedidos ADD COLUMN gdap_relationship_id TEXT`, migrationCb);
 
             // Tabela de licenças do pedido
             db.run(`
@@ -76,7 +83,7 @@ function initDatabase() {
             `);
 
             // Migração: adiciona coluna revenda_nome se não existir
-            db.run(`ALTER TABLE pedidos ADD COLUMN revenda_nome TEXT DEFAULT ''`, () => {});
+            db.run(`ALTER TABLE pedidos ADD COLUMN revenda_nome TEXT DEFAULT ''`, migrationCb);
 
             // Tabela de revendas (parceiros revendedores)
             db.run(`
@@ -94,9 +101,9 @@ function initDatabase() {
             `);
 
             // Migração: adiciona colunas partner_id e link_base à tabela revendas
-            db.run(`ALTER TABLE revendas ADD COLUMN partner_id TEXT DEFAULT ''`, () => {});
-            db.run(`ALTER TABLE revendas ADD COLUMN link_base TEXT DEFAULT ''`, () => {});
-            db.run(`ALTER TABLE revendas ADD COLUMN categoria TEXT DEFAULT ''`, () => {});
+            db.run(`ALTER TABLE revendas ADD COLUMN partner_id TEXT DEFAULT ''`, migrationCb);
+            db.run(`ALTER TABLE revendas ADD COLUMN link_base TEXT DEFAULT ''`, migrationCb);
+            db.run(`ALTER TABLE revendas ADD COLUMN categoria TEXT DEFAULT ''`, migrationCb);
 
             // Tabela de associação pedido ↔ revendas (muitos-para-muitos)
             db.run(`
