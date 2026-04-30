@@ -2,15 +2,15 @@
   "name": "bluepartner-validacao",
   "version": "1.0.0",
   "description": "Sistema de validação de licenças Microsoft CSP - BluePartner",
-  "main": "server.js",
+  "main": "src/server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js",
-    "seed": "node seed.js",
-    "setup": "npm install && node seed.js",
-    "logs": "node -e \"const {initDatabase,dbAll}=require('./db');initDatabase().then(()=>dbAll('SELECT * FROM logs ORDER BY criado_em DESC')).then(r=>{console.table(r);process.exit()})\"",
-    "pedidos": "node -e \"const {initDatabase,dbAll}=require('./db');initDatabase().then(()=>dbAll('SELECT pedido_id,cliente,revenda,status FROM pedidos')).then(r=>{console.table(r);process.exit()})\"",
-    "reset": "node -e \"const fs=require('fs'),p=require('path').join(__dirname,'data','bluepartner.db');if(fs.existsSync(p)){fs.unlinkSync(p);console.log('DB removido')}\" && node seed.js",
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "seed": "node src/seed.js",
+    "setup": "npm install && node src/seed.js",
+    "logs": "node -e \"const {initDatabase,dbAll}=require('./src/db');initDatabase().then(()=>dbAll('SELECT * FROM logs ORDER BY criado_em DESC')).then(r=>{console.table(r);process.exit()})\"",
+    "pedidos": "node -e \"const {initDatabase,dbAll}=require('./src/db');initDatabase().then(()=>dbAll('SELECT pedido_id,cliente,revenda,status FROM pedidos')).then(r=>{console.table(r);process.exit()})\"",
+    "reset": "node -e \"const fs=require('fs'),p=require('path').join(__dirname,'data','bluepartner.db');if(fs.existsSync(p)){fs.unlinkSync(p);console.log('DB removido')}\" && node src/seed.js",
     "test": "jest --verbose --forceExit --detectOpenHandles --runInBand",
     "test:db": "jest tests/db.test.js --verbose --forceExit",
     "test:api": "jest tests/api.test.js --verbose --forceExit --detectOpenHandles"
@@ -35,8 +35,6 @@
   "license": "MIT",
   "dependencies": {
     "@azure/msal-node": "^3.8.8",
-    "axios": "^1.13.5",
-    "connect-sqlite3": "^0.9.16",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
@@ -44,12 +42,9 @@
     "express-session": "^1.19.0",
     "helmet": "^8.1.0",
     "jose": "^6.2.1",
-    "mammoth": "^1.12.0",
     "mssql": "^11.0.1",
-    "multer": "^2.1.0",
-    "pdf-parse": "^1.1.1",
-    "sqlite3": "^5.1.7",
-    "xlsx": "^0.18.5"
+    "session-file-store": "^1.5.0",
+    "sqlite3": "^5.1.7"
   },
   "engines": {
     "node": ">=18.0.0"

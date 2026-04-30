@@ -1,0 +1,15 @@
+<step title="Incoming Request" date="2026-04-06T16:55:42.658" instance="f58753" url="/api/publish?type=zip&amp;async=True" method="POST" type="request" pid="833,1,18" Accept="*/*" Host="bluepartner-validacao.scm.azurewebsites.net" User-Agent="AZURECLI/2.84.0 (MSI)" Accept-Encoding="gzip, deflate" Authorization="Bea..." Cache-Control="no-cache" Content-Type="application/octet-stream" Cookie="ARRAffinity=f5875308607d620b03f012a327f0bad9e644c3062d0554b754e36448ba2d1484; ARRAffinitySameSite=f5875308607d620b03f012a327f0bad9e644c3062d0554b754e36448ba2d1484" Content-Length="181101" x-ms-client-request-id="6b2b5d16-31d9-11f1-a308-44f79f8b46b8" x-ms-artifact-checksum="b0b28e42be8bfad6af7c78e5577bd17d09d763651db43e1878ac0b58219309b1" X-ARR-LOG-ID="6b2b5d16-31d9-11f1-a308-44f79f8b46b8" CLIENT-IP="177.73.137.36:63450" X-SITE-DEPLOYMENT-ID="bluepartner-validacao" WAS-DEFAULT-HOSTNAME="bluepartner-validacao.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/api/publish?type=zip&amp;async=True" X-Client-IP="177.73.137.36" X-Client-Port="63450" >
+  <step title="OneDeploy" date="2026-04-06T16:55:42.691" >
+    <step title="Starting PushDeployAsync" date="2026-04-06T16:55:42.699" /><!-- duration: 2ms -->
+    <step title="Removing _del_node_modules symlink" date="2026-04-06T16:55:42.711" >
+      <step title="Writing artifact to /tmp/zipdeploy/614d8571-927a-43b9-9dce-6973cfd1a70d.zip" date="2026-04-06T16:55:42.779" >
+        <step title="Writing multipart request body to /tmp/zipdeploy/614d8571-927a-43b9-9dce-6973cfd1a70d.zip" date="2026-04-06T16:55:42.788" /><!-- duration: 11ms -->
+      </step><!-- duration: 57ms -->
+      <step title="Removing previous build artifact&apos;s manifest file" date="2026-04-06T16:55:42.841" >
+        <step title="Start deployment in the background" date="2026-04-06T16:55:42.855" >
+          <step title="Acquiring Deployment Lock" date="2026-04-06T16:55:42.861" /><!-- duration: 2ms -->
+          <step title="Acquired Deployment Lock" date="2026-04-06T16:55:42.895" /><!-- duration: 4ms -->
+        </step><!-- duration: 114ms -->
+      </step><!-- duration: 132ms -->
+      <step title="Outgoing response" date="2026-04-06T16:55:42.976" type="response" statusCode="202" statusText="Accepted" /><!-- duration: 8ms -->
+    </step><!-- duration: 282ms -->

@@ -1,0 +1,6 @@
+<step title="Incoming Request" date="2026-03-09T19:03:38.873" instance="2f737e" url="/logstream" method="GET" type="request" pid="835,1,22" Host="bluepartner-validacao.scm.azurewebsites.net" User-Agent="AZURECLI/2.84.0 (MSI)" Accept-Encoding="identity" Authorization="Bea..." x-ms-client-request-id="4ec62551-1bea-11f1-96c2-a7d5a3c648ae" X-ARR-LOG-ID="4ec62551-1bea-11f1-96c2-a7d5a3c648ae" CLIENT-IP="177.73.137.36:52569" X-SITE-DEPLOYMENT-ID="bluepartner-validacao" WAS-DEFAULT-HOSTNAME="bluepartner-validacao.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/logstream" X-Client-IP="177.73.137.36" X-Client-Port="52569" >
+  <step title="Cleanup Xml Logs" date="2026-03-09T19:03:38.891" /><!-- duration: 20ms -->
+  <step title="LogStreamHandlerMiddleware.Invoke" date="2026-03-09T19:03:39.037" /><!-- duration: 954ms -->
+  <step title="Error occurred" date="2026-03-09T19:07:40.771" type="error" text="LogStreamManager: ProcessRequest end" /><!-- duration: 3ms -->
+  <step title="Outgoing response" date="2026-03-09T19:07:40.780" type="response" statusCode="200" statusText="OK" /><!-- duration: 3ms -->
+</step><!-- duration: 241912ms -->

@@ -7,22 +7,24 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='20' width='100' height='100' fill='%232563eb'/><path d='M25 25h20v20H25zM55 25h20v20H55zM25 55h20v20H25zM55 55h20v20H55z' fill='white'/></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root{
-      --brand:#2563eb;
-      --sidebar:#0f1623;
-      --content:#f1f5f9;
-      --text:#1e293b;
-      --muted:#64748b;
-      --success:#16a34a;
-      --danger:#dc2626;
-      --warning:#ca8a04;
+      --brand:#0f6d8d;
+      --brand-2:#14b8a6;
+      --sidebar:#0d1725;
+      --content:#f4f6f8;
+      --card:#ffffff;
+      --text:#172033;
+      --muted:#5a6a85;
+      --success:#0f9d58;
+      --danger:#c53929;
+      --warning:#b78103;
       --white:#ffffff;
-      --border:#e2e8f0;
+      --border:#d9e2ec;
 
-      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-      --radius: 12px;
+      --shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
+      --radius: 16px;
       --radius-sm: 10px;
       --sidebar-w: 260px;
     }
@@ -31,8 +33,11 @@
     html,body{ height:100%; }
     body{
       margin:0;
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: var(--content);
+      font-family: Manrope, system-ui, -apple-system, Segoe UI, sans-serif;
+      background:
+        radial-gradient(circle at 12% 8%, rgba(15,109,141,0.12) 0, transparent 42%),
+        radial-gradient(circle at 88% 92%, rgba(20,184,166,0.08) 0, transparent 38%),
+        var(--content);
       color: var(--text);
     }
 
@@ -46,7 +51,7 @@
     /* ===== SIDEBAR ===== */
     .sidebar{
       width: var(--sidebar-w);
-      background: var(--sidebar);
+      background: linear-gradient(180deg, #0d1725 0%, #132238 100%);
       color: var(--white);
       flex: 0 0 var(--sidebar-w);
       display:flex;
@@ -68,7 +73,7 @@
     .brand-avatar{
       width: 42px; height: 42px;
       border-radius: 12px;
-      background: var(--brand);
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
       display:flex;
       align-items:center;
       justify-content:center;
@@ -129,9 +134,10 @@
     .menu-item svg{ width:18px; height:18px; fill:none; stroke: currentColor; stroke-width:2; opacity: 0.95; }
     .menu-item:not(.active):hover{ background: rgba(255,255,255,0.08); }
     .menu-item.active{
-      background: var(--brand);
+      background: linear-gradient(135deg, var(--brand), #1388a7);
       color: var(--white);
       border-radius: 8px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
     }
 
     .sidebar-footer{
@@ -153,7 +159,8 @@
     /* ===== TOPBAR ===== */
     .topbar{
       height: 58px;
-      background: var(--white);
+      background: rgba(255,255,255,0.82);
+      backdrop-filter: blur(8px);
       border-bottom: 1px solid var(--border);
       display:flex;
       align-items:center;
@@ -200,6 +207,7 @@
       flex-wrap: wrap;
     }
     .page-title{
+      font-family: Sora, Manrope, sans-serif;
       font-size: clamp(18px, 2.2vw, 28px);
       font-weight: 900;
       letter-spacing: -0.6px;
@@ -228,9 +236,10 @@
     .btn svg{ width: 18px; height: 18px; stroke-width:2; fill:none; stroke: currentColor; }
     .btn:hover{ background: #f8fafc; }
     .btn-primary{
-      background: var(--brand);
-      border-color: rgba(37,99,235,0.35);
+      background: linear-gradient(135deg, var(--brand), #1189a8);
+      border-color: rgba(15,109,141,0.35);
       color: var(--white);
+      box-shadow: 0 10px 20px rgba(15,109,141,0.2);
     }
     .btn-primary:hover{ filter: brightness(0.95); }
 
@@ -256,7 +265,7 @@
     }
 
     .card{
-      background: var(--white);
+      background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
@@ -289,11 +298,25 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      background: rgba(37,99,235,0.10);
+      background: linear-gradient(135deg, rgba(15,109,141,0.15), rgba(20,184,166,0.15));
       color: var(--brand);
       flex: 0 0 44px;
     }
     .metric-icon svg{ width: 20px; height: 20px; stroke: currentColor; stroke-width:2; fill:none; }
+
+    .metric-card-link{
+      cursor: pointer;
+      transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+    }
+    .metric-card-link:hover{
+      transform: translateY(-2px);
+      border-color: #b9c8d8;
+      box-shadow: 0 20px 42px rgba(15, 23, 42, 0.12);
+    }
+    .metric-card-link:focus-visible{
+      outline: 2px solid rgba(15,109,141,.45);
+      outline-offset: 2px;
+    }
 
     /* ===== CHART ===== */
     .chart-title{
@@ -351,7 +374,7 @@
       overflow:auto;
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      background: var(--white);
+      background: linear-gradient(180deg, #ffffff 0%, #fdfefe 100%);
       box-shadow: var(--shadow);
     }
     table{
@@ -363,7 +386,7 @@
     thead th{
       text-align:left;
       padding: 12px 14px;
-      background:#f8fafc;
+      background:#eef4f8;
       color: var(--muted);
       font-weight: 900;
       letter-spacing: 0.6px;
@@ -532,7 +555,176 @@
 
     /* ===== PAGES ===== */
     .page{ display:none; }
-    .page.active{ display:block; }
+    .page.active{ display:block; animation:panelFade .28s ease; }
+    @keyframes panelFade{
+      from{ opacity:0; transform: translateY(8px); }
+      to{ opacity:1; transform: translateY(0); }
+    }
+
+    /* ===== COMPARACAO ===== */
+    .compare-shell{
+      background: linear-gradient(180deg, #ffffff 0%, #f8fcff 100%);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px;
+      margin-bottom: 20px;
+      box-shadow: 0 20px 44px rgba(23, 32, 51, 0.08);
+    }
+    .compare-grid{
+      display:flex;
+      gap:12px;
+      align-items:flex-end;
+      flex-wrap:wrap;
+    }
+    .compare-select{ flex:1; min-width:260px; }
+    .compare-label{
+      font-size:0.78rem;
+      font-weight:800;
+      letter-spacing:.4px;
+      text-transform:uppercase;
+      margin-bottom:6px;
+      color:#47617f;
+      display:block;
+    }
+    .compare-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+    .btn-compare-3{
+      background: linear-gradient(135deg, #0f766e, #0f9d58);
+      color:#fff;
+      border:none;
+      box-shadow: 0 10px 20px rgba(15,118,110,0.22);
+    }
+    .compare-meta{
+      display:none;
+      margin-top:16px;
+      padding-top:16px;
+      border-top:1px solid var(--border);
+    }
+    .compare-meta-grid{
+      display:grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap:10px;
+    }
+    .compare-meta-item{
+      background:#f1f7fb;
+      border:1px solid #d6e4ef;
+      border-radius:12px;
+      padding:10px 12px;
+      font-size:.85rem;
+    }
+    .compare-meta-item strong{ color:#2a3c55; }
+    .compare-block{ margin-top: 8px; }
+    .compare-section-title{
+      font-family: Sora, Manrope, sans-serif;
+      font-size: 1rem;
+      font-weight: 800;
+      margin: 0 0 10px;
+      color:#25364d;
+    }
+    .compare-extras-title{
+      font-size:1rem;
+      font-weight:800;
+      margin-bottom:8px;
+      color:#2a3c55;
+    }
+    .compare-columns{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+    .compare-status-card{
+      flex:1;
+      min-width:250px;
+      border-radius:14px;
+      padding:14px;
+      font-size:.85rem;
+      border:1px solid var(--border);
+      background:#f8fbfd;
+    }
+    .compare-side{ flex:1; min-width:300px; display:none; }
+
+    .compare-notice{
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+      border-radius:14px;
+      padding:12px 14px;
+      border:1px solid var(--border);
+      background:#f8fbfd;
+      color:#27435f;
+      margin-bottom:14px;
+    }
+    .compare-notice-icon{
+      width:24px;
+      height:24px;
+      border-radius:999px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:13px;
+      flex:0 0 24px;
+      margin-top:1px;
+      background:rgba(15,109,141,.14);
+      color:#0f6d8d;
+      font-weight:800;
+    }
+    .compare-notice-title{
+      font-size:.88rem;
+      font-weight:800;
+      letter-spacing:.1px;
+      color:inherit;
+    }
+    .compare-notice-text{
+      font-size:.84rem;
+      color:inherit;
+      opacity:.95;
+      margin-top:2px;
+      line-height:1.35;
+    }
+    .compare-inline-tag{
+      display:inline-block;
+      margin-left:8px;
+      padding:2px 8px;
+      border-radius:999px;
+      font-size:.72rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      border:1px solid rgba(39,67,95,.2);
+      background:rgba(255,255,255,.5);
+      color:#1f344a;
+    }
+    .compare-notice--success{ background:#ecfdf5; border-color:#86efac; color:#14532d; }
+    .compare-notice--success .compare-notice-icon{ background:rgba(16,185,129,.16); color:#047857; }
+    .compare-notice--warning{ background:#fffbeb; border-color:#fcd34d; color:#92400e; }
+    .compare-notice--warning .compare-notice-icon{ background:rgba(245,158,11,.18); color:#b45309; }
+    .compare-notice--error{ background:#fef2f2; border-color:#fca5a5; color:#991b1b; }
+    .compare-notice--error .compare-notice-icon{ background:rgba(239,68,68,.16); color:#b91c1c; }
+    .compare-notice--info{ background:#eff6ff; border-color:#93c5fd; color:#1e3a8a; }
+    .compare-notice--info .compare-notice-icon{ background:rgba(59,130,246,.16); color:#1d4ed8; }
+
+    .compare-cell-main{ font-weight:700; color:#203247; }
+    .compare-cell-sub{
+      font-size:.74rem;
+      color:var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      margin-top:2px;
+    }
+
+    .result-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:.74rem;
+      font-weight:800;
+      border:1px solid transparent;
+      letter-spacing:.15px;
+      white-space:nowrap;
+    }
+    .result-pill.ok{ background:rgba(16,185,129,.12); color:#047857; border-color:rgba(16,185,129,.28); }
+    .result-pill.warning{ background:rgba(245,158,11,.12); color:#b45309; border-color:rgba(245,158,11,.28); }
+    .result-pill.error{ background:rgba(239,68,68,.12); color:#b91c1c; border-color:rgba(239,68,68,.28); }
+    .result-pill.info{ background:rgba(59,130,246,.12); color:#1d4ed8; border-color:rgba(59,130,246,.25); }
+    .result-pill.muted{ background:rgba(100,116,139,.12); color:#475569; border-color:rgba(100,116,139,.25); }
+
+    @media (max-width: 980px){
+      .compare-meta-grid{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
 
     /* ===== FILTERS / TOOLBAR ===== */
     .toolbar{
@@ -613,6 +805,8 @@
       .grid-4{ grid-template-columns: 1fr; }
       .form-grid{ grid-template-columns: 1fr; }
       .input{ width: 100%; min-width: 0; }
+      .compare-shell{ padding: 16px; border-radius: 14px; }
+      .compare-meta-grid{ grid-template-columns: 1fr; }
     }
     @media(prefers-reduced-motion:reduce){
       *{animation-duration:0.01ms!important;transition-duration:0.01ms!important}
@@ -768,7 +962,7 @@
           </div>
 
           <div class="grid-4">
-            <div class="card">
+            <div class="card metric-card-link" role="button" tabindex="0" onclick="gotoPedidosMesAtual()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();gotoPedidosMesAtual();}" title="Abrir pedidos do mês atual">
               <div class="metric">
                 <div>
                   <div class="metric-label">Pedidos no mês</div>
@@ -780,7 +974,7 @@
               </div>
             </div>
 
-            <div class="card">
+            <div class="card metric-card-link" role="button" tabindex="0" onclick="gotoPedidosTodos()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();gotoPedidosTodos();}" title="Abrir lista de pedidos">
               <div class="metric">
                 <div>
                   <div class="metric-label">Clientes (CNPJ únicos)</div>
@@ -792,10 +986,10 @@
               </div>
             </div>
 
-            <div class="card">
+            <div class="card metric-card-link" role="button" tabindex="0" onclick="gotoPedidosNoPrazo()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();gotoPedidosNoPrazo();}" title="Abrir pendentes no prazo">
               <div class="metric">
                 <div>
-                  <div class="metric-label">Usuários no prazo (≤ 7 dias)</div>
+                  <div class="metric-label">Usuários no prazo (🟢 até 7 dias)</div>
                   <div class="metric-value" id="mNoPrazo7Dias">--</div>
                 </div>
                 <div class="metric-icon" style="background:rgba(202,138,4,0.12);color:var(--warning)">
@@ -804,14 +998,26 @@
               </div>
             </div>
 
-            <div class="card">
+            <div class="card metric-card-link" role="button" tabindex="0" onclick="gotoPedidosEmRisco()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();gotoPedidosEmRisco();}" title="Abrir pendentes em risco">
               <div class="metric">
                 <div>
-                  <div class="metric-label">Usuários em risco (> 7 dias)</div>
+                  <div class="metric-label">Usuários em risco (🔴 +7 dias)</div>
                   <div class="metric-value" id="mEmRisco">--</div>
                 </div>
                 <div class="metric-icon" style="background:rgba(220,38,38,0.12);color:var(--danger)">
                   <svg viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>
+                </div>
+              </div>
+            </div>
+
+            <div class="card metric-card-link" role="button" tabindex="0" onclick="gotoPedidosComErroValidacao()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();gotoPedidosComErroValidacao();}" title="Abrir pedidos com erro de validação">
+              <div class="metric">
+                <div>
+                  <div class="metric-label">Clientes com erro validação</div>
+                  <div class="metric-value" id="mClientesErroValidacao">--</div>
+                </div>
+                <div class="metric-icon" style="background:rgba(220,38,38,0.16);color:var(--danger)">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6"/><path d="M9 9l6 6"/></svg>
                 </div>
               </div>
             </div>
@@ -954,37 +1160,39 @@
           </div>
 
           <!-- Seletor de pedido -->
-          <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:20px;">
-            <div style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
-              <div style="flex:1; min-width:250px;">
-                <label style="font-size:0.85rem; font-weight:600; display:block; margin-bottom:4px;">Selecione o Pedido</label>
+          <div class="compare-shell">
+            <div class="compare-grid">
+              <div class="compare-select">
+                <label class="compare-label">Selecione o Pedido</label>
                 <select class="input" id="licSelectPedido" onchange="onSelectPedidoComparar()" style="width:100%;">
                   <option value="">— Selecione um pedido —</option>
                 </select>
               </div>
-              <button class="btn btn-primary" type="button" onclick="executarComparacao()" id="btnComparar" disabled>
-                <svg viewBox="0 0 24 24"><path d="M8 21V3m8 18V3M4 7h4M4 17h4m8-10h4m-4 10h4"/></svg>
-                Comparar com Portal
-              </button>
-              <button class="btn" type="button" onclick="executarComparacaoCompleta()" id="btnCompararCompleto" disabled style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;">
-                <svg viewBox="0 0 24 24" style="width:16px;height:16px;"><path d="M4 6h4M4 12h4M4 18h4m4-12h4m0 0h4m-4 6h4m0 0h4m-4 6h4m0 0h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                Comparação 3 Vias
-              </button>
+              <div class="compare-actions">
+                <button class="btn btn-primary" type="button" onclick="executarComparacao()" id="btnComparar" disabled>
+                  <svg viewBox="0 0 24 24"><path d="M8 21V3m8 18V3M4 7h4M4 17h4m8-10h4m-4 10h4"/></svg>
+                  Comparar com Portal
+                </button>
+                <button class="btn btn-compare-3" type="button" onclick="executarComparacaoCompleta()" id="btnCompararCompleto" disabled>
+                  <svg viewBox="0 0 24 24" style="width:16px;height:16px;"><path d="M4 6h4M4 12h4M4 18h4m4-12h4m0 0h4m-4 6h4m0 0h4m-4 6h4m0 0h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                  Comparação 3 Vias
+                </button>
+              </div>
             </div>
-            <div id="licPedidoInfo" style="display:none; margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
-              <div style="display:flex; gap:24px; flex-wrap:wrap; font-size:0.9rem;">
-                <div><strong>Cliente:</strong> <span id="licInfoCliente"></span></div>
-                <div><strong>CNPJ:</strong> <span id="licInfoCnpj"></span></div>
-                <div><strong>Revenda:</strong> <span id="licInfoRevenda"></span></div>
-                <div><strong>Status:</strong> <span id="licInfoStatus"></span></div>
+            <div id="licPedidoInfo" class="compare-meta">
+              <div class="compare-meta-grid">
+                <div class="compare-meta-item"><strong>Cliente:</strong> <span id="licInfoCliente"></span></div>
+                <div class="compare-meta-item"><strong>CNPJ:</strong> <span id="licInfoCnpj"></span></div>
+                <div class="compare-meta-item"><strong>Revenda:</strong> <span id="licInfoRevenda"></span></div>
+                <div class="compare-meta-item"><strong>Status:</strong> <span id="licInfoStatus"></span></div>
               </div>
             </div>
           </div>
 
           <!-- Resultado da comparação simples (2 vias) -->
-          <div id="licComparacaoResultado" style="display:none;">
+          <div id="licComparacaoResultado" class="compare-block" style="display:none;">
             <!-- Status GDAP -->
-            <div id="licGdapAlert" style="display:none; border-radius:12px; padding:16px; margin-bottom:16px; font-size:0.9rem;"></div>
+            <div id="licGdapAlert" class="compare-status-card" style="display:none;"></div>
 
             <!-- Tabela de comparação -->
             <div class="table-wrap">
@@ -1006,7 +1214,7 @@
 
             <!-- Licenças extras no portal (não pedidas) -->
             <div id="licExtrasPanel" style="display:none; margin-top:20px;">
-              <h3 style="font-size:1rem; font-weight:700; margin-bottom:8px;">📦 Outras licenças no portal do cliente</h3>
+              <h3 class="compare-extras-title">Outras licenças no portal do cliente</h3>
               <div class="table-wrap">
                 <table>
                   <thead>
@@ -1026,11 +1234,11 @@
           </div>
 
           <!-- Resultado da comparação completa (3 vias) -->
-          <div id="licComparacaoCompleta" style="display:none;">
+          <div id="licComparacaoCompleta" class="compare-block" style="display:none;">
             <!-- Alertas de status -->
-            <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px;">
-              <div id="lic3GdapAlert" style="flex:1; min-width:250px; border-radius:12px; padding:16px; font-size:0.85rem;"></div>
-              <div id="lic3DistAlert" style="flex:1; min-width:250px; border-radius:12px; padding:16px; font-size:0.85rem;"></div>
+            <div class="compare-columns">
+              <div id="lic3GdapAlert" class="compare-status-card"></div>
+              <div id="lic3DistAlert" class="compare-status-card"></div>
             </div>
 
             <!-- Tabela comparação 3 vias -->
@@ -1054,10 +1262,10 @@
 
             <!-- Licenças extras -->
             <div id="lic3ExtrasPanel" style="display:none; margin-top:20px;">
-              <h3 style="font-size:1rem; font-weight:700; margin-bottom:8px;">📦 Outras licenças encontradas</h3>
+              <h3 class="compare-extras-title">Outras licenças encontradas</h3>
               <div style="display:flex; gap:16px; flex-wrap:wrap;">
-                <div id="lic3ExtrasPortal" style="flex:1; min-width:300px; display:none;">
-                  <h4 style="font-size:0.9rem; font-weight:600; margin-bottom:8px; color:#6366f1;">Portal do Cliente</h4>
+                <div id="lic3ExtrasPortal" class="compare-side">
+                  <h4 style="font-size:0.9rem; font-weight:600; margin-bottom:8px; color:#0f6d8d;">Portal do Cliente</h4>
                   <div class="table-wrap">
                     <table>
                       <thead><tr><th>SKU</th><th>Status</th><th>Total</th><th>Usadas</th><th>Disp.</th></tr></thead>
@@ -1065,8 +1273,8 @@
                     </table>
                   </div>
                 </div>
-                <div id="lic3ExtrasDist" style="flex:1; min-width:300px; display:none;">
-                  <h4 style="font-size:0.9rem; font-weight:600; margin-bottom:8px; color:#8b5cf6;" id="lic3ExtrasDistTitle">Distribuidor</h4>
+                <div id="lic3ExtrasDist" class="compare-side">
+                  <h4 style="font-size:0.9rem; font-weight:600; margin-bottom:8px; color:#0f766e;" id="lic3ExtrasDistTitle">Distribuidor</h4>
                   <div class="table-wrap">
                     <table>
                       <thead><tr><th>Produto</th><th>SKU</th><th>Qtd</th><th>Status</th></tr></thead>
@@ -1287,8 +1495,15 @@
           </div>
           <div class="form-group full">
             <label>Revendas <span style="color:var(--muted);font-weight:400;font-size:12px">(opcional)</span></label>
-            <div id="npRevendasContainer" style="display:flex;flex-wrap:wrap;gap:8px;padding:8px 0;min-height:36px;align-items:center">
-              <span style="color:var(--muted);font-size:13px">Carregando revendas...</span>
+            <div id="npRevendasWrapper" style="position:relative">
+              <div id="npRevendasSelected" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;min-height:0"></div>
+              <input id="npRevendasSearch" type="text" placeholder="Buscar revenda..." autocomplete="off"
+                style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;outline:none;transition:border-color .2s"
+                onfocus="showRevendasDropdown()" oninput="filterRevendas(this.value)" />
+              <div id="npRevendasDropdown" style="display:none;position:absolute;left:0;right:0;top:100%;margin-top:4px;max-height:220px;overflow-y:auto;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:100;padding:6px">
+                <span style="color:var(--muted);font-size:13px">Carregando revendas...</span>
+              </div>
+              <div id="npRevendasContainer" style="display:none"></div>
             </div>
           </div>
           <div class="form-group full">
@@ -1518,6 +1733,65 @@
         'Logs';
 
       closeSidebar();
+    }
+
+    function formatDateInput(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    async function gotoPedidosComFiltros({ status = '', from = '', to = '', search = '', revenda = '' } = {}) {
+      gotoPage('pedidos');
+
+      const statusEl = document.getElementById('pedidosStatusFilter');
+      const fromEl = document.getElementById('pedidosDateFrom');
+      const toEl = document.getElementById('pedidosDateTo');
+      const searchEl = document.getElementById('pedidosSearch');
+      const revendaEl = document.getElementById('pedidosRevendaFilter');
+
+      if (statusEl) statusEl.value = status;
+      if (fromEl) fromEl.value = from;
+      if (toEl) toEl.value = to;
+      if (searchEl) searchEl.value = search;
+      if (revendaEl) revendaEl.value = revenda;
+
+      await pedidosApplyFilters();
+    }
+
+    async function gotoPedidosMesAtual() {
+      const now = new Date();
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+      await gotoPedidosComFiltros({ from: formatDateInput(firstDay), to: formatDateInput(now) });
+    }
+
+    async function gotoPedidosTodos() {
+      await gotoPedidosComFiltros();
+    }
+
+    async function gotoPedidosNoPrazo() {
+      const now = new Date();
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(now.getDate() - 7);
+      await gotoPedidosComFiltros({
+        status: 'PENDENTE',
+        from: formatDateInput(sevenDaysAgo),
+        to: formatDateInput(now)
+      });
+    }
+
+    async function gotoPedidosEmRisco() {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      await gotoPedidosComFiltros({
+        status: 'PENDENTE',
+        to: formatDateInput(sevenDaysAgo)
+      });
+    }
+
+    async function gotoPedidosComErroValidacao() {
+      await gotoPedidosComFiltros({ status: 'DIVERGENTE' });
     }
 
     // ===== MODAL: NOVO PEDIDO =====
@@ -1845,6 +2119,9 @@ Equipe BluePartner`;
       document.getElementById('npCnpj').value = '';
       // Desmarca checkboxes
       document.querySelectorAll('#npRevendasContainer input[type="checkbox"]').forEach(cb => cb.checked = false);
+      document.getElementById('npRevendasSelected').innerHTML = '';
+      document.getElementById('npRevendasSearch').value = '';
+      renderRevendasDropdownList('');
       clearFileUpload();
       await loadAllData();
       gotoPage('pedidos');
@@ -1873,13 +2150,25 @@ Equipe BluePartner`;
 
     function renderRevendasCheckboxes(){
       const container = document.getElementById('npRevendasContainer');
+      const dropdown = document.getElementById('npRevendasDropdown');
       if (!revendasAtivasCache.length) {
-        container.innerHTML = '<span style="color:var(--muted);font-size:13px">Nenhuma revenda cadastrada</span>';
+        dropdown.innerHTML = '<span style="color:var(--muted);font-size:13px;padding:8px">Nenhuma revenda cadastrada</span>';
+        container.innerHTML = '';
         return;
       }
-      // Agrupa por categoria
+      // Hidden checkboxes for compatibility
+      container.innerHTML = revendasAtivasCache.map(r =>
+        `<input type="checkbox" value="${r.id}" data-nome="${esc(r.nome)}" style="display:none">`
+      ).join('');
+      renderRevendasDropdownList('');
+    }
+
+    function renderRevendasDropdownList(filter){
+      const dropdown = document.getElementById('npRevendasDropdown');
+      const lower = filter.toLowerCase();
       const categorias = {};
       revendasAtivasCache.forEach(r => {
+        if (lower && !(r.nome || '').toLowerCase().includes(lower)) return;
         const cat = (r.categoria || '').toLowerCase();
         const label = cat === 'ingram' ? 'Ingram' : cat === 'tds' ? 'TDS' : 'Outras';
         if (!categorias[label]) categorias[label] = [];
@@ -1889,21 +2178,72 @@ Equipe BluePartner`;
       const catColors = { 'Ingram': '#1D4ED8', 'TDS': '#92400E', 'Outras': '#64748b' };
       const catBgs = { 'Ingram': '#DBEAFE', 'TDS': '#FEF3C7', 'Outras': '#F1F5F9' };
       let html = '';
+      let total = 0;
       catOrder.forEach(cat => {
         if (!categorias[cat]) return;
-        html += `<div style="width:100%;margin-bottom:4px">`;
-        html += `<span style="font-size:11px;font-weight:600;color:${catColors[cat]};background:${catBgs[cat]};padding:2px 8px;border-radius:6px;margin-bottom:4px;display:inline-block">${cat}</span>`;
-        html += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">`;
+        html += `<div style="padding:4px 0">`;
+        html += `<span style="font-size:11px;font-weight:600;color:${catColors[cat]};background:${catBgs[cat]};padding:2px 8px;border-radius:6px;display:inline-block;margin-bottom:4px">${cat}</span>`;
         categorias[cat].forEach(r => {
-          html += `<label style="display:inline-flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--border);border-radius:8px;background:var(--white);user-select:none">
-            <input type="checkbox" value="${r.id}" style="accent-color:var(--brand);cursor:pointer">
+          const checked = isRevendaChecked(r.id) ? 'checked' : '';
+          html += `<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:6px 8px;border-radius:6px;transition:background .15s" 
+            onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background='transparent'">
+            <input type="checkbox" ${checked} onchange="toggleRevenda(${r.id},'${esc(r.nome).replace(/'/g,"\\'")}',this.checked)" style="accent-color:var(--brand);cursor:pointer;flex-shrink:0">
             ${esc(r.nome)}
           </label>`;
+          total++;
         });
-        html += `</div></div>`;
+        html += `</div>`;
       });
-      container.innerHTML = html;
+      if (!total) html = '<div style="padding:12px 8px;color:var(--muted);font-size:13px;text-align:center">Nenhuma revenda encontrada</div>';
+      dropdown.innerHTML = html;
     }
+
+    function isRevendaChecked(id){
+      const cb = document.querySelector(`#npRevendasContainer input[value="${id}"]`);
+      return cb && cb.checked;
+    }
+
+    function toggleRevenda(id, nome, checked){
+      const hidden = document.querySelector(`#npRevendasContainer input[value="${id}"]`);
+      if (hidden) hidden.checked = checked;
+      renderSelectedChips();
+    }
+
+    function renderSelectedChips(){
+      const chips = document.getElementById('npRevendasSelected');
+      const checked = document.querySelectorAll('#npRevendasContainer input[type="checkbox"]:checked');
+      if (!checked.length) { chips.innerHTML = ''; return; }
+      chips.innerHTML = Array.from(checked).map(cb => {
+        const nome = cb.dataset.nome;
+        return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:3px 8px 3px 10px;background:var(--brand);color:#fff;border-radius:20px;white-space:nowrap">
+          ${nome}
+          <button type="button" onclick="removeRevenda(${cb.value})" style="background:none;border:none;color:#fff;cursor:pointer;padding:0;line-height:1;font-size:14px;opacity:.8">&times;</button>
+        </span>`;
+      }).join('');
+    }
+
+    function removeRevenda(id){
+      const hidden = document.querySelector(`#npRevendasContainer input[value="${id}"]`);
+      if (hidden) hidden.checked = false;
+      renderSelectedChips();
+      renderRevendasDropdownList(document.getElementById('npRevendasSearch').value);
+    }
+
+    function filterRevendas(val){
+      renderRevendasDropdownList(val);
+    }
+
+    function showRevendasDropdown(){
+      document.getElementById('npRevendasDropdown').style.display = 'block';
+    }
+
+    // Close dropdown on outside click
+    document.addEventListener('click', function(e){
+      const wrapper = document.getElementById('npRevendasWrapper');
+      if (wrapper && !wrapper.contains(e.target)){
+        document.getElementById('npRevendasDropdown').style.display = 'none';
+      }
+    });
 
     async function loadPedidos(){
       const search = (document.getElementById('pedidosSearch')?.value || '').trim();
@@ -2063,6 +2403,7 @@ Equipe BluePartner`;
       document.getElementById('mClientes').textContent = dash?.clientes ?? '--';
       document.getElementById('mNoPrazo7Dias').textContent = dash?.usuariosNoPrazo7Dias ?? '--';
       document.getElementById('mEmRisco').textContent = dash?.usuariosEmRisco ?? '--';
+      document.getElementById('mClientesErroValidacao').textContent = dash?.clientesComErroValidacao ?? '--';
 
       // keep existing widgets below (chart + recent pedidos)
       renderBarChart();
@@ -2083,9 +2424,14 @@ Equipe BluePartner`;
       const wrap = document.getElementById('barChart');
       wrap.innerHTML = byMonth.map((count, idx) => {
         const h = Math.round((count / maxVal) * 120) + 6;
+        const year = new Date().getFullYear();
+        const monthStart = new Date(year, idx, 1);
+        const monthEnd = new Date(year, idx + 1, 0);
+        const from = formatDateInput(monthStart);
+        const to = formatDateInput(monthEnd);
         return `
           <div class="bar-month">
-            <div class="bar-stack" title="${monthLabels[idx]} • Pedidos: ${count}">
+            <div class="bar-stack" title="${monthLabels[idx]} • Pedidos: ${count}" style="cursor:pointer;" onclick="gotoPedidosComFiltros({ from: '${from}', to: '${to}' })">
               <div class="bar ingram" style="height:${h}px"></div>
             </div>
             <div class="bar-label">${monthLabels[idx]}</div>
@@ -2109,9 +2455,10 @@ Equipe BluePartner`;
         const dt = p.criado_em ? new Date(p.criado_em).toLocaleString('pt-BR') : '—';
         const st = renderPedidoStatusBadge(p.status);
         const rev = (p.revendas || []).map(r => r.nome).join(', ') || (p.revenda_nome || p.revenda || '—');
+        const pedidoIdSafe = esc(p.pedido_id);
         return `
-          <tr>
-            <td><strong style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;">${esc(p.pedido_id)}</strong></td>
+          <tr style="cursor:pointer;" onclick="openHistorico('${pedidoIdSafe}')" title="Abrir histórico do pedido">
+            <td><strong style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;">${pedidoIdSafe}</strong></td>
             <td>${esc(p.cliente)}</td>
             <td>${esc(rev)}</td>
             <td>${st}</td>
@@ -2362,8 +2709,9 @@ Equipe BluePartner`;
 
     function compareLicencasFromHist() {
       if (currentHistPedidoId) {
+        const pedidoId = currentHistPedidoId;
         closeHistoricoModal();
-        executarComparacao(currentHistPedidoId);
+        executarComparacao(pedidoId);
       }
     }
 
@@ -2675,51 +3023,124 @@ Equipe BluePartner`;
       }
     }
 
+    function formatCompareMessage(rawMessage, fallbackMessage) {
+      const raw = String(rawMessage || '').trim();
+      if (!raw) return fallbackMessage;
+
+      let formatted = raw.replace(/Request failed with status code\s*(\d{3})/gi, 'Falha na consulta ao Microsoft Graph (HTTP $1)');
+      formatted = formatted.replace(/\s*\(Sandbox mock ativado\)\s*/gi, '').trim();
+
+      if (/sandbox mock ativado/i.test(raw)) {
+        formatted += (formatted.endsWith('.') ? ' ' : '. ') + 'Sandbox mock ativado para continuidade da análise.';
+      }
+
+      return formatted;
+    }
+
+    function renderCompareNotice(el, { type = 'info', title = 'Status', message = '', tag = '' }) {
+      const iconByType = {
+        success: 'OK',
+        warning: '!',
+        error: 'X',
+        info: 'i'
+      };
+      const safeType = ['success', 'warning', 'error', 'info'].includes(type) ? type : 'info';
+      const tagHtml = tag ? `<span class="compare-inline-tag">${esc(tag)}</span>` : '';
+
+      el.style.display = 'block';
+      el.className = `compare-status-card compare-notice compare-notice--${safeType}`;
+      el.innerHTML = `
+        <div class="compare-notice-icon">${iconByType[safeType]}</div>
+        <div>
+          <div class="compare-notice-title">${esc(title)}${tagHtml}</div>
+          <div class="compare-notice-text">${esc(message)}</div>
+        </div>
+      `;
+    }
+
+    function getSimpleResultadoMeta(item) {
+      switch (item.resultado) {
+        case 'ok':
+          return { pill: '<span class="result-pill ok">OK no portal</span>', rowBg: 'background:#f8fffb;' };
+        case 'qtd_divergente':
+          return { pill: `<span class="result-pill warning">Qtd divergente (${item.portalMatch?.total || 0})</span>`, rowBg: 'background:#fffef8;' };
+        case 'suspensa':
+          return { pill: '<span class="result-pill error">Suspensa</span>', rowBg: 'background:#fffafa;' };
+        case 'nao_encontrada':
+          return { pill: '<span class="result-pill error">Não encontrada</span>', rowBg: 'background:#fffafa;' };
+        case 'gdap_indisponivel':
+          return { pill: '<span class="result-pill muted">GDAP indisponível</span>', rowBg: '' };
+        case 'gdap_nao_configurado':
+          return { pill: '<span class="result-pill muted">GDAP não configurado</span>', rowBg: '' };
+        default:
+          return { pill: '<span class="result-pill muted">Sem análise</span>', rowBg: '' };
+      }
+    }
+
+    function getResultadoGeralMeta(resultado) {
+      switch (resultado) {
+        case 'ok':
+          return { pill: '<span class="result-pill ok">OK (3 vias)</span>', rowBg: 'background:#f8fffb;' };
+        case 'parcial_portal':
+          return { pill: '<span class="result-pill info">Parcial: portal</span>', rowBg: 'background:#f7fbff;' };
+        case 'parcial_distribuidor':
+          return { pill: '<span class="result-pill info">Parcial: distribuidor</span>', rowBg: 'background:#f7fcff;' };
+        case 'qtd_divergente':
+          return { pill: '<span class="result-pill warning">Qtd divergente</span>', rowBg: 'background:#fffef8;' };
+        case 'suspensa':
+          return { pill: '<span class="result-pill error">Suspensa</span>', rowBg: 'background:#fffafa;' };
+        case 'nao_encontrada':
+          return { pill: '<span class="result-pill error">Não encontrada</span>', rowBg: 'background:#fffafa;' };
+        default:
+          return { pill: '<span class="result-pill muted">Pendente</span>', rowBg: '' };
+      }
+    }
+
     function renderComparacao(data) {
       document.getElementById('licComparacaoResultado').style.display = 'block';
 
       // GDAP status alert
       const alert = document.getElementById('licGdapAlert');
       if (data.gdapStatus === 'ativo') {
-        alert.style.display = 'block';
-        alert.style.background = '#ecfdf5';
-        alert.style.border = '1px solid #6ee7b7';
-        alert.style.color = '#065f46';
-        alert.innerHTML = '✅ <strong>GDAP ativo</strong> — Leitura do portal do cliente realizada com sucesso.' +
-          (data.customerTenantId ? ' <span style="font-family:monospace;font-size:0.8rem;">Tenant: ' + esc(data.customerTenantId) + '</span>' : '');
+        renderCompareNotice(alert, {
+          type: 'success',
+          title: 'Portal (GDAP) conectado',
+          message: 'Leitura de licenças do tenant do cliente realizada com sucesso.',
+          tag: data.customerTenantId ? `Tenant ${data.customerTenantId}` : ''
+        });
       } else if (data.gdapStatus === 'pendente') {
-        alert.style.display = 'block';
-        alert.style.background = '#fffbeb';
-        alert.style.border = '1px solid #fcd34d';
-        alert.style.color = '#92400e';
-        alert.innerHTML = '⏳ <strong>GDAP pendente</strong> — ' + esc(data.gdapMessage || 'Cliente ainda não aceitou o convite.');
+        renderCompareNotice(alert, {
+          type: 'warning',
+          title: 'Portal (GDAP) pendente',
+          message: formatCompareMessage(data.gdapMessage, 'Cliente ainda não aceitou o convite de relacionamento.')
+        });
       } else if (data.gdapStatus === 'sem_relacao') {
-        alert.style.display = 'block';
-        alert.style.background = '#fef3c7';
-        alert.style.border = '1px solid #fbbf24';
-        alert.style.color = '#92400e';
-        alert.innerHTML = '⚠️ <strong>Sem GDAP</strong> — ' + esc(data.gdapMessage || 'Gere um link GDAP para este pedido primeiro.');
+        renderCompareNotice(alert, {
+          type: 'warning',
+          title: 'Relação GDAP ausente',
+          message: formatCompareMessage(data.gdapMessage, 'Gere um link GDAP para este pedido antes de comparar no portal.')
+        });
       } else if (data.gdapStatus === 'nao_configurado') {
-        alert.style.display = 'block';
-        alert.style.background = '#fef2f2';
-        alert.style.border = '1px solid #fca5a5';
-        alert.style.color = '#991b1b';
-        alert.innerHTML = '❌ <strong>GDAP não configurado</strong> — Configure as variáveis GDAP no servidor.';
+        renderCompareNotice(alert, {
+          type: 'error',
+          title: 'GDAP não configurado',
+          message: 'Configure as variáveis GDAP no servidor para habilitar consulta ao portal.'
+        });
       } else if (data.gdapStatus === 'sem_licencas') {
-        alert.style.display = 'block';
-        alert.style.background = '#fef3c7';
-        alert.style.border = '1px solid #fbbf24';
-        alert.style.color = '#92400e';
-        alert.innerHTML = '📋 ' + esc(data.message || 'Nenhuma licença cadastrada neste pedido.');
+        renderCompareNotice(alert, {
+          type: 'info',
+          title: 'Sem licenças na proposta',
+          message: formatCompareMessage(data.message, 'Nenhuma licença foi cadastrada neste pedido.')
+        });
         document.getElementById('licComparacaoBody').innerHTML = '';
         document.getElementById('licExtrasPanel').style.display = 'none';
         return;
       } else {
-        alert.style.display = 'block';
-        alert.style.background = '#fef2f2';
-        alert.style.border = '1px solid #fca5a5';
-        alert.style.color = '#991b1b';
-        alert.innerHTML = '❌ ' + esc(data.gdapMessage || 'Erro ao consultar portal.');
+        renderCompareNotice(alert, {
+          type: 'error',
+          title: 'Falha na consulta do portal',
+          message: formatCompareMessage(data.gdapMessage, 'Não foi possível consultar o portal do cliente neste momento.')
+        });
       }
 
       // Tabela de comparação
@@ -2730,46 +3151,25 @@ Equipe BluePartner`;
         tbody.innerHTML = '<tr><td colspan="6" style="color:var(--muted);font-weight:700;">Nenhuma licença para comparar</td></tr>';
       } else {
         tbody.innerHTML = comparacao.map(c => {
-          let resultadoHtml = '';
-          let rowBg = '';
-          switch (c.resultado) {
-            case 'ok':
-              resultadoHtml = '<span style="color:#10b981;font-weight:700;">✅ Conferida</span>';
-              rowBg = 'background:#f0fdf4;';
-              break;
-            case 'qtd_divergente':
-              resultadoHtml = `<span style="color:#f59e0b;font-weight:700;">⚠️ Qtd divergente (portal: ${c.portalMatch?.total || 0})</span>`;
-              rowBg = 'background:#fffbeb;';
-              break;
-            case 'suspensa':
-              resultadoHtml = `<span style="color:#ef4444;font-weight:700;">🔴 Suspensa no portal</span>`;
-              rowBg = 'background:#fef2f2;';
-              break;
-            case 'nao_encontrada':
-              resultadoHtml = '<span style="color:#ef4444;font-weight:700;">❌ Não encontrada no portal</span>';
-              rowBg = 'background:#fef2f2;';
-              break;
-            case 'gdap_indisponivel':
-              resultadoHtml = '<span style="color:#6b7280;font-weight:600;">⏳ GDAP indisponível</span>';
-              break;
-            case 'gdap_nao_configurado':
-              resultadoHtml = '<span style="color:#6b7280;font-weight:600;">— GDAP não configurado</span>';
-              break;
-            default:
-              resultadoHtml = '<span style="color:var(--muted);">—</span>';
-          }
+          const resultadoMeta = getSimpleResultadoMeta(c);
+          const resultadoHtml = resultadoMeta.pill;
+          const rowBg = resultadoMeta.rowBg;
 
           const portalSku = c.portalMatch ? skuFriendlyName(c.portalMatch.skuPartNumber) : '—';
           const portalStatus = c.portalMatch?.capabilityStatus || '—';
           const portalQtd = c.portalMatch ? c.portalMatch.total : '—';
-          const statusColor = portalStatus === 'Enabled' ? '#10b981' : portalStatus === 'Suspended' ? '#ef4444' : '#6b7280';
+          const portalStatusBadge = portalStatus === 'Enabled'
+            ? '<span class="result-pill ok">Enabled</span>'
+            : portalStatus === 'Suspended'
+              ? '<span class="result-pill error">Suspended</span>'
+              : '<span class="result-pill muted">' + esc(portalStatus) + '</span>';
 
           return `
             <tr style="${rowBg}">
               <td><strong>${esc(c.produto)}</strong></td>
               <td style="text-align:center;">${c.qtd || 1}</td>
-              <td>${c.portalMatch ? '<strong>' + esc(portalSku) + '</strong><div style="font-size:0.75rem;color:var(--muted);font-family:monospace;">' + esc(c.portalMatch.skuPartNumber) + '</div>' : '<span style="color:var(--muted);">—</span>'}</td>
-              <td><span style="color:${statusColor};font-weight:600;">${esc(portalStatus)}</span></td>
+              <td>${c.portalMatch ? '<div class="compare-cell-main">' + esc(portalSku) + '</div><div class="compare-cell-sub">' + esc(c.portalMatch.skuPartNumber) + '</div>' : '<span style="color:var(--muted);">—</span>'}</td>
+              <td>${c.portalMatch ? portalStatusBadge : '<span class="result-pill muted">—</span>'}</td>
               <td style="text-align:center;">${portalQtd}</td>
               <td>${resultadoHtml}</td>
             </tr>
@@ -2895,17 +3295,29 @@ Equipe BluePartner`;
       // Alerta GDAP
       const gdapAlert = document.getElementById('lic3GdapAlert');
       if (data.gdapStatus === 'ativo') {
-        gdapAlert.style.background = '#ecfdf5'; gdapAlert.style.border = '1px solid #6ee7b7'; gdapAlert.style.color = '#065f46';
-        gdapAlert.innerHTML = '✅ <strong>Portal (GDAP)</strong> — Dados do portal do cliente lidos com sucesso.';
+        renderCompareNotice(gdapAlert, {
+          type: 'success',
+          title: 'Portal (GDAP) disponível',
+          message: 'Dados de assinatura do portal do cliente carregados com sucesso.'
+        });
       } else if (data.gdapStatus === 'nao_configurado') {
-        gdapAlert.style.background = '#fef2f2'; gdapAlert.style.border = '1px solid #fca5a5'; gdapAlert.style.color = '#991b1b';
-        gdapAlert.innerHTML = '❌ <strong>Portal (GDAP)</strong> — Não configurado.';
+        renderCompareNotice(gdapAlert, {
+          type: 'error',
+          title: 'Portal (GDAP) indisponível',
+          message: 'Configuração GDAP não encontrada no servidor.'
+        });
       } else if (data.gdapStatus === 'pendente') {
-        gdapAlert.style.background = '#fffbeb'; gdapAlert.style.border = '1px solid #fcd34d'; gdapAlert.style.color = '#92400e';
-        gdapAlert.innerHTML = '⏳ <strong>Portal (GDAP)</strong> — Aguardando aceitação do cliente.';
+        renderCompareNotice(gdapAlert, {
+          type: 'warning',
+          title: 'Portal (GDAP) pendente',
+          message: 'Aguardando o cliente aceitar a relação GDAP.'
+        });
       } else {
-        gdapAlert.style.background = '#fef3c7'; gdapAlert.style.border = '1px solid #fbbf24'; gdapAlert.style.color = '#92400e';
-        gdapAlert.innerHTML = '⚠️ <strong>Portal (GDAP)</strong> — ' + esc(data.gdapMessage || 'Indisponível.');
+        renderCompareNotice(gdapAlert, {
+          type: 'warning',
+          title: 'Portal (GDAP) com restrição',
+          message: formatCompareMessage(data.gdapMessage, 'Consulta ao portal temporariamente indisponível.')
+        });
       }
 
       // Alerta Distribuidor
@@ -2914,17 +3326,29 @@ Equipe BluePartner`;
       document.getElementById('lic3DistHeader').textContent = distLabel;
 
       if (data.distribuidorStatus === 'ativo') {
-        distAlert.style.background = '#ecfdf5'; distAlert.style.border = '1px solid #6ee7b7'; distAlert.style.color = '#065f46';
-        distAlert.innerHTML = '✅ <strong>' + esc(distLabel) + '</strong> — Dados de assinaturas lidos com sucesso.';
+        renderCompareNotice(distAlert, {
+          type: 'success',
+          title: distLabel + ' disponível',
+          message: 'Dados de assinaturas do distribuidor carregados com sucesso.'
+        });
       } else if (data.distribuidorStatus === 'nao_configurado') {
-        distAlert.style.background = '#fef2f2'; distAlert.style.border = '1px solid #fca5a5'; distAlert.style.color = '#991b1b';
-        distAlert.innerHTML = '❌ <strong>' + esc(distLabel) + '</strong> — API não configurada. ' + esc(data.distribuidorMessage || '');
+        renderCompareNotice(distAlert, {
+          type: 'error',
+          title: distLabel + ' não configurado',
+          message: formatCompareMessage(data.distribuidorMessage, 'API do distribuidor não configurada.')
+        });
       } else if (data.distribuidorStatus === 'sem_revenda') {
-        distAlert.style.background = '#fef3c7'; distAlert.style.border = '1px solid #fbbf24'; distAlert.style.color = '#92400e';
-        distAlert.innerHTML = '⚠️ <strong>Distribuidor</strong> — ' + esc(data.distribuidorMessage || 'Nenhuma revenda Ingram/TDS no pedido.');
+        renderCompareNotice(distAlert, {
+          type: 'warning',
+          title: 'Distribuidor não vinculado',
+          message: formatCompareMessage(data.distribuidorMessage, 'Nenhuma revenda Ingram/TDS associada a este pedido.')
+        });
       } else {
-        distAlert.style.background = '#fef2f2'; distAlert.style.border = '1px solid #fca5a5'; distAlert.style.color = '#991b1b';
-        distAlert.innerHTML = '❌ <strong>' + esc(distLabel) + '</strong> — ' + esc(data.distribuidorMessage || 'Erro.');
+        renderCompareNotice(distAlert, {
+          type: 'error',
+          title: distLabel + ' com falha',
+          message: formatCompareMessage(data.distribuidorMessage, 'Não foi possível consultar assinaturas no distribuidor.')
+        });
       }
 
       // Tabela principal
@@ -2937,66 +3361,35 @@ Equipe BluePartner`;
       }
 
       tbody.innerHTML = comparacao.map(c => {
-        // Resultado geral
-        let resultadoHtml = '';
-        let rowBg = '';
-        switch (c.resultadoGeral) {
-          case 'ok':
-            resultadoHtml = '<span style="color:#10b981;font-weight:700;">✅ OK (3 vias)</span>';
-            rowBg = 'background:#f0fdf4;';
-            break;
-          case 'parcial_portal':
-            resultadoHtml = '<span style="color:#3b82f6;font-weight:700;">🔵 OK Portal</span>';
-            rowBg = 'background:#eff6ff;';
-            break;
-          case 'parcial_distribuidor':
-            resultadoHtml = '<span style="color:#8b5cf6;font-weight:700;">🟣 OK Dist.</span>';
-            rowBg = 'background:#f5f3ff;';
-            break;
-          case 'qtd_divergente':
-            resultadoHtml = '<span style="color:#f59e0b;font-weight:700;">⚠️ Qtd diverge</span>';
-            rowBg = 'background:#fffbeb;';
-            break;
-          case 'suspensa':
-            resultadoHtml = '<span style="color:#ef4444;font-weight:700;">🔴 Suspensa</span>';
-            rowBg = 'background:#fef2f2;';
-            break;
-          case 'nao_encontrada':
-            resultadoHtml = '<span style="color:#ef4444;font-weight:700;">❌ Não encontrada</span>';
-            rowBg = 'background:#fef2f2;';
-            break;
-          default:
-            resultadoHtml = '<span style="color:#6b7280;font-weight:600;">⏳ Pendente</span>';
-            break;
-        }
+        const resultadoMeta = getResultadoGeralMeta(c.resultadoGeral);
+        const resultadoHtml = resultadoMeta.pill;
+        const rowBg = resultadoMeta.rowBg;
 
         // Portal
         const portalSku = c.portalMatch ? skuFriendlyName(c.portalMatch.skuPartNumber) : '—';
         const portalQtd = c.portalMatch ? c.portalMatch.total : '—';
-        let portalStatusIcon = '';
-        if (c.resultadoPortal === 'ok') portalStatusIcon = '✅';
-        else if (c.resultadoPortal === 'qtd_divergente') portalStatusIcon = '⚠️';
-        else if (c.resultadoPortal === 'suspensa') portalStatusIcon = '🔴';
-        else if (c.resultadoPortal === 'nao_encontrada') portalStatusIcon = '❌';
-        else portalStatusIcon = '—';
+        let portalStatusPill = '<span class="result-pill muted">—</span>';
+        if (c.resultadoPortal === 'ok') portalStatusPill = '<span class="result-pill ok">Portal OK</span>';
+        else if (c.resultadoPortal === 'qtd_divergente') portalStatusPill = '<span class="result-pill warning">Portal qtd</span>';
+        else if (c.resultadoPortal === 'suspensa') portalStatusPill = '<span class="result-pill error">Portal suspensa</span>';
+        else if (c.resultadoPortal === 'nao_encontrada') portalStatusPill = '<span class="result-pill error">Portal ausente</span>';
 
         // Distribuidor
         const distName = c.distribuidorMatch ? (c.distribuidorMatch.productName || c.distribuidorMatch.skuPartNumber) : '—';
         const distQtd = c.distribuidorMatch ? c.distribuidorMatch.quantity : '—';
-        let distStatusIcon = '';
-        if (c.resultadoDist === 'ok') distStatusIcon = '✅';
-        else if (c.resultadoDist === 'qtd_divergente') distStatusIcon = '⚠️';
-        else if (c.resultadoDist === 'suspensa') distStatusIcon = '🔴';
-        else if (c.resultadoDist === 'nao_encontrada') distStatusIcon = '❌';
-        else distStatusIcon = '—';
+        let distStatusPill = '<span class="result-pill muted">—</span>';
+        if (c.resultadoDist === 'ok') distStatusPill = '<span class="result-pill ok">Dist. OK</span>';
+        else if (c.resultadoDist === 'qtd_divergente') distStatusPill = '<span class="result-pill warning">Dist. qtd</span>';
+        else if (c.resultadoDist === 'suspensa') distStatusPill = '<span class="result-pill error">Dist. suspensa</span>';
+        else if (c.resultadoDist === 'nao_encontrada') distStatusPill = '<span class="result-pill error">Dist. ausente</span>';
 
         return `
           <tr style="${rowBg}">
             <td><strong>${esc(c.produto)}</strong></td>
             <td style="text-align:center;font-weight:600;">${c.qtd || 1}</td>
-            <td>${portalStatusIcon} ${c.portalMatch ? '<strong>' + esc(portalSku) + '</strong><div style="font-size:0.7rem;color:var(--muted);font-family:monospace;">' + esc(c.portalMatch.skuPartNumber) + '</div>' : '<span style="color:var(--muted);">—</span>'}</td>
+            <td>${c.portalMatch ? '<div class="compare-cell-main">' + esc(portalSku) + '</div><div class="compare-cell-sub">' + esc(c.portalMatch.skuPartNumber) + '</div>' : '<span style="color:var(--muted);">—</span>'}${c.portalMatch ? '<div style="margin-top:6px;">' + portalStatusPill + '</div>' : ''}</td>
             <td style="text-align:center;">${portalQtd}</td>
-            <td>${distStatusIcon} ${c.distribuidorMatch ? '<strong>' + esc(distName) + '</strong><div style="font-size:0.7rem;color:var(--muted);font-family:monospace;">' + esc(c.distribuidorMatch.skuPartNumber || '') + '</div>' : '<span style="color:var(--muted);">—</span>'}</td>
+            <td>${c.distribuidorMatch ? '<div class="compare-cell-main">' + esc(distName) + '</div><div class="compare-cell-sub">' + esc(c.distribuidorMatch.skuPartNumber || '') + '</div>' : '<span style="color:var(--muted);">—</span>'}${c.distribuidorMatch ? '<div style="margin-top:6px;">' + distStatusPill + '</div>' : ''}</td>
             <td style="text-align:center;">${distQtd}</td>
             <td>${resultadoHtml}</td>
           </tr>

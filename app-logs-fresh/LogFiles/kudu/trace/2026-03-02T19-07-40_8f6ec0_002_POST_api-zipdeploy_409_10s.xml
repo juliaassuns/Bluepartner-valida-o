@@ -1,0 +1,18 @@
+<step title="Incoming Request" date="2026-03-02T19:07:40.170" instance="8f6ec0" url="/api/zipdeploy?isAsync=true" method="POST" type="request" pid="841,1,15" Accept="*/*" Host="bluepartner-validacao.scm.azurewebsites.net" User-Agent="AZURECLI/2.83.0 (MSI)" Accept-Encoding="gzip, deflate" Authorization="Bea..." Cache-Control="no-cache" Content-Type="application/octet-stream" Content-Length="182467" x-ms-client-request-id="0c7897b6-166b-11f1-b4c9-a7d5a3c648ae" x-ms-artifact-checksum="c28c7e6634102c042c0bce12dd1d097a0c3308dd5782c7c921e62f9c8502cd40" X-ARR-LOG-ID="0c7897b6-166b-11f1-b4c9-a7d5a3c648ae" CLIENT-IP="177.73.137.36:56743" X-SITE-DEPLOYMENT-ID="bluepartner-validacao" WAS-DEFAULT-HOSTNAME="bluepartner-validacao.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/api/zipdeploy?isAsync=true" X-Client-IP="177.73.137.36" X-Client-Port="56743" >
+  <step title="ZipPushDeploy" date="2026-03-02T19:07:47.609" >
+    <step title="ZipDeploy. Extract zip. Remote build." date="2026-03-02T19:07:47.708" /><!-- duration: 19ms -->
+    <step title="None repository commit" date="2026-03-02T19:07:47.764" >
+      <step title="Commit id: 64e29c56-abd1-4dff-a970-e93da8dc87b9" date="2026-03-02T19:07:47.774" Message="N/A" AuthorName="N/A" AuthorEmail="N/A" /><!-- duration: 10ms -->
+    </step><!-- duration: 22ms -->
+    <step title="Starting PushDeployAsync" date="2026-03-02T19:07:47.805" /><!-- duration: 12ms -->
+    <step title="Writing artifact to /tmp/zipdeploy/a6be9257-5470-418a-abe9-2c9a9388a9a2.zip" date="2026-03-02T19:07:47.936" >
+      <step title="Writing multipart request body to /tmp/zipdeploy/a6be9257-5470-418a-abe9-2c9a9388a9a2.zip" date="2026-03-02T19:07:47.955" /><!-- duration: 12ms -->
+    </step><!-- duration: 258ms -->
+    <step title="Start deployment in the background" date="2026-03-02T19:07:48.306" >
+      <step title="Acquiring Deployment Lock" date="2026-03-02T19:07:48.544" /><!-- duration: 30ms -->
+      <step title="Cannot Acquire Deployment Lock already held" date="2026-03-02T19:07:48.933" /><!-- duration: 11ms -->
+    </step><!-- duration: 917ms -->
+    <step title="There is a deployment currently in progress. Please try again when it completes." date="2026-03-02T19:07:49.291" /><!-- duration: 30ms -->
+  </step><!-- duration: 1913ms -->
+  <step title="Outgoing response" date="2026-03-02T19:07:50.115" type="response" statusCode="409" statusText="Conflict" /><!-- duration: 79ms -->
+</step><!-- duration: 10175ms -->

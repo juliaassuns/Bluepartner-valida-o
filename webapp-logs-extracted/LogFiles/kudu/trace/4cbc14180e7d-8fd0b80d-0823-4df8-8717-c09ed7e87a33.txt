@@ -1,0 +1,1 @@
+2026-04-08T12:37:21  Startup Request, url: /api/webjobs/?api-version=2018-11-01, method: GET, type: request, pid: 835,1,7, SCM_DO_BUILD_DURING_DEPLOYMENT: true, ScmType: LocalGit

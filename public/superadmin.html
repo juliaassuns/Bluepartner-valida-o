@@ -710,8 +710,15 @@
         document.getElementById('loginOverlay').classList.add('hidden');
     }
 
-    function doLogout() {
-        window.location.href = '/auth/logout';
+    async function doLogout() {
+        try {
+            await fetch('/auth/logout', {
+                method: 'POST',
+                credentials: 'same-origin'
+            });
+        } finally {
+            window.location.href = '/login';
+        }
     }
 
     async function authFetch(url, opts = {}) {

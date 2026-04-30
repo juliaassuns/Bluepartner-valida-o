@@ -25,6 +25,7 @@ jest.mock('@azure/msal-node', () => ({
 
 const request = require('supertest');
 const { cleanTestDb } = require('./setup');
+const { extrairRelationshipIdDoLinkGdap } = require('../gdap');
 
 // Limpa DB antes de carregar server
 cleanTestDb();
@@ -177,7 +178,9 @@ describe('POST /api/validar (público)', () => {
     });
 });
 
-describe('GET /api/gdap/status (público)', () => {
+describe('GET /api/gdap/status (admin)', () => {
+    beforeAll(() => loginAsAdmin());
+
     test('deve retornar status do GDAP', async () => {
         const res = await request(app).get('/api/gdap/status');
         expect(res.status).toBe(200);
@@ -298,11 +301,11 @@ describe('POST /api/pedidos (admin)', () => {
 describe('GET /api/pedido-completo/:pedidoId (admin)', () => {
     beforeAll(() => loginAsAdmin());
 
-    test('deve retornar pedido completo com token', async () => {
+    test('deve retornar pedido completo sem expor token', async () => {
         const res = await request(app).get('/api/pedido-completo/PED-API-001');
         expect(res.status).toBe(200);
         expect(res.body.pedido_id).toBe('PED-API-001');
-        expect(res.body.token).toBe('validtoken123');
+        expect(res.body.token).toBeUndefined();
         expect(res.body.revendas).toBeInstanceOf(Array);
     });
 
@@ -934,5 +937,16 @@ describe('GDAP endpoints requerem auth', () => {
     test('GET /api/gdap/comparar/:pedidoId sem sessão retorna 401', async () => {
         const res = await request(app).get('/api/gdap/comparar/PED-API-001');
         expect(res.status).toBe(401);
+    });
+});
+
+describe('GDAP helper', () => {
+    test('extrai o relationshipId do link de convite GDAP', async () => {
+        const link = 'https://admin.microsoft.com/AdminPortal/Home#/partners/invitation/granularAdminRelationships/12345678-1234-1234-1234-1234567890ab';
+        expect(extrairRelationshipIdDoLinkGdap(link)).toBe('12345678-1234-1234-1234-1234567890ab');
+    });
+
+    test('retorna null para link vazio', async () => {
+        expect(extrairRelationshipIdDoLinkGdap('')).toBeNull();
     });
 });

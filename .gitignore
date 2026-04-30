@@ -1,11 +1,41 @@
+# Dependencies
 node_modules/
+
+# Data and session files
 data/
-.env
 *.db
+*.db-journal
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs
 logs/
 logs-azure/
 *.log
-*.zip
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test and coverage output
+coverage/
+.nyc_output/
 jest-output*.txt
 test-results.txt
-%USERPROFILE%/
+
+# Build and deployment artifacts
+.deploy-package/
+.deploy-package-clean/
+*.zip
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# User-specific directories (like %USERPROFILE%) should not be in a project's gitignore
+# Instead, configure this in your global .gitignore file.
+# To ignore it for this project only, you can add it back, but it's not standard practice.
+# %USERPROFILE%/
+

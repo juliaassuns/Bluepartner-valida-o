@@ -1,0 +1,22 @@
+<step title="Incoming Request" date="2026-03-11T15:01:57.330" instance="2f737e" url="/api/zipdeploy?isAsync=true" method="POST" type="request" pid="847,1,57" Accept="*/*" Host="bluepartner-validacao.scm.azurewebsites.net" User-Agent="AZURECLI/2.84.0 (MSI)" Accept-Encoding="gzip, deflate" Authorization="Bea..." Cache-Control="no-cache" Content-Type="application/octet-stream" Content-Length="4400840" x-ms-client-request-id="3249e6b0-1d5b-11f1-aa16-a7d5a3c648ae" x-ms-artifact-checksum="51434281714831b8a113e13758fad466095a50f707d4f90488700877ac9a4a65" X-ARR-LOG-ID="3249e6b0-1d5b-11f1-aa16-a7d5a3c648ae" CLIENT-IP="177.73.137.36:63374" X-SITE-DEPLOYMENT-ID="bluepartner-validacao" WAS-DEFAULT-HOSTNAME="bluepartner-validacao.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/api/zipdeploy?isAsync=true" X-Client-IP="177.73.137.36" X-Client-Port="63374" >
+  <step title="Cleanup Xml Logs" date="2026-03-11T15:01:57.340" >
+    <step title="Cleanup Infos" date="2026-03-11T15:01:57.363" totalFiles="228" totalCleanup="68" /><!-- duration: 19ms -->
+  </step><!-- duration: 60ms -->
+  <step title="ZipPushDeploy" date="2026-03-11T15:01:57.504" >
+    <step title="ZipDeploy. Extract zip. Remote build." date="2026-03-11T15:01:57.517" /><!-- duration: 3ms -->
+    <step title="None repository commit" date="2026-03-11T15:01:57.532" >
+      <step title="Commit id: 8c43a044-9379-4597-bfb3-0027e786f9e2" date="2026-03-11T15:01:57.541" Message="N/A" AuthorName="N/A" AuthorEmail="N/A" /><!-- duration: 3ms -->
+    </step><!-- duration: 14ms -->
+    <step title="Starting PushDeployAsync" date="2026-03-11T15:01:57.550" /><!-- duration: 3ms -->
+    <step title="Removing _del_node_modules symlink" date="2026-03-11T15:01:57.721" >
+      <step title="Writing artifact to /tmp/zipdeploy/deada87a-2608-477b-8afd-d533ccc00518.zip" date="2026-03-11T15:01:57.945" >
+        <step title="Writing multipart request body to /tmp/zipdeploy/deada87a-2608-477b-8afd-d533ccc00518.zip" date="2026-03-11T15:01:57.953" /><!-- duration: 19ms -->
+      </step><!-- duration: 6125ms -->
+      <step title="Removing previous build artifact&apos;s manifest file" date="2026-03-11T15:02:04.115" >
+        <step title="Start deployment in the background" date="2026-03-11T15:02:04.227" >
+          <step title="Acquiring Deployment Lock" date="2026-03-11T15:02:04.610" /><!-- duration: 30ms -->
+          <step title="Acquired Deployment Lock" date="2026-03-11T15:02:05.151" /><!-- duration: 28ms -->
+        </step><!-- duration: 1378ms -->
+      </step><!-- duration: 1566ms -->
+      <step title="Outgoing response" date="2026-03-11T15:02:05.765" type="response" statusCode="202" statusText="Accepted" /><!-- duration: 32ms -->
+    </step><!-- duration: 8088ms -->

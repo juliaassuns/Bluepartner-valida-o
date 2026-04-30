@@ -1524,6 +1524,8 @@
             <a class="footer-link" href="mailto:contato@bluepartner.com.br">📧 E-mail</a>
             <a class="footer-link" href="https://www.linkedin.com/company/bluepartnerit/" target="_blank" rel="noopener">💼 LinkedIn</a>
             <a class="footer-link" href="https://www.instagram.com/bluepartner.it/" target="_blank" rel="noopener">📷 Instagram</a>
+            <a class="footer-link" href="/privacidade">🔐 Privacidade</a>
+            <a class="footer-link" href="/termos">📄 Termos</a>
         </div>
         <div class="footer-copy">© 2026 BluePartner · Rua São Paulo, 600 – Sala 5 · Blumenau, SC · Todos os direitos reservados</div>
     </footer>
@@ -1550,13 +1552,21 @@
             showError('Link incompleto', 'Verifique se copiou o endereço completo do link de validação.');
             return;
         }
+        clearSensitiveUrl();
         loadPedido();
         startInactivityTimer();
         setupActivityListeners();
     });
 
+    function parseHashParams() {
+        const rawHash = (window.location.hash || '').replace(/^#/, '');
+        if (!rawHash) return new URLSearchParams();
+        return new URLSearchParams(rawHash);
+    }
+
     function parseURL() {
         const params = new URLSearchParams(window.location.search);
+        const hashParams = parseHashParams();
         revenda = (params.get('revenda') || '').toLowerCase();
         const path = window.location.pathname.replace(/\/$/, '');
         const segments = path.split('/').filter(Boolean);
@@ -1568,7 +1578,19 @@
             }
         }
         if (!pedidoId) pedidoId = params.get('pedidoId');
+        if (!pedidoId) pedidoId = hashParams.get('pedidoId');
+        if (!tokenUnico) tokenUnico = hashParams.get('token');
         if (!tokenUnico) tokenUnico = params.get('token');
+    }
+
+    function clearSensitiveUrl() {
+        const cleanQuery = new URLSearchParams();
+        if (pedidoId) cleanQuery.set('pedidoId', pedidoId);
+        if (revenda) cleanQuery.set('revenda', revenda);
+
+        const qs = cleanQuery.toString();
+        const cleanUrl = `/validar${qs ? `?${qs}` : ''}`;
+        window.history.replaceState({}, document.title, cleanUrl);
     }
 
     async function loadPedido() {
@@ -1589,7 +1611,11 @@
             await new Promise(r => setTimeout(r, 600));
             completeStep('loadStep1'); activateStep('loadStep2');
 
-            const res = await fetch(`${CONFIG.API_BASE}/api/pedido/${encodeURIComponent(pedidoId)}/${encodeURIComponent(tokenUnico)}`);
+            const res = await fetch(`${CONFIG.API_BASE}/api/pedido/resolve`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pedidoId, token: tokenUnico })
+            });
             await new Promise(r => setTimeout(r, 500));
             completeStep('loadStep2'); activateStep('loadStep3');
 
