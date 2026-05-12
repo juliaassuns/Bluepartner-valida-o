@@ -84,55 +84,80 @@ router.get('/cnpj/:cnpj', async (req, res) => {
             return res.status(400).json({ error: 'CNPJ inválido' });
         }
         
+        // Format CNPJ for display
+        const cnpjFormatted = `${cnpj.slice(0,2)}.${cnpj.slice(2,5)}.${cnpj.slice(5,8)}/${cnpj.slice(8,12)}-${cnpj.slice(12)}`;
+        
         // Call external API
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000);
             
             let externalRes;
+            let data = null;
+            
             try {
+                // Try first API
                 externalRes = await fetch(`https://api.opencnpj.org/v1/${cnpj}`, {
                     signal: controller.signal,
                     headers: { 'User-Agent': 'BluePartner/1.0' }
                 });
+                
+                if (externalRes.ok) {
+                    data = await externalRes.json();
+                }
+            } catch (e) {
+                console.warn('[CNPJ Lookup] First API failed:', e.message);
             } finally {
                 clearTimeout(timeoutId);
             }
             
-            if (!externalRes.ok) {
-                // Try alternative API if first one fails
-                const controller2 = new AbortController();
-                const timeoutId2 = setTimeout(() => controller2.abort(), 5000);
-                
-                let altRes;
+            // Try second API if first failed
+            if (!data) {
                 try {
-                    altRes = await fetch(`https://api.cnpja.com.br/office/${cnpj}`, {
-                        signal: controller2.signal,
-                        headers: { 'User-Agent': 'BluePartner/1.0' }
-                    });
-                } finally {
-                    clearTimeout(timeoutId2);
+                    const controller2 = new AbortController();
+                    const timeoutId2 = setTimeout(() => controller2.abort(), 5000);
+                    
+                    let altRes;
+                    try {
+                        altRes = await fetch(`https://api.cnpja.com.br/office/${cnpj}`, {
+                            signal: controller2.signal,
+                            headers: { 'User-Agent': 'BluePartner/1.0' }
+                        });
+                        
+                        if (altRes && altRes.ok) {
+                            data = await altRes.json();
+                        }
+                    } finally {
+                        clearTimeout(timeoutId2);
+                    }
+                } catch (e) {
+                    console.warn('[CNPJ Lookup] Second API failed:', e.message);
                 }
-                
-                if (altRes && altRes.ok) {
-                    const altData = await altRes.json();
-                    return res.json({
-                        nome: altData.name || altData.nome || 'Empresa não identificada',
-                        cnpj: cnpj
-                    });
-                }
-                
-                return res.status(404).json({ error: 'CNPJ não encontrado' });
             }
             
-            const data = await externalRes.json();
+            // If got data from external API, return it
+            if (data) {
+                const nome = data.name || data.company_name || data.razao_social || data.nome || `Empresa ${cnpjFormatted}`;
+                return res.json({
+                    nome: nome.trim() || `Empresa ${cnpjFormatted}`,
+                    cnpj: cnpjFormatted
+                });
+            }
+            
+            // Fallback: return generic name for valid CNPJ
+            // This allows users to proceed even if external APIs fail
             res.json({
-                nome: data.name || data.company_name || data.razao_social || 'Empresa não identificada',
-                cnpj: cnpj
+                nome: `Empresa ${cnpjFormatted}`,
+                cnpj: cnpjFormatted
             });
+            
         } catch (apiErr) {
             console.error('[CNPJ Lookup External API Error]', apiErr.message);
-            res.status(503).json({ error: 'Serviço de CNPJ temporariamente indisponível' });
+            // Still return generic fallback instead of error
+            res.json({
+                nome: `Empresa ${cnpjFormatted}`,
+                cnpj: cnpjFormatted
+            });
         }
     } catch (err) {
         console.error('[CNPJ Lookup]', err.message);
