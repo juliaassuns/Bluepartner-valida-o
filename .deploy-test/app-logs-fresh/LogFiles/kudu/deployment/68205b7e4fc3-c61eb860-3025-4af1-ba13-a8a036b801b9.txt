@@ -1,0 +1,118 @@
+2026-03-10T20:30:42  Fetching changes.
+2026-03-10T20:30:42    Starting  LocalZipHandler
+2026-03-10T20:30:42    Cleaning up temp folders from previous zip deployments and extracting pushed zip file /tmp/zipdeploy/236e96a9-7a79-4f41-9b37-a4b87f9a4066.zip (0.06 MB) to /tmp/zipdeploy/extracted
+2026-03-10T20:30:46  Updating submodules.
+2026-03-10T20:30:46  Preparing deployment for commit id 'fa97dbf7-6'.
+2026-03-10T20:30:46  PreDeployment: context.CleanOutputPath False
+2026-03-10T20:30:46  PreDeployment: context.OutputPath /home/site/wwwroot
+2026-03-10T20:30:47  Repository path is /tmp/zipdeploy/extracted
+2026-03-10T20:30:47  Running oryx build...
+2026-03-10T20:30:47    Command: oryx build /tmp/zipdeploy/extracted -o /home/site/wwwroot --platform nodejs --platform-version 20 -p virtualenv_name= --log-file /tmp/build-debug.log  -i /tmp/8de7ee3e904b4d5 -p compress_node_modules=tar-gz | tee /tmp/oryx-build.log
+2026-03-10T20:30:51    Operation performed by Microsoft Oryx, https://github.com/Microsoft/Oryx
+2026-03-10T20:30:51    You can report issues at https://github.com/Microsoft/Oryx/issues
+2026-03-10T20:30:51    
+2026-03-10T20:30:52    Oryx Version: 0.2.20260204.1+0fdbe200b286be083841ff7fa201c6c2316dc6b9, Commit: 0fdbe200b286be083841ff7fa201c6c2316dc6b9, ReleaseTagName: 20260204.1
+2026-03-10T20:30:52    
+2026-03-10T20:30:52    Build Operation ID: 29e890a6211bec71
+2026-03-10T20:30:52    Repository Commit : fa97dbf7-609d-43b1-be69-df54437f4017
+2026-03-10T20:30:53    OS Type           : bookworm
+2026-03-10T20:30:53    Image Type        : githubactions
+2026-03-10T20:30:53    
+2026-03-10T20:30:53    Primary SDK Storage URL: https://oryx-cdn.microsoft.io
+2026-03-10T20:30:53    Backup SDK Storage URL: 
+2026-03-10T20:30:53    Detecting platforms...
+2026-03-10T20:30:53    External SDK provider is enabled.
+2026-03-10T20:30:54    Requesting metadata for platform nodejs from external SDK provider
+2026-03-10T20:30:55    Requesting metadata for platform nodejs from external SDK provider
+2026-03-10T20:30:56    Detected following platforms:
+2026-03-10T20:30:56      nodejs: 20.20.0
+2026-03-10T20:30:57    Detected the following frameworks: Express
+2026-03-10T20:30:57    
+2026-03-10T20:30:57    Using intermediate directory '/tmp/8de7ee3e904b4d5'.
+2026-03-10T20:30:57    
+2026-03-10T20:30:58    Copying files to the intermediate directory...
+2026-03-10T20:30:58    Copying files to intermediate directory done in 1 sec(s).
+2026-03-10T20:30:58    
+2026-03-10T20:30:58    Source directory     : /tmp/8de7ee3e904b4d5
+2026-03-10T20:30:58    Destination directory: /home/site/wwwroot
+2026-03-10T20:30:58    
+2026-03-10T20:30:59    Running build script snippets...
+2026-03-10T20:30:59    Removing existing manifest file
+2026-03-10T20:30:59    Creating directory for command manifest file if it does not exist
+2026-03-10T20:30:59    Creating a manifest file...
+2026-03-10T20:30:59    Node Build Command Manifest file created.
+2026-03-10T20:30:59    
+2026-03-10T20:30:59    Using Node version:
+2026-03-10T20:30:59    v20.20.0
+2026-03-10T20:30:59    
+2026-03-10T20:30:59    Using Npm version:
+2026-03-10T20:31:01    10.8.2
+2026-03-10T20:31:01    
+2026-03-10T20:31:01    Running 'npm install'...
+2026-03-10T20:31:01    
+2026-03-10T20:32:09    npm warn deprecated @npmcli/move-file@1.1.2: This functionality has been moved to @npmcli/fs
+2026-03-10T20:32:09    npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+2026-03-10T20:32:11    npm warn deprecated npmlog@6.0.2: This package is no longer supported.
+2026-03-10T20:32:11    npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+2026-03-10T20:32:12    npm warn deprecated are-we-there-yet@3.0.1: This package is no longer supported.
+2026-03-10T20:32:12    npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-03-10T20:32:13    npm warn deprecated prebuild-install@7.1.3: No longer maintained. Please contact the author of the relevant native addon; alternatives are available.
+2026-03-10T20:32:14    npm warn deprecated gauge@4.0.4: This package is no longer supported.
+2026-03-10T20:32:16    npm warn deprecated tar@6.2.1: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-03-10T20:32:48    
+2026-03-10T20:32:48    added 244 packages, and audited 245 packages in 2m
+2026-03-10T20:32:48    
+2026-03-10T20:32:48    35 packages are looking for funding
+2026-03-10T20:32:48      run `npm fund` for details
+2026-03-10T20:32:48    
+2026-03-10T20:32:48    8 vulnerabilities (2 low, 6 high)
+2026-03-10T20:32:49    
+2026-03-10T20:32:49    To address all issues possible (including breaking changes), run:
+2026-03-10T20:32:49      npm audit fix --force
+2026-03-10T20:32:49    
+2026-03-10T20:32:49    Some issues need review, and may require choosing
+2026-03-10T20:32:49    a different dependency.
+2026-03-10T20:32:50    
+2026-03-10T20:32:50    Run `npm audit` for details.
+2026-03-10T20:32:50    
+2026-03-10T20:32:51    Zipping existing node_modules folder...
+2026-03-10T20:33:17    Done in 28 sec(s).
+2026-03-10T20:33:17    Build script snippets done in 137 sec(s).
+2026-03-10T20:33:17    Preparing output...
+2026-03-10T20:33:17    rsync: [generator] recv_generator: failed to stat "/home/site/wwwroot/public\admin.html": Invalid argument (22)
+2026-03-10T20:33:17    Using standard output preparation...
+2026-03-10T20:33:17    rsync: [generator] recv_generator: failed to stat "/home/site/wwwroot/public\index.html": Invalid argument (22)
+2026-03-10T20:33:17    
+2026-03-10T20:33:17    rsync: [generator] recv_generator: failed to stat "/home/site/wwwroot/public\login.html": Invalid argument (22)
+2026-03-10T20:33:17    Copying files to destination directory '/home/site/wwwroot'...
+2026-03-10T20:33:17    rsync: [generator] recv_generator: failed to stat "/home/site/wwwroot/public\superadmin.html": Invalid argument (22)
+2026-03-10T20:33:17    rsync: [generator] recv_generator: failed to stat "/home/site/wwwroot/scripts\list-pedidos.js": Invalid argument (22)
+2026-03-10T20:33:21    rsync error: some files/attrs were not transferred (see previous errors) (code 23) at main.c(1338) [sender=3.2.7]
+2026-03-10T20:33:22    npm warn deprecated @npmcli/move-file@1.1.2: This functionality has been moved to @npmcli/fs
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+npm warn deprecated npmlog@6.0.2: This package is no longer supported.
+npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated are-we-there-yet@3.0.1: This package is no longer supported.
+npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+npm warn deprecated prebuild-install@7.1.3: No longer maintained. Please contact the author of the relevant native addon; alternatives are available.
+npm warn deprecated gauge@4.0.4: This package is no longer supported.
+npm warn deprecated tar@6.2.1: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+rsync: [generator] recv_generator: failed to stat "/home/site/wwwroot/public\admin.html": Invalid argument (22)
+rsync: [generator] recv_generator: failed to stat "/home/site/wwwroot/public\index.html": Invalid argument (22)
+rsync: [generator] recv_generator: failed to stat "/home/site/wwwroot/public\login.html": Invalid argument (22)
+rsync: [generator] recv_generator: failed to stat "/home/site/wwwroot/public\superadmin.html": Invalid argument (22)
+rsync: [generator] recv_generator: failed to stat "/home/site/wwwroot/scripts\list-pedidos.js": Invalid argument (22)
+rsync error: some files/attrs were not transferred (see previous errors) (code 23) at main.c(1338) [sender=3.2.7]
+/bin/bash -c "oryx build /tmp/zipdeploy/extracted -o /home/site/wwwroot --platform nodejs --platform-version 20 -p virtualenv_name= --log-file /tmp/build-debug.log  -i /tmp/8de7ee3e904b4d5 -p compress_node_modules=tar-gz | tee /tmp/oryx-build.log ; exit $PIPESTATUS "
+2026-03-10T20:33:22  
+2026-03-10T20:33:22  
+2026-03-10T20:33:22  Generating summary of Oryx build
+2026-03-10T20:33:22  Parsing the build logs
+2026-03-10T20:33:22  Found 0 issue(s)
+2026-03-10T20:33:23  
+2026-03-10T20:33:23  Build Summary :
+2026-03-10T20:33:23  ===============
+2026-03-10T20:33:23  Errors (0)
+2026-03-10T20:33:23  Warnings (0)
+2026-03-10T20:33:23  
+2026-03-10T20:33:24  Deployment Failed. deployer = OneDeploy deploymentPath = OneDeploy

@@ -16,7 +16,7 @@ const validarRouter = require('./routes/validar');
 const apiRouter = require('./routes/api');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 const BOOTSTRAP_SUPERADMIN_EMAILS = String(process.env.BOOTSTRAP_SUPERADMIN_EMAILS || '')
     .split(',')

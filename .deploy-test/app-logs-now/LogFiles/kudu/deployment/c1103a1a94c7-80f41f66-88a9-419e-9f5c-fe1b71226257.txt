@@ -1,0 +1,118 @@
+2026-04-06T12:04:48  Fetching changes.
+2026-04-06T12:04:48    Starting  LocalZipHandler
+2026-04-06T12:04:48    Cleaning up temp folders from previous zip deployments and extracting pushed zip file /tmp/zipdeploy/54dcb17e-2940-4b76-b03d-1503811f2265.zip (0.17 MB) to /tmp/zipdeploy/extracted
+2026-04-06T12:04:52  Updating submodules.
+2026-04-06T12:04:52  Preparing deployment for commit id '8308ec02-9'.
+2026-04-06T12:04:53  PreDeployment: context.CleanOutputPath False
+2026-04-06T12:04:53  PreDeployment: context.OutputPath /home/site/wwwroot
+2026-04-06T12:04:53  Repository path is /tmp/zipdeploy/extracted
+2026-04-06T12:04:53  Running oryx build...
+2026-04-06T12:04:53    Command: oryx build /tmp/zipdeploy/extracted -o /home/site/wwwroot --platform nodejs --platform-version 20 -p virtualenv_name= --log-file /tmp/build-debug.log  -i /tmp/8de93d4b5eaec10 -p compress_node_modules=tar-gz | tee /tmp/oryx-build.log
+2026-04-06T12:04:56    Operation performed by Microsoft Oryx, https://github.com/Microsoft/Oryx
+2026-04-06T12:04:57    You can report issues at https://github.com/Microsoft/Oryx/issues
+2026-04-06T12:04:57    
+2026-04-06T12:04:57    Oryx Version: 0.2.20260204.1+0fdbe200b286be083841ff7fa201c6c2316dc6b9, Commit: 0fdbe200b286be083841ff7fa201c6c2316dc6b9, ReleaseTagName: 20260204.1
+2026-04-06T12:04:57    
+2026-04-06T12:04:57    Build Operation ID: d4ef9ccb128237d0
+2026-04-06T12:04:57    Repository Commit : 8308ec02-9b5d-4e11-a4ed-6cb039f3b0f6
+2026-04-06T12:04:57    OS Type           : bookworm
+2026-04-06T12:04:57    Image Type        : githubactions
+2026-04-06T12:04:57    
+2026-04-06T12:04:57    Primary SDK Storage URL: https://oryx-cdn.microsoft.io
+2026-04-06T12:04:57    Backup SDK Storage URL: 
+2026-04-06T12:04:57    Detecting platforms...
+2026-04-06T12:04:57    External SDK provider is enabled.
+2026-04-06T12:04:58    Requesting metadata for platform nodejs from external SDK provider
+2026-04-06T12:04:58    Requesting metadata for platform nodejs from external SDK provider
+2026-04-06T12:04:59    Successfully requested blob for platform nodejs, blobName defaultVersion.bookworm.txt, available at /var/OryxSdks/nodejs/defaultVersion.bookworm.txt
+2026-04-06T12:04:59    Detected following platforms:
+2026-04-06T12:04:59      nodejs: 20.20.0
+2026-04-06T12:04:59    Requesting metadata for platform nodejs from external SDK provider
+2026-04-06T12:05:02    Successfully requested blob for platform nodejs, blobName nodejs-bookworm-20.20.0.tar.gz, available at /var/OryxSdks/nodejs/nodejs-bookworm-20.20.0.tar.gz
+2026-04-06T12:05:03    Version '20.20.0' of platform 'nodejs' is not installed. Generating script to install it...
+2026-04-06T12:05:04    Detected the following frameworks: Express
+2026-04-06T12:05:04    
+2026-04-06T12:05:04    Using intermediate directory '/tmp/8de93d4b5eaec10'.
+2026-04-06T12:05:04    
+2026-04-06T12:05:04    Copying files to the intermediate directory...
+2026-04-06T12:05:05    Copying files to intermediate directory done in 0 sec(s).
+2026-04-06T12:05:05    
+2026-04-06T12:05:05    Source directory     : /tmp/8de93d4b5eaec10
+2026-04-06T12:05:05    Destination directory: /home/site/wwwroot
+2026-04-06T12:05:05    
+2026-04-06T12:05:05    Installing platform...
+2026-04-06T12:05:05    
+2026-04-06T12:05:05    Downloading and extracting 'nodejs' version '20.20.0' to '/tmp/oryx/platforms/nodejs/20.20.0'...
+2026-04-06T12:05:06    Detected image debian flavor: bookworm.
+2026-04-06T12:05:06    Skipping download of nodejs version 20.20.0 as it is available in external sdk provider cache...
+2026-04-06T12:05:06    Extracting contents...
+2026-04-06T12:05:15    Successfully extracted nodejs version 20.20.0 from external sdk provider cache...
+2026-04-06T12:05:15    
+2026-04-06T12:05:15    Platform installation done in 11 sec(s).
+2026-04-06T12:05:16    Running build script snippets...
+2026-04-06T12:05:16    Removing existing manifest file
+2026-04-06T12:05:16    Creating directory for command manifest file if it does not exist
+2026-04-06T12:05:16    Creating a manifest file...
+2026-04-06T12:05:16    Node Build Command Manifest file created.
+2026-04-06T12:05:16    
+2026-04-06T12:05:16    Using Node version:
+2026-04-06T12:05:16    v20.20.0
+2026-04-06T12:05:16    
+2026-04-06T12:05:16    Using Npm version:
+2026-04-06T12:05:17    10.8.2
+2026-04-06T12:05:17    
+2026-04-06T12:05:17    Running 'npm install'...
+2026-04-06T12:05:17    
+2026-04-06T12:05:37    npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+2026-04-06T12:05:37    npm warn deprecated @npmcli/move-file@1.1.2: This functionality has been moved to @npmcli/fs
+2026-04-06T12:05:38    npm warn deprecated npmlog@6.0.2: This package is no longer supported.
+2026-04-06T12:05:38    npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+2026-04-06T12:05:38    npm warn deprecated are-we-there-yet@3.0.1: This package is no longer supported.
+2026-04-06T12:05:38    npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-04-06T12:05:40    npm warn deprecated gauge@4.0.4: This package is no longer supported.
+2026-04-06T12:05:41    npm warn deprecated tar@6.2.1: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-04-06T12:06:10    
+2026-04-06T12:06:10    added 323 packages, and audited 324 packages in 52s
+2026-04-06T12:06:10    
+2026-04-06T12:06:10    45 packages are looking for funding
+2026-04-06T12:06:10      run `npm fund` for details
+2026-04-06T12:06:10    
+2026-04-06T12:06:10    8 vulnerabilities (2 low, 6 high)
+2026-04-06T12:06:10    
+2026-04-06T12:06:10    To address all issues possible (including breaking changes), run:
+2026-04-06T12:06:10      npm audit fix --force
+2026-04-06T12:06:10    
+2026-04-06T12:06:10    Some issues need review, and may require choosing
+2026-04-06T12:06:10    a different dependency.
+2026-04-06T12:06:11    
+2026-04-06T12:06:11    Run `npm audit` for details.
+2026-04-06T12:06:11    
+2026-04-06T12:06:11    Zipping existing node_modules folder...
+2026-04-06T12:06:33    Done in 23 sec(s).
+2026-04-06T12:06:33    Build script snippets done in 78 sec(s).
+2026-04-06T12:06:33    Preparing output...
+2026-04-06T12:06:33    Using standard output preparation...
+2026-04-06T12:06:33    
+2026-04-06T12:06:33    Copying files to destination directory '/home/site/wwwroot'...
+2026-04-06T12:06:35    Copying to destination directory done in 2 sec(s).
+2026-04-06T12:06:35    Total time for destination directory preparation done in 2 sec(s).
+2026-04-06T12:06:35    
+2026-04-06T12:06:35    Removing existing manifest file
+2026-04-06T12:06:35    Creating a manifest file...
+2026-04-06T12:06:35    Manifest file created.
+2026-04-06T12:06:35    Copying .ostype to manifest output directory.
+2026-04-06T12:06:35    
+2026-04-06T12:06:35    Total execution done in 91 sec(s).
+2026-04-06T12:06:36  Running post deployment command(s)...
+2026-04-06T12:06:36  
+2026-04-06T12:06:36  Generating summary of Oryx build
+2026-04-06T12:06:36  Parsing the build logs
+2026-04-06T12:06:37  Found 0 issue(s)
+2026-04-06T12:06:37  
+2026-04-06T12:06:37  Build Summary :
+2026-04-06T12:06:37  ===============
+2026-04-06T12:06:37  Errors (0)
+2026-04-06T12:06:37  Warnings (0)
+2026-04-06T12:06:37  
+2026-04-06T12:06:38  Triggering container recycle for OneDeploy by adding/updating restartTrigger.txt to the site root path
+2026-04-06T12:06:38  Deployment successful. deployer = OneDeploy deploymentPath = OneDeploy

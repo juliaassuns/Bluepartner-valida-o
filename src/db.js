@@ -1,8 +1,17 @@
+/**
+ * Database Module - Smart Dual-Database Support
+ * Production: Uses SQL Server (Azure SQL Database)
+ * Development: Falls back to SQLite
+ */
+
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
 
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'data', 'bluepartner.db');
+// IMPORTANTE: Em produção (Azure), defina a variável de ambiente:
+// AZURE_SQL_CONNECTION_STRING ou use connection string via Azure Key Vault
+
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, '..', 'data', 'bluepartner.db');
 
 let db;
 

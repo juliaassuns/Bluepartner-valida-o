@@ -1,0 +1,15 @@
+2026-03-25T15:24:17.5415255Z ValidationError: An invalid 'request.ip' (187.91.94.18:49683) was detected. Consider passing a custom 'keyGenerator' function to the rate limiter. See https://express-rate-limit.github.io/ERR_ERL_INVALID_IP_ADDRESS/ for more information.
+2026-03-25T15:24:17.5404664Z [2026-03-25T15:24:17.529Z] GET /admin.html
+2026-03-25T15:24:17.5792570Z     at Object.ip (/node_modules/express-rate-limit/dist/index.cjs:331:13)
+2026-03-25T15:24:17.5792918Z     at wrappedValidations.<computed> [as ip] (/node_modules/express-rate-limit/dist/index.cjs:680:22)
+2026-03-25T15:24:17.5792984Z     at Object.keyGenerator (/node_modules/express-rate-limit/dist/index.cjs:781:20)
+2026-03-25T15:24:17.5793039Z     at /node_modules/express-rate-limit/dist/index.cjs:844:32
+2026-03-25T15:24:17.5793095Z     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2026-03-25T15:24:17.5793149Z     at async /node_modules/express-rate-limit/dist/index.cjs:825:5 {
+2026-03-25T15:24:17.5793202Z   code: 'ERR_ERL_INVALID_IP_ADDRESS',
+2026-03-25T15:24:17.5793261Z   help: 'https://express-rate-limit.github.io/ERR_ERL_INVALID_IP_ADDRESS/'
+2026-03-25T15:24:17.5793308Z }
+2026-03-25T15:24:18.2383398Z [2026-03-25T15:24:18.237Z] GET /favicon.ico
+2026-03-25T15:24:18.4674972Z [2026-03-25T15:24:18.467Z] GET /admin
+2026-03-25T15:24:18.6119028Z [2026-03-25T15:24:18.611Z] GET /login
+2026-03-25T15:32:14.8247688Z [2026-03-25T15:32:14.818Z] POST /api/fabric/test-connection

@@ -1,0 +1,39 @@
+<step title="BackgroundTrace" date="2026-03-10T20:47:27.854" instance="2f737e" url="/api/zipdeploy" method="POST" >
+  <step title="Cleanup Xml Logs" date="2026-03-10T20:47:27.973" >
+    <step title="Cleanup Infos" date="2026-03-10T20:47:28.382" totalFiles="213" totalCleanup="53" /><!-- duration: 108ms -->
+  </step><!-- duration: 612ms -->
+  <step title="Creating temporary deployment - FetchDeploymentManager" date="2026-03-10T20:47:29.460" /><!-- duration: 71ms -->
+  <step title="Creating temporary deployment" date="2026-03-10T20:47:29.851" /><!-- duration: 846ms -->
+  <step title="Performing fetch based deployment" date="2026-03-10T20:47:31.647" >
+    <step title="Cleaning up temp folders from previous zip deployments and extracting pushed zip file /tmp/zipdeploy/34a8dbf9-e3c9-4d70-955b-4daf0b3a763e.zip (0.09 MB) to /tmp/zipdeploy/extracted" date="2026-03-10T20:47:34.079" >
+      <step title="ChmodRecursive Process exited with total time taken in ms: 770" date="2026-03-10T20:47:37.019" /><!-- duration: 372ms -->
+    </step><!-- duration: 3385ms -->
+    <step title="Deployment timer started" date="2026-03-10T20:47:40.136" >
+      <step title="DeploymentManager.Deploy(id:665a0375-e5d1-4dfc-9d18-7f1e833eb823)" date="2026-03-10T20:47:40.344" >
+        <step title="Collecting changeset information" date="2026-03-10T20:47:41.057" /><!-- duration: 2033ms -->
+        <step title="Updating submodules" date="2026-03-10T20:47:43.339" /><!-- duration: 4603ms -->
+        <step title="Determining deployment builder" date="2026-03-10T20:47:51.131" >
+          <step title="Builder is OryxBuilder" date="2026-03-10T20:47:52.234" /><!-- duration: 146ms -->
+        </step><!-- duration: 1448ms -->
+        <step title="PreDeployment: context.CleanOutputPath False" date="2026-03-10T20:47:53.881" >
+          <step title="PreDeployment: context.OutputPath /home/site/wwwroot" date="2026-03-10T20:47:55.650" >
+            <step title="Building" date="2026-03-10T20:47:57.437" >
+              <step title="Executing external process" date="2026-03-10T20:48:04.264" type="process" path="bash" arguments="-c &quot;oryx build /tmp/zipdeploy/extracted -o /home/site/wwwroot --platform nodejs --platform-version 20 -p virtualenv_name= --log-file /tmp/build-debug.log  -i /tmp/8de7ee64cf7a2aa -p compress_node_modules=tar-gz | tee /tmp/oryx-build.log ; exit $PIPESTATUS &quot;" /><!-- duration: 162109ms -->
+              <step title="Using GenericDeploymentLogParser" date="2026-03-10T20:50:46.995" /><!-- duration: 20ms -->
+              <step title="Triggering recycle (preview mode disabled)." date="2026-03-10T20:50:48.514" /><!-- duration: 5ms -->
+              <step title="Modified file to trigger a restart of the app container." date="2026-03-10T20:50:48.570" /><!-- duration: 21ms -->
+              <step title="Skip function trigger and logicapp sync because function is not enabled." date="2026-03-10T20:50:48.629" /><!-- duration: 40ms -->
+              <step title="Purge deployment items" date="2026-03-10T20:50:51.064" >
+                <step title="Remove 3c44ad68-, Failed, received at 03/10/2026 20:36:56" date="2026-03-10T20:50:51.360" /><!-- duration: 11ms -->
+                <step title="Remove 43e059c0-, Success, received at 03/09/2026 14:06:15" date="2026-03-10T20:50:51.552" /><!-- duration: 18ms -->
+              </step><!-- duration: 537ms -->
+            </step><!-- duration: 174272ms -->
+          </step><!-- duration: 176085ms -->
+          <step title="Cleaning up temp files" date="2026-03-10T20:50:51.767" /><!-- duration: 1492ms -->
+          <step title="Cleaning up temp files" date="2026-03-10T20:50:53.290" /><!-- duration: 524ms -->
+          <step title="Reloading status file with latest updates" date="2026-03-10T20:50:53.868" >
+            <step title="WebHooksManager.PublishEventAsync: PostDeployment" date="2026-03-10T20:50:53.874" /><!-- duration: 58ms -->
+          </step><!-- duration: 75ms -->
+          <step title="Cleaning up temporary deployment - fetch deployment was successful" date="2026-03-10T20:50:53.973" /><!-- duration: 3ms -->
+        </step><!-- duration: 180136ms -->
+      </step><!-- duration: 193706ms -->

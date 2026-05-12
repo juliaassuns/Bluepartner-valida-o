@@ -360,5 +360,15 @@ router.get('/:pedidoId/:token', async (req, res) => {
         res.status(500).json({ error: 'Erro interno ao buscar dados do pedido' });
     }
 });
+// ROTA DE DEBUG: Listar todos os pedidos
+router.get('/', async (req, res) => {
+    try {
+        const pedidos = await dbAll('SELECT * FROM pedidos ORDER BY criado_em DESC');
+        res.json({ pedidos });
+    } catch (err) {
+        console.error('Erro ao listar pedidos:', err);
+        res.status(500).json({ error: 'Erro ao listar pedidos' });
+    }
+});
 
 module.exports = router;

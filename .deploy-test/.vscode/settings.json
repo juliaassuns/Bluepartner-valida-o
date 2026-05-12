@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/a359d4e1-d778-4cb2-a32f-7213dfa9e1bd/resourceGroups/rg-bluepartner/providers/Microsoft.Web/sites/bluepartner-validacao",
+    "appService.deploySubpath": "."
+}

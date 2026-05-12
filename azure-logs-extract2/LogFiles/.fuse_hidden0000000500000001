@@ -1,0 +1,265 @@
+2026-03-11T15:05:06.9225582Z State: Starting, Action: EstablishingSiteNetworks, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: , DetailsLevel: INFO
+2026-03-11T15:05:13.7072197Z State: Starting, Action: StartingSiteContainers, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: , DetailsLevel: INFO
+2026-03-11T15:05:13.7095579Z Container start method called.
+2026-03-11T15:05:13.7360783Z State: Starting, Action: PullingImage, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Pulling image 10.1.0.5:13209/appsvc/node:20-lts_20260115.4.tuxprod for bluepartner-validacao., DetailsLevel: INFO
+2026-03-11T15:05:13.7365010Z Establishing network.
+2026-03-11T15:05:13.7453802Z Pulling image: appsvc/node:20-lts_20260115.4.tuxprod.
+2026-03-11T15:05:14.6555715Z Container is starting.
+2026-03-11T15:05:14.6559082Z State: Starting, Action: MountingVolumes, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Mounting volumes for bluepartner-validacao., DetailsLevel: INFO
+2026-03-11T15:05:14.6581167Z Establishing user namespace if not established already.
+2026-03-11T15:05:14.6769135Z Establishing network if not established already.
+2026-03-11T15:05:14.6777802Z Mounting volumes.
+2026-03-11T15:05:14.7220993Z Nested mountpoint 
+2026-03-11T15:05:14.8691983Z Nested mountpoint volatile/logs
+2026-03-11T15:05:14.9360620Z Nested mountpoint 
+2026-03-11T15:05:15.0368273Z Nested mountpoint 
+2026-03-11T15:05:15.1030986Z Nested mountpoint 
+2026-03-11T15:05:16.1661568Z State: Starting, Action: CreatingContainer, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Finished pulling container image and mounting volumes for bluepartner-validacao. Allocatinng the rest of the container resources to finish container creation., DetailsLevel: INFO
+2026-03-11T15:05:16.1873533Z Creating container.
+2026-03-11T15:05:16.2043375Z Creating pipes for streaming container io.
+2026-03-11T15:05:16.2150771Z Creating stdout named pipe at /podr/container/pipe/3bd6adf0b2cb_bluepartner-validacao/stdout_e456f367880f4b529a445cb639be887e.
+2026-03-11T15:05:16.2329704Z Successfully created stdout named pipe at: /podr/container/pipe/3bd6adf0b2cb_bluepartner-validacao/stdout_e456f367880f4b529a445cb639be887e.
+2026-03-11T15:05:16.2427826Z Opening named pipe /podr/container/pipe/3bd6adf0b2cb_bluepartner-validacao/stdout_e456f367880f4b529a445cb639be887e for reading in non-blocking mode.
+2026-03-11T15:05:16.2701770Z Successfully opened named pipe: /podr/container/pipe/3bd6adf0b2cb_bluepartner-validacao/stdout_e456f367880f4b529a445cb639be887e.
+2026-03-11T15:05:16.2710791Z Successfully removed non-blocking flag from /podr/container/pipe/3bd6adf0b2cb_bluepartner-validacao/stdout_e456f367880f4b529a445cb639be887e.
+2026-03-11T15:05:16.2894174Z Creating stderr named pipe at /podr/container/pipe/3bd6adf0b2cb_bluepartner-validacao/stderr_712d444c3045404f96989184f840b9d3.
+2026-03-11T15:05:16.2913388Z Successfully created stderr named pipe at: /podr/container/pipe/3bd6adf0b2cb_bluepartner-validacao/stderr_712d444c3045404f96989184f840b9d3.
+2026-03-11T15:05:16.2916159Z Opening named pipe /podr/container/pipe/3bd6adf0b2cb_bluepartner-validacao/stderr_712d444c3045404f96989184f840b9d3 for reading in non-blocking mode.
+2026-03-11T15:05:16.2989363Z Successfully opened named pipe: /podr/container/pipe/3bd6adf0b2cb_bluepartner-validacao/stderr_712d444c3045404f96989184f840b9d3.
+2026-03-11T15:05:16.2993644Z Successfully removed non-blocking flag from /podr/container/pipe/3bd6adf0b2cb_bluepartner-validacao/stderr_712d444c3045404f96989184f840b9d3.
+2026-03-11T15:05:16.3082984Z Creating container with image: appsvc/node:20-lts_20260115.4.tuxprod from registry: 10.1.0.5:13209 and fully qualified image name: 10.1.0.5:13209/appsvc/node:20-lts_20260115.4.tuxprod
+2026-03-11T15:05:17.4411755Z Starting container: 3bd6adf0b2cb_bluepartner-validacao.
+2026-03-11T15:05:17.6451605Z Starting watchers and probes.
+2026-03-11T15:05:17.6551336Z Starting metrics collection.
+2026-03-11T15:05:17.7016222Z Container is running.
+2026-03-11T15:05:17.7020768Z State: Starting, Action: CreatingContainer, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Container bluepartner-validacao successfully created and is running., DetailsLevel: INFO
+2026-03-11T15:05:18.1426124Z Container start method finished after 4376 ms.
+2026-03-11T15:05:18.1900469Z State: Starting, Action: InitiatingSiteWarmUpProbe, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Container bluepartner-validacao successfully created and is running., DetailsLevel: INFO
+2026-03-11T15:05:18.1918397Z State: Starting, Action: WaitingForSiteWarmUpProbeSuccess, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Pinging warmup path to ensure container is ready to receive requests., DetailsLevel: INFO
+2026-03-11T15:06:48.3192118Z Site startup probe succeeded after 90.1040367 seconds.
+2026-03-11T15:06:48.6350618Z State: Starting, Action: WarmUpProbeSucceeded, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Site startup probe succeeded after 90.1040367 seconds., DetailsLevel: INFO
+2026-03-11T15:06:48.8002296Z Site is running with deployment version: 8c43a044-9379-4597-bfb3-0027e786f9e2
+2026-03-11T15:06:48.8017501Z Site started.
+2026-03-11T15:06:48.8031732Z State: Started, Action: None, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Site started at 03/11/2026 15:06:48 (UTC), DetailsLevel: INFO
+2026-03-11T15:06:48.8109988Z Site is running with patch version NODE 20.20.0
+2026-03-11T15:07:08.9160757Z State: Stopping, Action: StoppingSite, LastError: ContainerTimeout, LastErrorTimestamp: 03/10/2026 20:49:09, LastErrorDetails: Container did not start within expected time limit of 230s. Please inspect your container logs for more details., Details: Site started at 03/10/2026 22:45:08 (UTC), DetailsLevel: INFO
+2026-03-11T15:07:08.9402930Z State: Stopping, Action: StoppingSiteContainers, LastError: ContainerTimeout, LastErrorTimestamp: 03/10/2026 20:49:09, LastErrorDetails: Container did not start within expected time limit of 230s. Please inspect your container logs for more details., Details: Site started at 03/10/2026 22:45:08 (UTC), DetailsLevel: INFO
+2026-03-11T15:07:08.9421742Z Container is terminating. Grace period: 5 seconds.
+2026-03-11T15:07:09.1035482Z Stop and delete container. Retry count = 0
+2026-03-11T15:07:09.1041920Z Stopping container: e96388e41ed9_bluepartner-validacao.
+2026-03-11T15:07:14.3919927Z Deleting container: e96388e41ed9_bluepartner-validacao. Retry count = 0
+2026-03-11T15:07:23.2060716Z Container spec TerminationMessagePolicy  path 
+2026-03-11T15:07:23.2526489Z Container is terminated. Total time elapsed: 14282 ms.
+2026-03-11T15:07:23.2731391Z Site: bluepartner-validacao stopped.
+2026-03-11T16:39:36.4092759Z State: Starting, Action: EstablishingSiteNetworks, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: , DetailsLevel: INFO
+2026-03-11T16:39:42.4369993Z State: Starting, Action: StartingSiteContainers, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: , DetailsLevel: INFO
+2026-03-11T16:39:42.4631367Z Container start method called.
+2026-03-11T16:39:42.4838439Z State: Starting, Action: PullingImage, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Pulling image 10.1.0.4:13209/appsvc/node:20-lts_20260115.4.tuxprod for bluepartner-validacao., DetailsLevel: INFO
+2026-03-11T16:39:42.4846842Z Establishing network.
+2026-03-11T16:39:42.4955992Z Pulling image: appsvc/node:20-lts_20260115.4.tuxprod.
+2026-03-11T16:39:45.4234623Z Container is starting.
+2026-03-11T16:39:45.4235678Z State: Starting, Action: MountingVolumes, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Mounting volumes for bluepartner-validacao., DetailsLevel: INFO
+2026-03-11T16:39:45.4236561Z Establishing user namespace if not established already.
+2026-03-11T16:39:45.4237474Z Establishing network if not established already.
+2026-03-11T16:39:45.4238501Z Mounting volumes.
+2026-03-11T16:39:45.4239639Z Nested mountpoint 
+2026-03-11T16:39:45.6289450Z Nested mountpoint volatile/logs
+2026-03-11T16:39:45.7088989Z Nested mountpoint 
+2026-03-11T16:39:46.0569162Z Nested mountpoint 
+2026-03-11T16:39:46.1753257Z Nested mountpoint 
+2026-03-11T16:39:50.3276743Z State: Starting, Action: CreatingContainer, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Finished pulling container image and mounting volumes for bluepartner-validacao. Allocatinng the rest of the container resources to finish container creation., DetailsLevel: INFO
+2026-03-11T16:39:50.3280133Z Creating container.
+2026-03-11T16:39:50.3281876Z Creating pipes for streaming container io.
+2026-03-11T16:39:50.3283415Z Creating stdout named pipe at /podr/container/pipe/11422050321d_bluepartner-validacao/stdout_966dd31d2f0546cf90864726693975e7.
+2026-03-11T16:39:50.3287139Z Successfully created stdout named pipe at: /podr/container/pipe/11422050321d_bluepartner-validacao/stdout_966dd31d2f0546cf90864726693975e7.
+2026-03-11T16:39:50.3288657Z Opening named pipe /podr/container/pipe/11422050321d_bluepartner-validacao/stdout_966dd31d2f0546cf90864726693975e7 for reading in non-blocking mode.
+2026-03-11T16:39:50.3290490Z Successfully opened named pipe: /podr/container/pipe/11422050321d_bluepartner-validacao/stdout_966dd31d2f0546cf90864726693975e7.
+2026-03-11T16:39:50.4778314Z Successfully removed non-blocking flag from /podr/container/pipe/11422050321d_bluepartner-validacao/stdout_966dd31d2f0546cf90864726693975e7.
+2026-03-11T16:39:50.4787598Z Creating stderr named pipe at /podr/container/pipe/11422050321d_bluepartner-validacao/stderr_006d748486d249b781605aaa33939ffd.
+2026-03-11T16:39:50.4977473Z Successfully created stderr named pipe at: /podr/container/pipe/11422050321d_bluepartner-validacao/stderr_006d748486d249b781605aaa33939ffd.
+2026-03-11T16:39:50.5161839Z Opening named pipe /podr/container/pipe/11422050321d_bluepartner-validacao/stderr_006d748486d249b781605aaa33939ffd for reading in non-blocking mode.
+2026-03-11T16:39:50.5171781Z Successfully opened named pipe: /podr/container/pipe/11422050321d_bluepartner-validacao/stderr_006d748486d249b781605aaa33939ffd.
+2026-03-11T16:39:50.5184250Z Successfully removed non-blocking flag from /podr/container/pipe/11422050321d_bluepartner-validacao/stderr_006d748486d249b781605aaa33939ffd.
+2026-03-11T16:39:50.5187730Z Creating container with image: appsvc/node:20-lts_20260115.4.tuxprod from registry: 10.1.0.4:13209 and fully qualified image name: 10.1.0.4:13209/appsvc/node:20-lts_20260115.4.tuxprod
+2026-03-11T16:39:55.4161204Z Starting container: 11422050321d_bluepartner-validacao.
+2026-03-11T16:39:55.6842435Z Starting watchers and probes.
+2026-03-11T16:39:55.7000996Z Starting metrics collection.
+2026-03-11T16:39:55.7007115Z Container is running.
+2026-03-11T16:39:55.7194336Z State: Starting, Action: CreatingContainer, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Container bluepartner-validacao successfully created and is running., DetailsLevel: INFO
+2026-03-11T16:39:56.2765768Z Container start method finished after 13813 ms.
+2026-03-11T16:39:56.3837722Z State: Starting, Action: InitiatingSiteWarmUpProbe, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Container bluepartner-validacao successfully created and is running., DetailsLevel: INFO
+2026-03-11T16:39:56.3933361Z State: Starting, Action: WaitingForSiteWarmUpProbeSuccess, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Pinging warmup path to ensure container is ready to receive requests., DetailsLevel: INFO
+2026-03-11T16:43:31.9105620Z Site startup probe succeeded after 215.3093177 seconds.
+2026-03-11T16:43:32.7111517Z State: Starting, Action: WarmUpProbeSucceeded, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Site startup probe succeeded after 215.3093177 seconds., DetailsLevel: INFO
+2026-03-11T16:43:32.9433082Z Site is running with deployment version: 8c43a044-9379-4597-bfb3-0027e786f9e2
+2026-03-11T16:43:32.9748648Z Site started.
+2026-03-11T16:43:32.9843451Z State: Started, Action: None, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Site started at 03/11/2026 16:43:32 (UTC), DetailsLevel: INFO
+2026-03-11T16:43:33.0127057Z Site is running with patch version NODE 20.20.0
+2026-03-11T16:43:53.1825273Z State: Stopping, Action: StoppingSite, LastError: ContainerTimeout, LastErrorTimestamp: 03/10/2026 20:49:09, LastErrorDetails: Container did not start within expected time limit of 230s. Please inspect your container logs for more details., Details: Site started at 03/11/2026 15:06:48 (UTC), DetailsLevel: INFO
+2026-03-11T16:43:53.2193835Z State: Stopping, Action: StoppingSiteContainers, LastError: ContainerTimeout, LastErrorTimestamp: 03/10/2026 20:49:09, LastErrorDetails: Container did not start within expected time limit of 230s. Please inspect your container logs for more details., Details: Site started at 03/11/2026 15:06:48 (UTC), DetailsLevel: INFO
+2026-03-11T16:43:53.2205811Z Container is terminating. Grace period: 5 seconds.
+2026-03-11T16:43:53.4590186Z Stop and delete container. Retry count = 0
+2026-03-11T16:43:53.4600599Z Stopping container: 3bd6adf0b2cb_bluepartner-validacao.
+2026-03-11T16:43:58.8897585Z Deleting container: 3bd6adf0b2cb_bluepartner-validacao. Retry count = 0
+2026-03-11T16:44:06.8908036Z Container spec TerminationMessagePolicy  path 
+2026-03-11T16:44:06.9087878Z Container is terminated. Total time elapsed: 13630 ms.
+2026-03-11T16:44:06.9106556Z Site: bluepartner-validacao stopped.
+2026-03-11T17:01:54.3444269Z State: Starting, Action: EstablishingSiteNetworks, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: , DetailsLevel: INFO
+2026-03-11T17:02:01.2966331Z State: Starting, Action: StartingSiteContainers, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: , DetailsLevel: INFO
+2026-03-11T17:02:01.3078985Z Container start method called.
+2026-03-11T17:02:01.3155781Z State: Starting, Action: PullingImage, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Pulling image 10.1.0.4:13209/appsvc/node:20-lts_20260115.4.tuxprod for bluepartner-validacao., DetailsLevel: INFO
+2026-03-11T17:02:01.3160497Z Establishing network.
+2026-03-11T17:02:01.3176051Z Pulling image: appsvc/node:20-lts_20260115.4.tuxprod.
+2026-03-11T17:02:03.8970532Z Container is starting.
+2026-03-11T17:02:03.9472217Z State: Starting, Action: MountingVolumes, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Mounting volumes for bluepartner-validacao., DetailsLevel: INFO
+2026-03-11T17:02:03.9554915Z Establishing user namespace if not established already.
+2026-03-11T17:02:03.9584491Z Establishing network if not established already.
+2026-03-11T17:02:04.0372657Z Mounting volumes.
+2026-03-11T17:02:04.0666747Z Nested mountpoint 
+2026-03-11T17:02:04.4047261Z Nested mountpoint volatile/logs
+2026-03-11T17:02:04.6969943Z Nested mountpoint 
+2026-03-11T17:02:04.9452638Z Nested mountpoint 
+2026-03-11T17:02:04.9820446Z Nested mountpoint 
+2026-03-11T17:02:07.1243911Z State: Starting, Action: CreatingContainer, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Finished pulling container image and mounting volumes for bluepartner-validacao. Allocatinng the rest of the container resources to finish container creation., DetailsLevel: INFO
+2026-03-11T17:02:07.1364013Z Creating container.
+2026-03-11T17:02:07.1369812Z Creating pipes for streaming container io.
+2026-03-11T17:02:07.1535320Z Creating stdout named pipe at /podr/container/pipe/fb72208e91c5_bluepartner-validacao/stdout_0eb71e88c5e541f2aff4c478ca329eff.
+2026-03-11T17:02:07.1563715Z Successfully created stdout named pipe at: /podr/container/pipe/fb72208e91c5_bluepartner-validacao/stdout_0eb71e88c5e541f2aff4c478ca329eff.
+2026-03-11T17:02:07.2440103Z Opening named pipe /podr/container/pipe/fb72208e91c5_bluepartner-validacao/stdout_0eb71e88c5e541f2aff4c478ca329eff for reading in non-blocking mode.
+2026-03-11T17:02:07.2444849Z Successfully opened named pipe: /podr/container/pipe/fb72208e91c5_bluepartner-validacao/stdout_0eb71e88c5e541f2aff4c478ca329eff.
+2026-03-11T17:02:07.2631396Z Successfully removed non-blocking flag from /podr/container/pipe/fb72208e91c5_bluepartner-validacao/stdout_0eb71e88c5e541f2aff4c478ca329eff.
+2026-03-11T17:02:07.3020039Z Creating stderr named pipe at /podr/container/pipe/fb72208e91c5_bluepartner-validacao/stderr_26b53177977d4737beb05478ced0898f.
+2026-03-11T17:02:07.3022879Z Successfully created stderr named pipe at: /podr/container/pipe/fb72208e91c5_bluepartner-validacao/stderr_26b53177977d4737beb05478ced0898f.
+2026-03-11T17:02:07.3098014Z Opening named pipe /podr/container/pipe/fb72208e91c5_bluepartner-validacao/stderr_26b53177977d4737beb05478ced0898f for reading in non-blocking mode.
+2026-03-11T17:02:07.3116655Z Successfully opened named pipe: /podr/container/pipe/fb72208e91c5_bluepartner-validacao/stderr_26b53177977d4737beb05478ced0898f.
+2026-03-11T17:02:07.3222570Z Successfully removed non-blocking flag from /podr/container/pipe/fb72208e91c5_bluepartner-validacao/stderr_26b53177977d4737beb05478ced0898f.
+2026-03-11T17:02:07.3406529Z Creating container with image: appsvc/node:20-lts_20260115.4.tuxprod from registry: 10.1.0.4:13209 and fully qualified image name: 10.1.0.4:13209/appsvc/node:20-lts_20260115.4.tuxprod
+2026-03-11T17:02:12.1274712Z Starting container: fb72208e91c5_bluepartner-validacao.
+2026-03-11T17:02:12.5612453Z Starting watchers and probes.
+2026-03-11T17:02:12.6306174Z Starting metrics collection.
+2026-03-11T17:02:12.6679345Z Container is running.
+2026-03-11T17:02:12.6680883Z State: Starting, Action: CreatingContainer, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Container bluepartner-validacao successfully created and is running., DetailsLevel: INFO
+2026-03-11T17:02:13.0193939Z Container start method finished after 11702 ms.
+2026-03-11T17:02:13.1002499Z State: Starting, Action: InitiatingSiteWarmUpProbe, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Container bluepartner-validacao successfully created and is running., DetailsLevel: INFO
+2026-03-11T17:02:13.1294389Z State: Starting, Action: WaitingForSiteWarmUpProbeSuccess, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Pinging warmup path to ensure container is ready to receive requests., DetailsLevel: INFO
+2026-03-11T17:04:42.9581234Z Site startup probe succeeded after 149.7197034 seconds.
+2026-03-11T17:04:43.9493802Z State: Starting, Action: WarmUpProbeSucceeded, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Site startup probe succeeded after 149.7197034 seconds., DetailsLevel: INFO
+2026-03-11T17:04:44.2718447Z Site is running with deployment version: a442ac05-ad10-40e0-ba2f-502ac0322a77
+2026-03-11T17:04:44.2875722Z Site started.
+2026-03-11T17:04:44.2882163Z State: Started, Action: None, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Site started at 03/11/2026 17:04:44 (UTC), DetailsLevel: INFO
+2026-03-11T17:04:44.3234488Z Site is running with patch version NODE 20.20.0
+2026-03-11T17:05:04.7315609Z State: Stopping, Action: StoppingSite, LastError: ContainerTimeout, LastErrorTimestamp: 03/10/2026 20:49:09, LastErrorDetails: Container did not start within expected time limit of 230s. Please inspect your container logs for more details., Details: Site started at 03/11/2026 16:43:32 (UTC), DetailsLevel: INFO
+2026-03-11T17:05:04.8185312Z State: Stopping, Action: StoppingSiteContainers, LastError: ContainerTimeout, LastErrorTimestamp: 03/10/2026 20:49:09, LastErrorDetails: Container did not start within expected time limit of 230s. Please inspect your container logs for more details., Details: Site started at 03/11/2026 16:43:32 (UTC), DetailsLevel: INFO
+2026-03-11T17:05:04.8275650Z Container is terminating. Grace period: 5 seconds.
+2026-03-11T17:05:05.3574872Z Stop and delete container. Retry count = 0
+2026-03-11T17:05:05.3585528Z Stopping container: 11422050321d_bluepartner-validacao.
+2026-03-11T17:05:10.6434209Z Deleting container: 11422050321d_bluepartner-validacao. Retry count = 0
+2026-03-11T17:05:17.9772285Z Container spec TerminationMessagePolicy  path 
+2026-03-11T17:05:17.9790833Z Container is terminated. Total time elapsed: 13142 ms.
+2026-03-11T17:05:17.9970640Z Site: bluepartner-validacao stopped.
+2026-03-11T17:06:52.3922065Z State: Starting, Action: EstablishingSiteNetworks, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: , DetailsLevel: INFO
+2026-03-11T17:06:57.4734374Z State: Starting, Action: StartingSiteContainers, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: , DetailsLevel: INFO
+2026-03-11T17:06:57.4820467Z Container start method called.
+2026-03-11T17:06:57.4907653Z State: Starting, Action: PullingImage, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Pulling image 10.1.0.4:13209/appsvc/node:20-lts_20260115.4.tuxprod for bluepartner-validacao., DetailsLevel: INFO
+2026-03-11T17:06:57.4924314Z Establishing network.
+2026-03-11T17:06:57.5118318Z Pulling image: appsvc/node:20-lts_20260115.4.tuxprod.
+2026-03-11T17:06:58.3676912Z Container is starting.
+2026-03-11T17:06:58.3694007Z State: Starting, Action: MountingVolumes, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Mounting volumes for bluepartner-validacao., DetailsLevel: INFO
+2026-03-11T17:06:58.3748815Z Establishing user namespace if not established already.
+2026-03-11T17:06:58.3750091Z Establishing network if not established already.
+2026-03-11T17:06:58.3751311Z Mounting volumes.
+2026-03-11T17:06:58.3766121Z Nested mountpoint 
+2026-03-11T17:06:58.5040120Z Nested mountpoint volatile/logs
+2026-03-11T17:06:58.5324344Z Nested mountpoint 
+2026-03-11T17:06:58.6119212Z Nested mountpoint 
+2026-03-11T17:06:58.6897215Z Nested mountpoint 
+2026-03-11T17:06:59.3374177Z State: Starting, Action: CreatingContainer, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Finished pulling container image and mounting volumes for bluepartner-validacao. Allocatinng the rest of the container resources to finish container creation., DetailsLevel: INFO
+2026-03-11T17:06:59.3381597Z Creating container.
+2026-03-11T17:06:59.3536786Z Creating pipes for streaming container io.
+2026-03-11T17:06:59.3557558Z Creating stdout named pipe at /podr/container/pipe/e23a4d585aa8_bluepartner-validacao/stdout_159014e91ebb4da2bb4803d361cbaa8c.
+2026-03-11T17:06:59.3575024Z Successfully created stdout named pipe at: /podr/container/pipe/e23a4d585aa8_bluepartner-validacao/stdout_159014e91ebb4da2bb4803d361cbaa8c.
+2026-03-11T17:06:59.3662145Z Opening named pipe /podr/container/pipe/e23a4d585aa8_bluepartner-validacao/stdout_159014e91ebb4da2bb4803d361cbaa8c for reading in non-blocking mode.
+2026-03-11T17:06:59.3755331Z Successfully opened named pipe: /podr/container/pipe/e23a4d585aa8_bluepartner-validacao/stdout_159014e91ebb4da2bb4803d361cbaa8c.
+2026-03-11T17:06:59.3838419Z Successfully removed non-blocking flag from /podr/container/pipe/e23a4d585aa8_bluepartner-validacao/stdout_159014e91ebb4da2bb4803d361cbaa8c.
+2026-03-11T17:06:59.3859359Z Creating stderr named pipe at /podr/container/pipe/e23a4d585aa8_bluepartner-validacao/stderr_451e1ba0e693458db16f1fa921a70607.
+2026-03-11T17:06:59.3925619Z Successfully created stderr named pipe at: /podr/container/pipe/e23a4d585aa8_bluepartner-validacao/stderr_451e1ba0e693458db16f1fa921a70607.
+2026-03-11T17:06:59.3930565Z Opening named pipe /podr/container/pipe/e23a4d585aa8_bluepartner-validacao/stderr_451e1ba0e693458db16f1fa921a70607 for reading in non-blocking mode.
+2026-03-11T17:06:59.3935887Z Successfully opened named pipe: /podr/container/pipe/e23a4d585aa8_bluepartner-validacao/stderr_451e1ba0e693458db16f1fa921a70607.
+2026-03-11T17:06:59.3940325Z Successfully removed non-blocking flag from /podr/container/pipe/e23a4d585aa8_bluepartner-validacao/stderr_451e1ba0e693458db16f1fa921a70607.
+2026-03-11T17:06:59.4116863Z Creating container with image: appsvc/node:20-lts_20260115.4.tuxprod from registry: 10.1.0.4:13209 and fully qualified image name: 10.1.0.4:13209/appsvc/node:20-lts_20260115.4.tuxprod
+2026-03-11T17:07:00.4742525Z Starting container: e23a4d585aa8_bluepartner-validacao.
+2026-03-11T17:07:00.7059129Z Starting watchers and probes.
+2026-03-11T17:07:00.7146249Z Starting metrics collection.
+2026-03-11T17:07:00.7158134Z Container is running.
+2026-03-11T17:07:00.7414292Z State: Starting, Action: CreatingContainer, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Container bluepartner-validacao successfully created and is running., DetailsLevel: INFO
+2026-03-11T17:07:00.9290577Z Container start method finished after 3446 ms.
+2026-03-11T17:07:01.0066954Z State: Starting, Action: InitiatingSiteWarmUpProbe, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Container bluepartner-validacao successfully created and is running., DetailsLevel: INFO
+2026-03-11T17:07:01.0132412Z State: Starting, Action: WaitingForSiteWarmUpProbeSuccess, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Pinging warmup path to ensure container is ready to receive requests., DetailsLevel: INFO
+2026-03-11T17:08:57.1212589Z Site startup probe succeeded after 116.0861832 seconds.
+2026-03-11T17:08:57.5832189Z State: Starting, Action: WarmUpProbeSucceeded, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Site startup probe succeeded after 116.0861832 seconds., DetailsLevel: INFO
+2026-03-11T17:08:57.7106398Z Site is running with deployment version: b4c073ca-fa9c-4781-805f-b955fcf23878
+2026-03-11T17:08:57.7186345Z Site started.
+2026-03-11T17:08:57.7192928Z State: Started, Action: None, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Site started at 03/11/2026 17:08:57 (UTC), DetailsLevel: INFO
+2026-03-11T17:08:57.7205376Z Site is running with patch version NODE 20.20.0
+2026-03-11T17:09:17.7818551Z State: Stopping, Action: StoppingSite, LastError: ContainerTimeout, LastErrorTimestamp: 03/10/2026 20:49:09, LastErrorDetails: Container did not start within expected time limit of 230s. Please inspect your container logs for more details., Details: Site started at 03/11/2026 17:04:44 (UTC), DetailsLevel: INFO
+2026-03-11T17:09:17.7848706Z State: Stopping, Action: StoppingSiteContainers, LastError: ContainerTimeout, LastErrorTimestamp: 03/10/2026 20:49:09, LastErrorDetails: Container did not start within expected time limit of 230s. Please inspect your container logs for more details., Details: Site started at 03/11/2026 17:04:44 (UTC), DetailsLevel: INFO
+2026-03-11T17:09:17.7860763Z Container is terminating. Grace period: 5 seconds.
+2026-03-11T17:09:17.8089281Z Stop and delete container. Retry count = 0
+2026-03-11T17:09:17.8095544Z Stopping container: fb72208e91c5_bluepartner-validacao.
+2026-03-11T17:09:23.2142699Z Deleting container: fb72208e91c5_bluepartner-validacao. Retry count = 0
+2026-03-11T17:09:33.2178519Z Container spec TerminationMessagePolicy  path 
+2026-03-11T17:09:33.2180956Z Container is terminated. Total time elapsed: 15431 ms.
+2026-03-11T17:09:33.2474585Z Site: bluepartner-validacao stopped.
+2026-03-11T17:13:50.6723151Z State: Starting, Action: EstablishingSiteNetworks, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: , DetailsLevel: INFO
+2026-03-11T17:13:57.6234430Z State: Starting, Action: StartingSiteContainers, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: , DetailsLevel: INFO
+2026-03-11T17:13:57.6353511Z Container start method called.
+2026-03-11T17:13:57.6538023Z State: Starting, Action: PullingImage, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Pulling image 10.1.0.5:13209/appsvc/node:20-lts_20260115.4.tuxprod for bluepartner-validacao., DetailsLevel: INFO
+2026-03-11T17:13:57.6607851Z Establishing network.
+2026-03-11T17:13:57.6613687Z Pulling image: appsvc/node:20-lts_20260115.4.tuxprod.
+2026-03-11T17:13:58.6777457Z Container is starting.
+2026-03-11T17:13:58.6778439Z State: Starting, Action: MountingVolumes, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Mounting volumes for bluepartner-validacao., DetailsLevel: INFO
+2026-03-11T17:13:58.6779659Z Establishing user namespace if not established already.
+2026-03-11T17:13:58.6788705Z Establishing network if not established already.
+2026-03-11T17:13:58.6792111Z Mounting volumes.
+2026-03-11T17:13:58.6809416Z Nested mountpoint 
+2026-03-11T17:13:58.7867953Z Nested mountpoint volatile/logs
+2026-03-11T17:13:58.8665945Z Nested mountpoint 
+2026-03-11T17:13:58.9135258Z Nested mountpoint 
+2026-03-11T17:13:58.9142065Z Nested mountpoint 
+2026-03-11T17:14:00.3799438Z State: Starting, Action: CreatingContainer, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Finished pulling container image and mounting volumes for bluepartner-validacao. Allocatinng the rest of the container resources to finish container creation., DetailsLevel: INFO
+2026-03-11T17:14:00.3805010Z Creating container.
+2026-03-11T17:14:00.3806848Z Creating pipes for streaming container io.
+2026-03-11T17:14:00.3881579Z Creating stdout named pipe at /podr/container/pipe/ebfcdd68312f_bluepartner-validacao/stdout_ae958c55cecb4a6baa89f06baae71e8c.
+2026-03-11T17:14:00.3983844Z Successfully created stdout named pipe at: /podr/container/pipe/ebfcdd68312f_bluepartner-validacao/stdout_ae958c55cecb4a6baa89f06baae71e8c.
+2026-03-11T17:14:00.3985962Z Opening named pipe /podr/container/pipe/ebfcdd68312f_bluepartner-validacao/stdout_ae958c55cecb4a6baa89f06baae71e8c for reading in non-blocking mode.
+2026-03-11T17:14:00.3987433Z Successfully opened named pipe: /podr/container/pipe/ebfcdd68312f_bluepartner-validacao/stdout_ae958c55cecb4a6baa89f06baae71e8c.
+2026-03-11T17:14:00.3999856Z Successfully removed non-blocking flag from /podr/container/pipe/ebfcdd68312f_bluepartner-validacao/stdout_ae958c55cecb4a6baa89f06baae71e8c.
+2026-03-11T17:14:00.4265490Z Creating stderr named pipe at /podr/container/pipe/ebfcdd68312f_bluepartner-validacao/stderr_e7880aa165f140dca3398ccbba94d413.
+2026-03-11T17:14:00.4371954Z Successfully created stderr named pipe at: /podr/container/pipe/ebfcdd68312f_bluepartner-validacao/stderr_e7880aa165f140dca3398ccbba94d413.
+2026-03-11T17:14:00.4379588Z Opening named pipe /podr/container/pipe/ebfcdd68312f_bluepartner-validacao/stderr_e7880aa165f140dca3398ccbba94d413 for reading in non-blocking mode.
+2026-03-11T17:14:00.4382887Z Successfully opened named pipe: /podr/container/pipe/ebfcdd68312f_bluepartner-validacao/stderr_e7880aa165f140dca3398ccbba94d413.
+2026-03-11T17:14:00.4468975Z Successfully removed non-blocking flag from /podr/container/pipe/ebfcdd68312f_bluepartner-validacao/stderr_e7880aa165f140dca3398ccbba94d413.
+2026-03-11T17:14:00.4482425Z Creating container with image: appsvc/node:20-lts_20260115.4.tuxprod from registry: 10.1.0.5:13209 and fully qualified image name: 10.1.0.5:13209/appsvc/node:20-lts_20260115.4.tuxprod
+2026-03-11T17:14:03.1710972Z Starting container: ebfcdd68312f_bluepartner-validacao.
+2026-03-11T17:14:03.5716139Z Starting watchers and probes.
+2026-03-11T17:14:03.5941529Z Starting metrics collection.
+2026-03-11T17:14:03.6067682Z Container is running.
+2026-03-11T17:14:03.6151641Z State: Starting, Action: CreatingContainer, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Container bluepartner-validacao successfully created and is running., DetailsLevel: INFO
+2026-03-11T17:14:04.5149863Z Container start method finished after 6766 ms.
+2026-03-11T17:14:04.5261214Z State: Starting, Action: InitiatingSiteWarmUpProbe, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Container bluepartner-validacao successfully created and is running., DetailsLevel: INFO
+2026-03-11T17:14:04.5339365Z State: Starting, Action: WaitingForSiteWarmUpProbeSuccess, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Pinging warmup path to ensure container is ready to receive requests., DetailsLevel: INFO
+2026-03-11T17:15:25.6506835Z Site startup probe succeeded after 81.1029047 seconds.
+2026-03-11T17:15:26.0740203Z State: Starting, Action: WarmUpProbeSucceeded, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Site startup probe succeeded after 81.1029047 seconds., DetailsLevel: INFO
+2026-03-11T17:15:26.2216629Z Site is running with deployment version: 78504456-3ff0-4646-943e-170d415dca55
+2026-03-11T17:15:26.2227086Z Site started.
+2026-03-11T17:15:26.2307282Z State: Started, Action: None, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Site started at 03/11/2026 17:15:26 (UTC), DetailsLevel: INFO
+2026-03-11T17:15:26.2400624Z Site is running with patch version NODE 20.20.0
+2026-03-11T17:15:46.3533899Z State: Stopping, Action: StoppingSite, LastError: ContainerTimeout, LastErrorTimestamp: 03/10/2026 20:49:09, LastErrorDetails: Container did not start within expected time limit of 230s. Please inspect your container logs for more details., Details: Site started at 03/11/2026 17:08:57 (UTC), DetailsLevel: INFO
+2026-03-11T17:15:46.3671194Z State: Stopping, Action: StoppingSiteContainers, LastError: ContainerTimeout, LastErrorTimestamp: 03/10/2026 20:49:09, LastErrorDetails: Container did not start within expected time limit of 230s. Please inspect your container logs for more details., Details: Site started at 03/11/2026 17:08:57 (UTC), DetailsLevel: INFO
+2026-03-11T17:15:46.3691380Z Container is terminating. Grace period: 5 seconds.
+2026-03-11T17:15:46.4502463Z Stop and delete container. Retry count = 0
+2026-03-11T17:15:46.4565968Z Stopping container: e23a4d585aa8_bluepartner-validacao.
+2026-03-11T17:15:52.5453448Z Deleting container: e23a4d585aa8_bluepartner-validacao. Retry count = 0
+2026-03-11T17:15:57.5490286Z Container spec TerminationMessagePolicy  path 
+2026-03-11T17:15:57.5512475Z Container is terminated. Total time elapsed: 11180 ms.
+2026-03-11T17:15:57.5589355Z Site: bluepartner-validacao stopped.
