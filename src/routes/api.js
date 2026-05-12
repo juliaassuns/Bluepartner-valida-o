@@ -86,19 +86,35 @@ router.get('/cnpj/:cnpj', async (req, res) => {
         
         // Call external API
         try {
-            const externalRes = await fetch(`https://api.opencnpj.org/v1/${cnpj}`, {
-                timeout: 5000,
-                headers: { 'User-Agent': 'BluePartner/1.0' }
-            });
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            
+            let externalRes;
+            try {
+                externalRes = await fetch(`https://api.opencnpj.org/v1/${cnpj}`, {
+                    signal: controller.signal,
+                    headers: { 'User-Agent': 'BluePartner/1.0' }
+                });
+            } finally {
+                clearTimeout(timeoutId);
+            }
             
             if (!externalRes.ok) {
                 // Try alternative API if first one fails
-                const altRes = await fetch(`https://api.cnpja.com.br/office/${cnpj}`, {
-                    timeout: 5000,
-                    headers: { 'User-Agent': 'BluePartner/1.0' }
-                });
+                const controller2 = new AbortController();
+                const timeoutId2 = setTimeout(() => controller2.abort(), 5000);
                 
-                if (altRes.ok) {
+                let altRes;
+                try {
+                    altRes = await fetch(`https://api.cnpja.com.br/office/${cnpj}`, {
+                        signal: controller2.signal,
+                        headers: { 'User-Agent': 'BluePartner/1.0' }
+                    });
+                } finally {
+                    clearTimeout(timeoutId2);
+                }
+                
+                if (altRes && altRes.ok) {
                     const altData = await altRes.json();
                     return res.json({
                         nome: altData.name || altData.nome || 'Empresa não identificada',
