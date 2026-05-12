@@ -168,27 +168,42 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 
 async function startServer() {
     try {
-        await initDatabase();
-        console.log('Banco de dados inicializado com sucesso.');
-
-        if (BOOTSTRAP_SUPERADMIN_EMAILS.length > 0) {
-            for (const email of BOOTSTRAP_SUPERADMIN_EMAILS) {
-                const existing = await dbGet('SELECT email FROM usuarios WHERE LOWER(email) = LOWER(?)', [email]);
-                if (!existing) {
-                    await dbRun(
-                        "INSERT INTO usuarios (email, nome, role, ativo) VALUES (?, ?, 'superadmin', 1)",
-                        [email, email.split('@')[0]]
-                    );
-                    console.log(`[Bootstrap] Superadmin ${email} adicionado.`);
-                }
-            }
-        }
-
+        // Start server first, then initialize DB in background
         app.listen(PORT, () => {
             console.log(`Servidor rodando na porta ${PORT}`);
         });
+
+        // Initialize database with timeout
+        const dbInitTimeout = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Database initialization timeout')), 30000)
+        );
+
+        try {
+            await Promise.race([initDatabase(), dbInitTimeout]);
+            console.log('Banco de dados inicializado com sucesso.');
+
+            if (BOOTSTRAP_SUPERADMIN_EMAILS.length > 0) {
+                for (const email of BOOTSTRAP_SUPERADMIN_EMAILS) {
+                    try {
+                        const existing = await dbGet('SELECT email FROM usuarios WHERE LOWER(email) = LOWER(?)', [email]);
+                        if (!existing) {
+                            await dbRun(
+                                "INSERT INTO usuarios (email, nome, role, ativo) VALUES (?, ?, 'superadmin', 1)",
+                                [email, email.split('@')[0]]
+                            );
+                            console.log(`[Bootstrap] Superadmin ${email} adicionado.`);
+                        }
+                    } catch (e) {
+                        console.warn(`[Bootstrap] Erro ao adicionar ${email}:`, e.message);
+                    }
+                }
+            }
+        } catch (dbErr) {
+            console.error('⚠️  [WARN] Erro ao inicializar banco de dados:', dbErr.message);
+            console.log('   App iniciada, mas database pode estar indisponível');
+        }
     } catch (err) {
-        console.error('Erro ao inicializar o servidor:', err);
+        console.error('Erro crítico ao inicializar o servidor:', err);
         process.exit(1);
     }
 }

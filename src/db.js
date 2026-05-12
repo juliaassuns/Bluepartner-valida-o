@@ -156,13 +156,31 @@ function getDb() {
     if (!db) {
         // Garante que o diretório data/ existe
         const dir = path.dirname(DB_PATH);
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
+        try {
+            if (!fs.existsSync(dir)) {
+                fs.mkdirSync(dir, { recursive: true });
+            }
+        } catch (e) {
+            console.warn('[DB] Erro ao criar diretório:', e.message);
         }
 
-        db = new sqlite3.Database(DB_PATH);
-        db.run('PRAGMA journal_mode=WAL');
-        db.run('PRAGMA foreign_keys=ON');
+        try {
+            db = new sqlite3.Database(DB_PATH, (err) => {
+                if (err) {
+                    console.error('[DB] Erro ao conectar ao banco:', err.message);
+                }
+            });
+            db.configure('busyTimeout', 5000); // 5 second timeout for locked database
+            db.run('PRAGMA journal_mode=WAL', (err) => {
+                if (err) console.warn('[DB PRAGMA] WAL mode:', err.message);
+            });
+            db.run('PRAGMA foreign_keys=ON', (err) => {
+                if (err) console.warn('[DB PRAGMA] Foreign keys:', err.message);
+            });
+        } catch (e) {
+            console.error('[DB] Erro ao inicializar sqlite3:', e.message);
+            throw e;
+        }
     }
     return db;
 }
