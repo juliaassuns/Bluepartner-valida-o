@@ -71,6 +71,59 @@ router.get('/admin/dashboard', async (req, res) => {
     }
 });
 
+// ===== CNPJ LOOKUP =====
+router.get('/cnpj/:cnpj', async (req, res) => {
+    try {
+        let cnpj = String(req.params.cnpj || '').trim();
+        
+        // Remove formatting
+        cnpj = cnpj.replace(/[.\-\/]/g, '').replace(/\D/g, '');
+        
+        // Validate CNPJ format (must be 14 digits)
+        if (!/^\d{14}$/.test(cnpj)) {
+            return res.status(400).json({ error: 'CNPJ inválido' });
+        }
+        
+        // Call external API
+        try {
+            const externalRes = await fetch(`https://api.opencnpj.org/v1/${cnpj}`, {
+                timeout: 5000,
+                headers: { 'User-Agent': 'BluePartner/1.0' }
+            });
+            
+            if (!externalRes.ok) {
+                // Try alternative API if first one fails
+                const altRes = await fetch(`https://api.cnpja.com.br/office/${cnpj}`, {
+                    timeout: 5000,
+                    headers: { 'User-Agent': 'BluePartner/1.0' }
+                });
+                
+                if (altRes.ok) {
+                    const altData = await altRes.json();
+                    return res.json({
+                        nome: altData.name || altData.nome || 'Empresa não identificada',
+                        cnpj: cnpj
+                    });
+                }
+                
+                return res.status(404).json({ error: 'CNPJ não encontrado' });
+            }
+            
+            const data = await externalRes.json();
+            res.json({
+                nome: data.name || data.company_name || data.razao_social || 'Empresa não identificada',
+                cnpj: cnpj
+            });
+        } catch (apiErr) {
+            console.error('[CNPJ Lookup External API Error]', apiErr.message);
+            res.status(503).json({ error: 'Serviço de CNPJ temporariamente indisponível' });
+        }
+    } catch (err) {
+        console.error('[CNPJ Lookup]', err.message);
+        res.status(500).json({ error: 'Erro ao buscar CNPJ' });
+    }
+});
+
 // ===== REVENDAS =====
 router.get('/revendas/ativas', async (req, res) => {
     try {
