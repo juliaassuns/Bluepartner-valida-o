@@ -39,3 +39,8 @@ Thumbs.db
 # To ignore it for this project only, you can add it back, but it's not standard practice.
 # %USERPROFILE%/
 
+.deploy-test/
+deploy-*.zip
+app-logs*/
+webapp-logs*/
+azure-logs*/
