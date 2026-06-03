@@ -1,9 +1,0 @@
-<step title="Incoming Request" date="2026-03-10T14:59:02.722" instance="2f737e" url="/api/deployments/latest" method="GET" type="request" pid="833,1,18" Accept="*/*" Host="bluepartner-validacao.scm.azurewebsites.net" User-Agent="AZURECLI/2.84.0 (MSI)" Accept-Encoding="gzip, deflate" Authorization="Bea..." x-ms-client-request-id="85ddab48-1c91-11f1-95b6-a7d5a3c648ae" X-ARR-LOG-ID="85ddab48-1c91-11f1-95b6-a7d5a3c648ae" CLIENT-IP="177.73.137.36:54308" X-SITE-DEPLOYMENT-ID="bluepartner-validacao" WAS-DEFAULT-HOSTNAME="bluepartner-validacao.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/api/deployments/latest" X-Client-IP="177.73.137.36" X-Client-Port="54308" >
-  <step title="Cleanup Xml Logs" date="2026-03-10T14:59:02.771" /><!-- duration: 192ms -->
-  <step title="DeploymentService.GetResult" date="2026-03-10T14:59:03.172" >
-    <step title="DeploymentService.GetLatestDeployment" date="2026-03-10T14:59:03.221" >
-      <step title="DeploymentManager.GetResults" date="2026-03-10T14:59:03.232" /><!-- duration: 3774ms -->
-    </step><!-- duration: 3822ms -->
-  </step><!-- duration: 3897ms -->
-  <step title="Outgoing response" date="2026-03-10T14:59:07.567" type="response" statusCode="202" statusText="Accepted" /><!-- duration: 30ms -->
-</step><!-- duration: 4946ms -->

@@ -1,3 +1,0 @@
-<step title="Startup Request" date="2026-03-09T13:45:15.957" instance="2f737e" url="/api/webjobs/?api-version=2018-11-01" method="GET" type="request" pid="832,1,7" ScmType="None" SCM_DO_BUILD_DURING_DEPLOYMENT="true" >
-  <step title="Cleanup Xml Logs" date="2026-03-09T13:45:15.976" /><!-- duration: 39ms -->
-</step><!-- duration: 88ms -->
