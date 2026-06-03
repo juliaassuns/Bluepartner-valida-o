@@ -1,8 +1,0 @@
-<step title="Incoming Request" date="2026-03-09T20:38:31.276" instance="2f737e" url="/api/deployments/latest?deployer=ms-azuretools-vscode&amp;time=2026-03-09_20-38-14Z" method="GET" type="request" pid="842,1,28" Host="bluepartner-validacao.scm.azurewebsites.net" User-Agent="vscode-azureappservice/0.26.4 core-rest-pipeline/1.20.0 Node/22.22.0 OS/(x64-Windows_NT-10.0.26200)" Accept-Encoding="gzip,deflate" Accept-Language="en" Authorization="Bea..." x-ms-correlation-request-id="ab916cdd-0a46-4bbb-98c4-de610bda2298" x-ms-client-request-id="c34015ed-a824-4b1c-8057-2ff3eb6e45dd" X-ARR-LOG-ID="c34015ed-a824-4b1c-8057-2ff3eb6e45dd" CLIENT-IP="177.73.137.36:58082" X-SITE-DEPLOYMENT-ID="bluepartner-validacao" WAS-DEFAULT-HOSTNAME="bluepartner-validacao.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/api/deployments/latest?deployer=ms-azuretools-vscode&amp;time=2026-03-09_20-38-14Z" X-Client-IP="177.73.137.36" X-Client-Port="58082" >
-  <step title="DeploymentService.GetResult" date="2026-03-09T20:38:31.285" >
-    <step title="DeploymentService.GetLatestDeployment" date="2026-03-09T20:38:31.288" >
-      <step title="DeploymentManager.GetResults" date="2026-03-09T20:38:31.291" /><!-- duration: 1498ms -->
-    </step><!-- duration: 1514ms -->
-  </step><!-- duration: 1525ms -->
-  <step title="Outgoing response" date="2026-03-09T20:38:32.849" type="response" statusCode="202" statusText="Accepted" /><!-- duration: 10ms -->
-</step><!-- duration: 1591ms -->
