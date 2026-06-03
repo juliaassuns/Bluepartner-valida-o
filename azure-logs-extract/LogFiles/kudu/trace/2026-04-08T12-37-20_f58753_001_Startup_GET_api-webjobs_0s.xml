@@ -1,5 +1,0 @@
-<step title="Startup Request" date="2026-04-08T12:37:20.641" instance="f58753" url="/api/webjobs/?api-version=2018-11-01" method="GET" type="request" pid="835,1,7" SCM_DO_BUILD_DURING_DEPLOYMENT="true" ScmType="LocalGit" >
-  <step title="Cleanup Xml Logs" date="2026-04-08T12:37:20.692" >
-    <step title="Cleanup Infos" date="2026-04-08T12:37:20.863" totalFiles="637" totalCleanup="477" /><!-- duration: 69ms -->
-  </step><!-- duration: 300ms -->
-</step><!-- duration: 392ms -->
