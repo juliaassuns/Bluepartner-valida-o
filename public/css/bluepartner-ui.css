@@ -1,0 +1,461 @@
+/* BluePartner UI - Design System (override styles for internal panels)
+
+Objetivo:
+- Tornar a identidade visual visível de verdade (cores, cards, botões, sidebar/topbar)
+- Não interferir no site do usuário final via seletores específicos (admin/superadmin/login)
+
+Observação:
+- Muitos estilos desses painéis estão em <style> inline no próprio HTML e serão
+  sobrescritos aqui com !important pra garantir efeito imediato.
+*/
+
+:root{
+  --bp-font: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+
+  /* Palette enviada (Blue - Primárias) */
+  --bp-blue-900: #0A2540;
+  --bp-blue-800: #0F3A5F;
+  --bp-blue-700: #144E7A;
+  --bp-blue-600: #1E6FA8;
+  --bp-blue-500: #2F8FD6;
+
+  /* Neutros / utilitários */
+  --bp-text: #0F172A;
+  --bp-muted: #5A6A85;
+  --bp-border: rgba(10,37,64,0.14);
+  --bp-card: #FFFFFF;
+
+  /* Status (mantidos de um conjunto existente pra não depender de você colar tudo agora) */
+  --bp-success: #0F9D58;
+  --bp-danger: #C53929;
+  --bp-warning: #B78103;
+}
+
+html, body{
+  font-family: var(--bp-font) !important;
+}
+
+/* foco acessível consistente */
+:focus-visible{
+  outline: 2px solid rgba(20,110,168,0.45) !important;
+  outline-offset: 2px !important;
+}
+
+/* =======================================================================
+   ADMIN (public/admin.html)
+   ======================================================================= */
+
+#sidebar.sidebar,
+.sidebar{
+  background: var(--bp-blue-900) !important;
+  border-right: 1px solid rgba(255,255,255,0.06) !important;
+}
+
+.sidebar-header{
+  border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+}
+
+.brand-avatar{
+  background: var(--bp-blue-800) !important;
+  color: #fff !important;
+}
+
+.menu-item{
+  color: rgba(255,255,255,0.92) !important;
+  border-radius: 10px !important;
+}
+
+.menu-item svg{
+  stroke: currentColor !important;
+}
+
+.menu-item:not(.active):hover{
+  background: rgba(255,255,255,0.08) !important;
+}
+
+.menu-item.active{
+  background: var(--bp-blue-700) !important;
+  color: #fff !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.10) !important;
+}
+
+.topbar{
+  background: rgba(255,255,255,0.92) !important;
+  border-bottom: 1px solid var(--bp-border) !important;
+}
+
+.content{
+  color: var(--bp-text) !important;
+}
+
+/* Cards / métricas */
+.card{
+  background: var(--bp-card) !important;
+  box-shadow: 0 10px 30px rgba(10,37,64,0.08) !important;
+  border: 1px solid var(--bp-border) !important;
+
+  /* remove gradientes do inline */
+  background-image: none !important;
+}
+
+/* Ícones/indicadores das métricas */
+.metric-icon{
+  background: rgba(47,143,214,0.12) !important;
+  color: var(--bp-blue-600) !important;
+  background-image: none !important;
+  border: 1px solid rgba(47,143,214,0.20) !important;
+}
+
+/* Botões */
+.btn{
+  border-radius: 12px !important;
+  border-width: 1px !important;
+}
+
+.btn-primary{
+  background: var(--bp-blue-600) !important;
+  color: #fff !important;
+  border-color: rgba(30,111,168,0.35) !important;
+  background-image: none !important;
+  box-shadow: 0 10px 20px rgba(30,111,168,0.20) !important;
+}
+
+.btn-primary:hover{
+  background: var(--bp-blue-500) !important;
+  filter: none !important;
+}
+
+.btn-danger{
+  border-color: rgba(197,57,41,0.28) !important;
+  background: rgba(197,57,41,0.08) !important;
+  color: var(--bp-danger) !important;
+  background-image: none !important;
+}
+
+.btn-danger:hover{
+  background: rgba(197,57,41,0.14) !important;
+}
+
+.btn-muted{
+  background: #fff !important;
+  border-color: var(--bp-border) !important;
+  color: var(--bp-text) !important;
+  background-image: none !important;
+}
+
+.btn-muted:hover{
+  background: rgba(10,37,64,0.04) !important;
+}
+
+/* Tabelas do admin */
+.table-wrap{
+  background: #fff !important;
+  border: 1px solid var(--bp-border) !important;
+  background-image: none !important;
+}
+
+table thead th{
+  background: rgba(20,78,122,0.08) !important;
+  color: var(--bp-muted) !important;
+  border-bottom: 1px solid var(--bp-border) !important;
+}
+
+table tbody td{
+  border-bottom: 1px solid rgba(10,37,64,0.06) !important;
+}
+
+/* =======================================================================
+   SUPERAADMIN (public/superadmin.html)
+   ======================================================================= */
+
+.nav{
+  background: var(--bp-blue-900) !important;
+  box-shadow: none !important;
+  background-image: none !important;
+  border-bottom: 1px solid rgba(0,0,0,0.06) !important;
+}
+
+.nav a,
+.nav .nav-link{
+  color: rgba(255,255,255,0.92) !important;
+}
+
+.nav .nav-link:hover{
+  background: rgba(255,255,255,0.08) !important;
+  color: #fff !important;
+}
+
+.login-overlay{
+  background: rgba(10,37,64,0.92) !important;
+  background-image: none !important;
+}
+
+.login-card .login-btn,
+.login-btn{
+  background: var(--bp-blue-600) !important;
+  color: #fff !important;
+  background-image: none !important;
+}
+
+.login-card .login-btn:hover,
+.login-btn:hover{
+  background: var(--bp-blue-500) !important;
+}
+
+/* =========================================================
+   PITCH/DEMO: remover overlays de debug (nunca mostrar)
+   ========================================================= */
+.app::after,
+.sidebar::after,
+.nav::after,
+.login-overlay::after,
+.login-wrapper::after,
+#bp-ui-debug,
+#bp-ui-debug::after{
+  display: none !important;
+}
+
+/* =========================================================
+   DEMO / PITCH: garantir oculto para qualquer rule anterior
+   ========================================================= */
+#bp-ui-debug,
+.app::after,
+.nav::after,
+.login-overlay::after,
+.login-wrapper::after{
+  display: none !important;
+}
+
+/* =========================================================
+   DEMO / PITCH: esconder markers de debug (não distrair)
+   ========================================================= */
+.app::after,
+.nav::after,
+.login-overlay::after,
+.login-wrapper::after,
+#bp-ui-debug{
+  display: none !important;
+}
+
+/* =========================================================
+   DEBUG markers (dev-only) - confirmar carregamento do CSS
+   ========================================================= */
+.app::after,
+.sidebar::after,
+.nav::after,
+.login-overlay::after{
+  display: none !important;
+  content: " BP UI CSS ACTIVE ";
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 999999;
+  pointer-events: none;
+
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+
+  padding: 8px 10px;
+  border-radius: 12px;
+
+  background: #FFD400 !important;
+  color: #000 !important;
+
+  border: 2px solid rgba(0,0,0,0.25) !important;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.25) !important;
+  opacity: 0.95 !important;
+}
+
+/* /login uses login-wrapper */
+.login-wrapper::after{
+  display: none !important;
+  content: " BP UI CSS ACTIVE ";
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 999999;
+  pointer-events: none;
+
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+
+  padding: 8px 10px;
+  border-radius: 12px;
+
+  background: #0A2540 !important;
+  color: #fff !important;
+
+  border: 2px solid rgba(255,255,255,0.25) !important;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.25) !important;
+  opacity: 0.95 !important;
+}
+
+/* =========================================================
+   DEBUG - confirmar que o CSS bluepartner-ui.css está ativo
+   ========================================================= */
+#bp-ui-debug{
+  display: none !important;
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 999999;
+  pointer-events: none;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: #0A2540;
+  color: #fff;
+  border: 2px solid rgba(255,255,255,0.25);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.25);
+  opacity: 0.95;
+}
+#bp-ui-debug::after{
+  content: " bluepartner-ui.css?v=debug";
+}
+body::before{
+  content: "";
+  display: none;
+}
+.app::before,
+.nav::before,
+.login-overlay::before{
+  content: "";
+}
+.app::after,
+.nav::after,
+.login-overlay::after{
+  display: none !important;
+  content: "BP UI CSS ACTIVE";
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 999999;
+  pointer-events: none;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: #0A2540;
+  color: #fff;
+  border: 2px solid rgba(255,255,255,0.25);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.25);
+  opacity: 0.95;
+}
+
+.section{
+  border: 1px solid var(--bp-border) !important;
+}
+
+.section-header{
+  background: rgba(20,78,122,0.06) !important;
+  border-bottom: 1px solid rgba(10,37,64,0.08) !important;
+}
+
+.btn-primary{
+  background: var(--bp-blue-600) !important;
+  color: #fff !important;
+  background-image: none !important;
+}
+
+.btn-primary:hover{
+  background: var(--bp-blue-500) !important;
+}
+
+.badge{
+  border: 1px solid rgba(10,37,64,0.10) !important;
+}
+
+/* =======================================================================
+   SUPERAADMIN enhancements (stats/badges/tabs) — to make visual diffs obvious
+   ======================================================================= */
+
+.stat-card{
+  background: var(--bp-card) !important;
+}
+
+.stat-label{
+  color: var(--bp-muted) !important;
+}
+
+.stat-value{
+  color: var(--bp-blue-900) !important;
+}
+
+.stat-card::before{
+  height: 4px !important;
+  background: var(--bp-blue-600) !important;
+}
+
+.stat-card:nth-child(1)::before{ background: var(--bp-success) !important; }
+.stat-card:nth-child(2)::before{ background: var(--bp-warning) !important; }
+.stat-card:nth-child(3)::before{ background: var(--bp-blue-600) !important; }
+.stat-card:nth-child(4)::before{ background: var(--bp-blue-500) !important; }
+.stat-card:nth-child(5)::before{ background: var(--bp-success) !important; }
+
+.badge-done{
+  background: rgba(15,157,88,0.12) !important;
+  color: var(--bp-success) !important;
+  border: 1px solid rgba(15,157,88,0.25) !important;
+}
+.badge-pending{
+  background: rgba(183,129,3,0.12) !important;
+  color: var(--bp-warning) !important;
+  border: 1px solid rgba(183,129,3,0.25) !important;
+}
+.badge-error{
+  background: rgba(197,57,41,0.12) !important;
+  color: var(--bp-danger) !important;
+  border: 1px solid rgba(197,57,41,0.25) !important;
+}
+
+/* Tabs + focus */
+.tabs{
+  background: rgba(10,37,64,0.04) !important;
+}
+.tab{
+  color: var(--bp-muted) !important;
+}
+.tab.active{
+  background: var(--bp-card) !important;
+  color: var(--bp-blue-600) !important;
+  box-shadow: none !important;
+  border: 1px solid rgba(30,111,168,0.25) !important;
+}
+
+.form-input-wrap{
+  border: 1.5px solid rgba(10,37,64,0.14) !important;
+  background: var(--bp-card) !important;
+}
+.form-input-wrap:focus-within{
+  border-color: var(--bp-blue-600) !important;
+  box-shadow: 0 0 0 4px rgba(30,111,168,0.12) !important;
+}
+
+.form-input{
+  color: var(--bp-text) !important;
+}
+
+/* =======================================================================
+   LOGIN (public/login.html)
+   ======================================================================= */
+
+.login-wrapper .card-top{
+  background: var(--bp-blue-700) !important;
+  color: #fff !important;
+  background-image: none !important;
+}
+
+.login-btn{
+  background: var(--bp-blue-600) !important;
+  color: #fff !important;
+  background-image: none !important;
+}
+
+.login-btn:hover{
+  background: var(--bp-blue-500) !important;
+}
