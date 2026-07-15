@@ -1,6 +1,7 @@
 const express = require('express');
 const crypto = require('crypto');
 const { dbGet, dbAll, dbRun } = require('../db');
+const { requireRole } = require('../middlewares/auth');
 const { criarConviteGDAP, isGdapConfigured, extrairRelationshipIdDoLinkGdap } = require('../gdap');
 
 const router = express.Router();
@@ -361,7 +362,7 @@ router.get('/:pedidoId/:token', async (req, res) => {
     }
 });
 // ROTA DE DEBUG: Listar todos os pedidos
-router.get('/', async (req, res) => {
+router.get('/', requireRole(['superadmin']), async (req, res) => {
     try {
         const pedidos = await dbAll('SELECT * FROM pedidos ORDER BY criado_em DESC');
         res.json({ pedidos });

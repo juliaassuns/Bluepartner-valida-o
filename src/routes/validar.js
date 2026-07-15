@@ -1,5 +1,6 @@
 const express = require('express');
 const { dbGet, dbRun } = require('../db');
+const { safeStringEquals } = require('../lib/crypto');
 const crypto = require('crypto');
 
 const router = express.Router();

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Dashboard — Exemplo</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar" aria-label="Sidebar de navegação">
+      <div class="sidebar-header">
+        <div class="brand">
+          <div class="brand-avatar">BP</div>
+          <div class="brand-text">
+            <div class="brand-title">BluePartner</div>
+            <div class="brand-sub">Admin</div>
+          </div>
+        </div>
+        <button id="sidebarToggle" class="sidebar-toggle" aria-pressed="false" aria-label="Recolher menu">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 6 9 12l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav" role="navigation">
+        <a class="nav-item active" href="#" data-page="dashboard">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z" stroke="currentColor" stroke-width="1.6" fill="none"/></svg></span>
+          <span class="nav-label">Dashboard</span>
+        </a>
+        <a class="nav-item" href="#" data-page="pedidos">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 11h10M9 7h10M5 7h.01M5 11h.01M5 15h.01M9 15h10M3 4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4Z" stroke="currentColor" stroke-width="1.6" fill="none"/></svg></span>
+          <span class="nav-label">Pedidos</span>
+        </a>
+        <a class="nav-item" href="#" data-page="licencas">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.6" fill="none"/></svg></span>
+          <span class="nav-label">Licenças</span>
+        </a>
+        <a class="nav-item" href="#" data-page="logs">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4V4Zm4 4h8M8 12h8M8 16h6" stroke="currentColor" stroke-width="1.6" fill="none"/></svg></span>
+          <span class="nav-label">Logs</span>
+        </a>
+        <a class="nav-item" href="#" data-page="gdap">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 22a7 7 0 1 0-7-7" stroke="currentColor" stroke-width="1.6" fill="none"/></svg></span>
+          <span class="nav-label">GDAP Pool</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="btn-ghost" id="logoutBtn">Sair</button>
+      </div>
+    </aside>
+
+    <div class="main" id="main">
+      <header class="topbar">
+        <button class="hamburger" id="hamburger" aria-label="Abrir menu" aria-expanded="false">☰</button>
+        <div class="topbar-title">Dashboard</div>
+        <div class="topbar-actions">
+          <input class="search" placeholder="Buscar..." aria-label="Buscar" />
+          <div class="avatar">JS</div>
+        </div>
+      </header>
+
+      <div class="content">
+        <h1>Dashboard</h1>
+        <p>Exemplo de dashboard profissional com sidebar fixa e recolhível. Role a página para ver comportamento estável.</p>
+        <section class="cards">
+          <div class="card">Card 1</div>
+          <div class="card">Card 2</div>
+          <div class="card">Card 3</div>
+        </section>
+
+        <section style="height:1200px; margin-top:20px;">
+          <h2>Conteúdo longo</h2>
+          <p>Role para testar o comportamento da sidebar fixa.</p>
+        </section>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

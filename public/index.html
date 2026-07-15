@@ -1611,7 +1611,7 @@
             await new Promise(r => setTimeout(r, 600));
             completeStep('loadStep1'); activateStep('loadStep2');
 
-            const res = await fetch(`${CONFIG.API_BASE}/api/pedido/resolve`, {
+            const res = await fetch(`${CONFIG.API_BASE}/api/pedidos/resolve`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ pedidoId, token: tokenUnico })
@@ -1777,7 +1777,7 @@
         btn.innerHTML = '<div class="spinner-sm"></div> Processando...';
 
         try {
-            fetch(CONFIG.API_BASE + '/api/validar', {
+            const res = await fetch(CONFIG.API_BASE + '/api/validar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -1786,7 +1786,11 @@
                     timestamp: new Date().toISOString(),
                     status: 'VALIDADO'
                 })
-            }).catch(() => {});
+            });
+
+            if (!res.ok) {
+                throw new Error(`Falha ao registrar validação: HTTP ${res.status}`);
+            }
 
             // Renderiza cards de revendas dinamicamente
             renderRevendaSteps();
@@ -1794,7 +1798,9 @@
             document.getElementById('successOverlay').classList.add('show');
             if (typeof lucide !== 'undefined') lucide.createIcons();
             launchConfetti();
-        } catch {
+        } catch (err) {
+            console.error('Erro ao validar pedido:', err);
+            showError('Não foi possível concluir a validação', 'Tente novamente em instantes. A confirmação só aparece quando o pedido é gravado com sucesso.');
             btn.disabled = false;
             btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="white"/></svg> Confirmar e Prosseguir';
         }

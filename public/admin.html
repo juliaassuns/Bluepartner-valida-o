@@ -27,6 +27,7 @@
       --radius: 16px;
       --radius-sm: 10px;
       --sidebar-w: 260px;
+      --sidebar-collapsed-w: 72px;
     }
 
     *{ box-sizing:border-box; }
@@ -60,6 +61,7 @@
       top:0;
       height:100vh;
       border-right: 1px solid rgba(255,255,255,0.06);
+      transition: width 180ms ease, flex-basis 180ms ease;
     }
 
     .sidebar-header{
@@ -82,6 +84,7 @@
     }
 
     .brand-titles{ line-height:1.2; min-width:0; }
+    .brand-titles{ transition: opacity 140ms ease, width 120ms ease; }
     .brand-title{
       font-weight: 800;
       font-size: 15px;
@@ -111,6 +114,31 @@
       color: var(--white);
       cursor:pointer;
     }
+    .sidebar-toggle{
+      margin-left:8px;
+      width: 36px; height: 36px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:10px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: transparent;
+      color: var(--white);
+      cursor: pointer;
+    }
+    .sidebar-toggle:hover{ background: rgba(255,255,255,0.06); }
+
+    /* Collapsed sidebar */
+    body.sidebar-collapsed .sidebar{
+      width: var(--sidebar-collapsed-w);
+      flex: 0 0 var(--sidebar-collapsed-w);
+    }
+    body.sidebar-collapsed .brand-titles{ display:none; }
+    body.sidebar-collapsed .sidebar-footer{ display:none; }
+    body.sidebar-collapsed .menu{ padding: 10px 6px; }
+    body.sidebar-collapsed .menu-item{ justify-content:center; padding: 12px 6px; }
+    body.sidebar-collapsed .menu-item svg{ width:20px; height:20px; }
+    body.sidebar-collapsed .topbar-title{ display:block; }
     .sidebar-close:hover{ background: rgba(255,255,255,0.08); }
 
     .menu{
@@ -130,6 +158,7 @@
       border-radius: 10px;
       cursor:pointer;
       user-select:none;
+      transition: padding 160ms ease, justify-content 160ms ease;
     }
     .menu-item svg{ width:18px; height:18px; fill:none; stroke: currentColor; stroke-width:2; opacity: 0.95; }
     .menu-item:not(.active):hover{ background: rgba(255,255,255,0.08); }
@@ -1117,6 +1146,9 @@
           <div class="brand-title">BluePartner</div>
           <div class="brand-subtitle">Microsoft CSP Admin</div>
         </div>
+        <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Recolher menu">
+          <svg viewBox="0 0 24 24"><path d="M15 6 9 12l6 6"/></svg>
+        </button>
         <button class="sidebar-close" type="button" onclick="closeSidebar()" aria-label="Fechar menu">
           <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
         </button>
@@ -1125,27 +1157,27 @@
       <nav class="menu" id="menu">
         <div class="menu-item active" data-page="dashboard" onclick="gotoPage('dashboard')">
           <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z"/></svg>
-          Dashboard
+          <span class="menu-label">Dashboard</span>
         </div>
         <div class="menu-item" data-page="pedidos" onclick="gotoPage('pedidos')">
           <svg viewBox="0 0 24 24"><path d="M9 11h10M9 7h10M5 7h.01M5 11h.01M5 15h.01M9 15h10M3 4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4Z"/></svg>
-          Pedidos
+          <span class="menu-label">Pedidos</span>
         </div>
         <div class="menu-item" data-page="gdap" onclick="gotoPage('gdap')">
           <svg viewBox="0 0 24 24"><path d="M12 22a7 7 0 1 0-7-7m7 7a7 7 0 0 0 7-7m-7 7V15m7 0a7 7 0 1 0-7-7m7 7H15M12 8V2m0 6h6m-6 0H6"/></svg>
-          GDAP Pool
+          <span class="menu-label">GDAP Pool</span>
         </div>
         <div class="menu-item" data-page="licencas" onclick="gotoPage('licencas')">
           <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0 1 12 2.944a11.955 11.955 0 0 1-8.618 3.04A12.02 12.02 0 0 0 3 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-          Licenças
+          <span class="menu-label">Licenças</span>
         </div>
         <div class="menu-item" data-page="logs" onclick="gotoPage('logs')">
           <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4V4Zm4 4h8M8 12h8M8 16h6"/></svg>
-          Logs
+          <span class="menu-label">Logs</span>
         </div>
         <div class="menu-item" data-page="historico" onclick="gotoPage('historico')">
           <svg viewBox="0 0 24 24"><path d="M12 8v5l3 3"/><path d="M3 12a9 9 0 1 1 9 9 9 9 0 0 1-9-9Z"/></svg>
-          Histórico
+          <span class="menu-label">Histórico</span>
         </div>
       </nav>
 

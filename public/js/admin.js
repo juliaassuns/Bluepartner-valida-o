@@ -5,6 +5,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Inicializa a página de licenças
     setupLicencasPage();
+    // Inicializa comportamento da sidebar (colapsar/recolher)
+    initSidebarCollapse();
 });
 
 
@@ -229,4 +231,33 @@ function openSidebar() {
 function closeSidebar() {
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('overlay').classList.remove('show');
+}
+
+// Sidebar collapse (desktop) -------------------------------------------------
+function initSidebarCollapse(){
+    const toggle = document.getElementById('sidebarToggle');
+    if(!toggle) return;
+    // restore state
+    const collapsed = localStorage.getItem('bp_sidebar_collapsed') === '1';
+    setSidebarCollapsed(collapsed);
+    toggle.addEventListener('click', () => {
+        const isCollapsed = document.body.classList.toggle('sidebar-collapsed');
+        localStorage.setItem('bp_sidebar_collapsed', isCollapsed ? '1' : '0');
+        // rotate icon depending on state
+        updateToggleIcon(toggle, isCollapsed);
+    });
+    updateToggleIcon(toggle, collapsed);
+}
+
+function setSidebarCollapsed(collapsed){
+    if(collapsed) document.body.classList.add('sidebar-collapsed');
+    else document.body.classList.remove('sidebar-collapsed');
+}
+
+function updateToggleIcon(button, collapsed){
+    // simple chevron rotation
+    const svg = button.querySelector('svg');
+    if(!svg) return;
+    if(collapsed) svg.style.transform = 'rotate(180deg)';
+    else svg.style.transform = 'rotate(0deg)';
 }

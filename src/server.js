@@ -10,6 +10,7 @@ const session = require('express-session');
 const FileStore = require('session-file-store')(session);
 
 const { initDatabase, dbGet, dbRun } = require('./db.js');
+const { requireAuth, requireRole } = require('./middlewares/auth');
 const authRouter = require('./routes/auth');
 const pedidosRouter = require('./routes/pedidos');
 const validarRouter = require('./routes/validar');
@@ -125,8 +126,10 @@ const globalLimiter = rateLimit({
     legacyHeaders: false,
     keyGenerator: extractCleanIp,
     validate: rlValidate,
-    message: { error: 'Muitas requisições. Tente novamente em 1 minuto.' }
+    message: { error: 'Muitas requisições. Tente novamente em 1 minuto.' },
+    skip: (req) => process.env.NODE_ENV === 'test'
 });
+
 app.use(globalLimiter);
 
 app.use((req, res, next) => {
@@ -136,9 +139,22 @@ app.use((req, res, next) => {
 });
 
 app.use('/', authRouter);
-app.use('/api/pedidos', pedidosRouter);
+
+if (process.env.NODE_ENV === 'test') {
+    app.post('/test/login', (req, res) => {
+        const { email, role } = req.body || {};
+        if (!email || !role) return res.status(400).json({ error: 'email and role are required' });
+        req.session.user = { email: String(email).toLowerCase(), nome: String(email).split('@')[0], role: String(role), ativo: true };
+        res.json({ success: true });
+    });
+}
+
+// /api/health stays public for Azure App Service monitoring
+app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+
+app.use('/api/pedidos', requireAuth, requireRole(['admin', 'superadmin']), pedidosRouter);
 app.use('/api/validar', validarRouter);
-app.use('/api', apiRouter);
+app.use('/api', requireAuth, requireRole(['admin', 'superadmin']), apiRouter);
 
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'login.html'));
@@ -161,6 +177,22 @@ app.get('/superadmin', (req, res) => {
 });
 
 app.get(['/admin.html', '/superadmin.html'], (req, res) => {
+    if (!req.session?.user) return res.redirect('/login');
+
+    if (req.path === '/admin.html') {
+        if (!['admin', 'superadmin'].includes(req.session.user.role)) {
+            return res.status(403).send('Sem permissão');
+        }
+        return res.redirect('/admin');
+    }
+
+    if (req.path === '/superadmin.html') {
+        if (req.session.user.role !== 'superadmin') {
+            return res.status(403).send('Acesso restrito ao super admin');
+        }
+        return res.redirect('/superadmin');
+    }
+
     res.redirect('/login');
 });
 
@@ -208,4 +240,8 @@ async function startServer() {
     }
 }
 
-startServer();
+if (require.main === module) {
+    startServer();
+}
+
+module.exports = app;
