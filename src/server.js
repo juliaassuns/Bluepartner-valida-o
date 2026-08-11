@@ -1,5 +1,11 @@
 require('dotenv').config();
 
+if (!process.env.TOKEN_HASH_PEPPER) {
+    console.error('[FATAL] A variável de ambiente TOKEN_HASH_PEPPER é obrigatória para a segurança dos tokens públicos.');
+    console.error('Por favor, adicione TOKEN_HASH_PEPPER="<um_valor_secreto_e_longo>" ao seu arquivo .env');
+    process.exit(1);
+}
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -15,6 +21,8 @@ const authRouter = require('./routes/auth');
 const pedidosRouter = require('./routes/pedidos');
 const validarRouter = require('./routes/validar');
 const apiRouter = require('./routes/api');
+const usuariosRouter = require('./routes/usuariosRoutes');
+const revendasRouter = require('./routes/revendasRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -23,12 +31,10 @@ const BOOTSTRAP_SUPERADMIN_EMAILS = String(process.env.BOOTSTRAP_SUPERADMIN_EMAI
     .split(',')
     .map(v => v.trim().toLowerCase())
     .filter(Boolean);
-
 if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
-    throw new Error('SESSION_SECRET é obrigatório em produção');
+    throw new Error('A variável de ambiente SESSION_SECRET é obrigatória em produção.');
 }
 const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
-
 function sanitizeRequestUrl(rawUrl) {
     let safeUrl = String(rawUrl || '/');
     safeUrl = safeUrl.replace(/(\/api\/pedido\/[^/]+\/)([^/?#]+)/gi, '$1[redacted]');
@@ -36,7 +42,6 @@ function sanitizeRequestUrl(rawUrl) {
     safeUrl = safeUrl.replace(/([?&](?:token|code|state)=)[^&]*/gi, '$1[redacted]');
     return safeUrl;
 }
-
 app.set('trust proxy', 1);
 app.use(session({
     name: 'bp.sid',
@@ -58,7 +63,6 @@ app.use(session({
         maxAge: 8 * 60 * 60 * 1000 // 8h
     }
 }));
-
 if (process.env.NODE_ENV === 'test') {
     app.use((req, res, next) => {
         if (app.__testSession) {
@@ -68,7 +72,6 @@ if (process.env.NODE_ENV === 'test') {
         next();
     });
 }
-
 app.use((req, res, next) => {
     if (process.env.NODE_ENV === 'production' &&
         req.headers['x-forwarded-proto'] !== 'https' &&
@@ -77,7 +80,6 @@ app.use((req, res, next) => {
     }
     next();
 });
-
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
@@ -93,21 +95,17 @@ app.use(helmet({
     referrerPolicy: { policy: 'no-referrer' },
     crossOriginEmbedderPolicy: false
 }));
-
 app.use((req, res, next) => {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
     next();
 });
-
 app.use(cors({
     origin: process.env.CORS_ORIGIN || false,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
 function extractCleanIp(req) {
     const raw = req.headers['x-forwarded-for'] || req.ip || '127.0.0.1';
     const first = raw.split(',')[0].trim();
@@ -116,9 +114,7 @@ function extractCleanIp(req) {
     }
     return first;
 }
-
 const rlValidate = { ip: false, keyGeneratorIpFallback: false };
-
 const globalLimiter = rateLimit({
     windowMs: 60 * 1000,
     max: 100,
@@ -129,17 +125,13 @@ const globalLimiter = rateLimit({
     message: { error: 'Muitas requisições. Tente novamente em 1 minuto.' },
     skip: (req) => process.env.NODE_ENV === 'test'
 });
-
 app.use(globalLimiter);
-
 app.use((req, res, next) => {
     const ts = new Date().toISOString();
     console.log(`[${ts}] ${req.method} ${sanitizeRequestUrl(req.originalUrl || req.url)}`);
     next();
 });
-
 app.use('/', authRouter);
-
 if (process.env.NODE_ENV === 'test') {
     app.post('/test/login', (req, res) => {
         const { email, role } = req.body || {};
@@ -148,14 +140,13 @@ if (process.env.NODE_ENV === 'test') {
         res.json({ success: true });
     });
 }
-
 // /api/health stays public for Azure App Service monitoring
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
-
 app.use('/api/pedidos', requireAuth, requireRole(['admin', 'superadmin']), pedidosRouter);
 app.use('/api/validar', validarRouter);
+app.use('/api/usuarios', requireAuth, requireRole(['admin', 'superadmin']), usuariosRouter);
+app.use('/api/revendas', requireAuth, requireRole(['admin', 'superadmin']), revendasRouter);
 app.use('/api', requireAuth, requireRole(['admin', 'superadmin']), apiRouter);
-
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'login.html'));
 });

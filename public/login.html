@@ -3,62 +3,85 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>BluePartner - Login</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='20' width='100' height='100' fill='%237C3AED'/><path d='M25 25h20v20H25zM55 25h20v20H55zM25 55h20v20H25zM55 55h20v20H55z' fill='white'/></svg>">
+  <title>BluePartner CSP Portal — Login</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='20' width='100' height='100' fill='%230F4C81'/><path d='M25 25h20v20H25zM55 25h20v20H55zM25 55h20v20H25zM55 55h20v20H55z' fill='white'/></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/login.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/bluepartner-ui.css">
 </head>
 <body>
-  <div class="login-wrapper">
-    <div class="brand" aria-label="BluePartner Validação">
-      <div class="brand-icon">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      </div>
-      <div class="brand-name">BluePartner <span>Validação</span></div>
-    </div>
-
-    <div class="card">
-      <div class="card-top">
-        <div class="shield-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+  <div class="bp-login-wrapper">
+    <div class="bp-login-card">
+      <div class="bp-login-header">
+        <div class="bp-login-logo">
+          <div class="bp-login-logo-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <span class="bp-login-title">BluePartner</span>
         </div>
-        <h1>Acesso ao Sistema</h1>
-        <p>Autenticação via Microsoft Entra ID</p>
+        <p class="bp-login-subtitle">
+          Validação de Parcerias Microsoft, GDAP e Licenciamento CSP
+        </p>
       </div>
 
-      <div class="card-body">
-        <!-- Error message shown on failed auth -->
-        <div class="login-error" id="loginError" role="alert">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+      <div class="bp-login-body">
+        <!-- Features list -->
+        <div class="bp-login-features">
+          <div class="bp-login-feature">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Validação CSP
+          </div>
+          <div class="bp-login-feature">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Gestão de GDAP
+          </div>
+          <div class="bp-login-feature">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Auditoria de Relacionamento
+          </div>
+          <div class="bp-login-feature">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Integrações Microsoft
+          </div>
+        </div>
+
+        <!-- Error message -->
+        <div class="bp-login-error" id="loginError" role="alert">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
           <span id="loginErrorMsg">Falha na autenticação. Tente novamente.</span>
         </div>
 
-        <a class="login-btn" href="/auth/login" aria-label="Entrar com conta Microsoft 365" id="loginBtn" onclick="this.classList.add('loading')">
-          <div class="ms-logo" aria-hidden="true">
+        <!-- Microsoft Login button -->
+        <a class="bp-login-btn" href="/auth/login" aria-label="Entrar com conta Microsoft 365" id="loginBtn" onclick="this.classList.add('loading')">
+          <div class="bp-ms-logo" aria-hidden="true">
             <span class="ms-r"></span><span class="ms-g"></span>
             <span class="ms-b"></span><span class="ms-y"></span>
           </div>
-          <span class="btn-text">Entrar com conta Microsoft</span>
-          <span class="btn-loading" aria-hidden="true"></span>
+          <span class="bp-btn-text">Entrar com conta Microsoft</span>
+          <span class="bp-btn-loading" aria-hidden="true"></span>
         </a>
 
-        <div class="divider">acesso seguro</div>
+        <div class="bp-login-divider">acesso seguro</div>
 
-        <div class="info">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-          <p>Você será redirecionado para <strong>login.microsoftonline.com</strong>. Nenhuma senha é armazenada neste sistema.</p>
+        <div class="bp-login-info">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <span>Você será redirecionado para <strong>login.microsoftonline.com</strong>. Nenhuma senha é armazenada neste sistema.</span>
+        </div>
+
+        <div class="bp-login-entra">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Autenticação Segura Microsoft Entra ID
         </div>
       </div>
-    </div>
 
-    <div class="footer">
-      <p>&copy; BluePartner — Painel de Validação</p>
-      <p style="margin-top:8px;font-size:11px;opacity:.7">
-        <a href="/privacidade" style="color:inherit;text-decoration:none;margin-right:12px;">Privacidade</a>
-        <a href="/termos" style="color:inherit;text-decoration:none;">Termos</a>
-      </p>
+      <div class="bp-login-footer">
+        <p>&copy; BluePartner — Painel de Validação</p>
+        <p style="margin-top:8px;">
+          <a href="/privacidade">Privacidade</a>
+          <a href="/termos">Termos</a>
+        </p>
+      </div>
     </div>
   </div>
   <script src="/js/login.js" defer></script>

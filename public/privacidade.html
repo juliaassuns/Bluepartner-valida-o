@@ -2,72 +2,72 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>BluePartner - Política de Privacidade</title>
-  <meta name="description" content="Política de privacidade da BluePartner para o portal de validação." />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BluePartner CSP Portal — Privacidade</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='20' width='100' height='100' fill='%230F4C81'/><path d='M25 25h20v20H25zM55 25h20v20H55zM25 55h20v20H25zM55 55h20v20H55z' fill='white'/></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    *{box-sizing:border-box} body{margin:0;font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;background:linear-gradient(145deg,#eaf6fd 0%,#f4f6f9 55%,#eef2ff 100%);color:#111827;line-height:1.6}
-    .wrap{max-width:920px;margin:0 auto;padding:40px 20px 64px} .hero{background:linear-gradient(135deg,#0068A0 0%,#00AEEF 100%);color:#fff;border-radius:24px;padding:32px;box-shadow:0 20px 40px rgba(0,0,0,.12)}
-    .hero h1{margin:0 0 8px;font-size:34px;line-height:1.1} .hero p{margin:0;max-width:760px;opacity:.9}
-    .card{background:#fff;border:1px solid rgba(15,23,42,.08);border-radius:20px;padding:24px;margin-top:20px;box-shadow:0 10px 30px rgba(15,23,42,.06)}
-    h2{margin:0 0 12px;font-size:20px} ul{margin:0;padding-left:20px} li{margin:8px 0} .meta{font-size:13px;color:#6b7280;margin-top:14px}
-    .links{margin-top:18px;display:flex;gap:12px;flex-wrap:wrap} .links a{color:#0068A0;text-decoration:none;font-weight:600}
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/bluepartner-ui.css">
 </head>
 <body>
-  <div class="wrap">
-    <section class="hero">
-      <h1>Política de Privacidade</h1>
-      <p>Esta página descreve como a BluePartner trata os dados coletados no portal de validação de licenças Microsoft.</p>
-    </section>
-
-    <section class="card">
-      <h2>Dados coletados</h2>
-      <ul>
-        <li>Dados de identificação do pedido, como pedidoId, token e revenda.</li>
-        <li>Dados informados pelo usuário ou integrados ao fluxo, como CNPJ e informações de conta Microsoft.</li>
-        <li>Dados técnicos de acesso, como IP, user-agent, data e hora da ação.</li>
-      </ul>
-    </section>
-
-    <section class="card">
-      <h2>Finalidade</h2>
-      <ul>
-        <li>Validar o aceite do cliente e registrar a operação.</li>
-        <li>Atender exigências de segurança, auditoria e rastreabilidade.</li>
-        <li>Suportar a autenticação Microsoft Entra ID e o fluxo de autorização das licenças.</li>
-      </ul>
-    </section>
-
-    <section class="card">
-      <h2>Armazenamento e retenção</h2>
-      <ul>
-        <li>Os registros ficam armazenados no banco do sistema enquanto forem necessários para operação, auditoria e suporte.</li>
-        <li>O acesso é restrito a perfis administrativos e superadministrativos autorizados.</li>
-        <li>Logs podem ser mantidos por período compatível com obrigações legais, contratuais e de segurança.</li>
-      </ul>
-      <div class="meta">Se houver uma política interna de retenção específica, ela deve substituir este texto.</div>
-    </section>
-
-    <section class="card">
-      <h2>Compartilhamento</h2>
-      <ul>
-        <li>Os dados podem ser compartilhados com serviços Microsoft necessários para autenticação e autorização.</li>
-        <li>O fluxo também pode encaminhar o usuário ao distribuidor indicado no pedido, apenas para continuidade da parceria.</li>
-      </ul>
-    </section>
-
-    <section class="card">
-      <h2>Contato</h2>
-      <p>Para dúvidas sobre privacidade e tratamento de dados, fale com a equipe BluePartner pelo canal oficial de atendimento.</p>
-      <div class="links">
-        <a href="/">Voltar ao site</a>
-        <a href="/termos.html">Termos de uso</a>
+  <div class="bp-static-page">
+    <header class="bp-static-header">
+      <div class="bp-static-header-inner">
+        <div class="bp-static-logo">BP</div>
+        <div class="bp-static-title">Política de Privacidade</div>
+        <div class="bp-static-nav">
+          <a href="/login">Login</a>
+          <a href="/termos">Termos</a>
+        </div>
       </div>
-    </section>
+    </header>
+    <div class="bp-static-container">
+      <article class="bp-static-card">
+        <h1>Política de Privacidade</h1>
+        <p class="last-update">Última atualização: Março de 2026</p>
+        <p>A BluePartner LTDA ("BluePartner", "nós", "nosso") está comprometida com a proteção da sua privacidade. Esta Política de Privacidade descreve como coletamos, usamos, armazenamos e protegemos seus dados pessoais quando você utiliza nossa plataforma de validação de parcerias Microsoft.</p>
+        <h2>1. Dados que Coletamos</h2>
+        <p>Coletamos apenas os dados estritamente necessários para a validação da parceria Microsoft:</p>
+        <ul>
+          <li><strong>Dados de identificação:</strong> Nome, e-mail corporativo e cargo do usuário.</li>
+          <li><strong>Dados do pedido:</strong> CNPJ da empresa, razão social e informações de licenciamento Microsoft.</li>
+          <li><strong>Dados de autenticação:</strong> Utilizamos o Microsoft Entra ID (Azure AD) para autenticação — <strong>nenhuma senha é armazenada</strong> em nossos servidores.</li>
+          <li><strong>Dados de uso:</strong> Logs de acesso contendo IP, agente do usuário e timestamps.</li>
+        </ul>
+        <h2>2. Como Utilizamos seus Dados</h2>
+        <p>Seus dados são utilizados exclusivamente para:</p>
+        <ul>
+          <li>Validar parcerias Microsoft CSP (Cloud Solution Provider).</li>
+          <li>Gerenciar relações GDAP (Granular Delegated Admin Privileges).</li>
+          <li>Auditar e registrar ações de validação para conformidade.</li>
+          <li>Gerar relatórios operacionais para o parceiro BluePartner.</li>
+        </ul>
+        <h2>3. Armazenamento e Retenção</h2>
+        <p>Seus dados são armazenados em banco de dados criptografado em servidores seguros. Mantemos os dados pelo período necessário para cumprir obrigações legais e regulatórias, ou até que o relacionamento comercial seja encerrado.</p>
+        <h2>4. Compartilhamento de Dados</h2>
+        <p>Não compartilhamos seus dados pessoais com terceiros, exceto:</p>
+        <ul>
+          <li>Microsoft Corporation — como parte do processo de validação de parceria.</li>
+          <li>Distribuidores autorizados (Ingram Micro, TD SYNNEX) — apenas as informações necessárias para validação de licenciamento.</li>
+          <li>Autoridades legais — quando exigido por lei.</li>
+        </ul>
+        <h2>5. Segurança</h2>
+        <p>Implementamos medidas técnicas e organizacionais para proteger seus dados, incluindo criptografia em trânsito (TLS 1.3), hash de tokens sensíveis, controles de acesso baseados em função e auditoria contínua de acessos.</p>
+        <h2>6. Seus Direitos</h2>
+        <p>Você tem direito a solicitar acesso, correção, exclusão de dados e revogar consentimento a qualquer momento.</p>
+        <h2>7. Cookies e Rastreamento</h2>
+        <p>Utilizamos cookies estritamente necessários para o funcionamento da plataforma (sessão autenticada). Não utilizamos cookies de rastreamento, publicidade ou analytics de terceiros.</p>
+        <h2>8. Contato</h2>
+        <p><strong>E-mail:</strong> contato@bluepartner.com.br<br><strong>WhatsApp:</strong> (47) 98832-1879<br><strong>Endereço:</strong> Rua São Paulo, 600 — Sala 5, Blumenau, SC</p>
+        <h2>9. Alterações nesta Política</h2>
+        <p>Esta política pode ser atualizada periodicamente. Recomendamos revisar esta página regularmente.</p>
+      </article>
+    </div>
+    <footer class="bp-static-footer">
+      <p>&copy; 2026 BluePartner LTDA — Todos os direitos reservados.</p>
+      <p style="margin-top:4px;"><a href="/login">Voltar ao Login</a></p>
+    </footer>
   </div>
 </body>
 </html>

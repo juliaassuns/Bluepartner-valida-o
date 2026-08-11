@@ -12,6 +12,7 @@ const {
 const { getIngramLicencasNormalizadas, isIngramConfigured } = require('../ingram');
 const { getTdsLicencasNormalizadas, isTdsConfigured } = require('../tds');
 const { buildComparisonRows } = require('../lib/license-compare-3way');
+const { safeStringEquals } = require('../lib/crypto');
 
 const router = express.Router();
 
@@ -491,10 +492,10 @@ async function autoGeneratePool({ minDisponiveis = 3, maxNovos = 3 } = {}) {
 // Endpoint to trigger auto-generation without session (for operators). Protected by ADMIN_TRIGGER_TOKEN env var.
 router.post('/pool/auto-trigger', async (req, res) => {
     try {
-        const token = String(req.body?.token || req.query?.token || req.headers['x-admin-trigger'] || '');
+        const token = String(req.body?.token || req.headers['x-admin-trigger'] || '');
         const expected = String(process.env.ADMIN_TRIGGER_TOKEN || '');
         if (!expected) return res.status(403).json({ error: 'Trigger não habilitado' });
-        if (!token || token !== expected) return res.status(401).json({ error: 'Token inválido' });
+        if (!token || !safeStringEquals(token, expected)) return res.status(401).json({ error: 'Token inválido' });
 
         const minDisponiveis = Number(req.body?.minDisponiveis ?? 3);
         const maxNovos = Number(req.body?.maxNovos ?? 3);

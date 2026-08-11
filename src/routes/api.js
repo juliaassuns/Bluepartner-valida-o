@@ -209,6 +209,19 @@ router.get('/logs', async (req, res) => {
 });
 
 // ===== AUDIT LOG =====
+// ===== INTEGRATIONS STATUS (com testes reais) =====
+const { runAll } = require('../lib/integration-health');
+
+router.get('/integrations/status', async (req, res) => {
+    try {
+        const result = await runAll();
+        res.json(result);
+    } catch (err) {
+        console.error('[Integrations Status]', err.message);
+        res.status(500).json({ error: 'Erro ao verificar status das integra\u00e7\u00f5es' });
+    }
+});
+
 router.get('/audit-log', async (req, res) => {
     try {
         const limit = Math.min(parseInt(req.query.limit || 100), 1000);

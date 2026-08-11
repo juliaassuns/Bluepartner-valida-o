@@ -1,37 +1,18 @@
 const express = require('express');
 const crypto = require('crypto');
 const { dbGet, dbAll, dbRun } = require('../db');
+const { safeStringEquals, hashPublicToken, tokenMatches } = require('../lib/crypto');
+const { validaCnpj } = require('../lib/validation');
 const { requireRole } = require('../middlewares/auth');
 const { criarConviteGDAP, isGdapConfigured, extrairRelationshipIdDoLinkGdap } = require('../gdap');
 
 const router = express.Router();
-
-const TOKEN_HASH_PEPPER = process.env.TOKEN_HASH_PEPPER || process.env.SESSION_SECRET;
-
-function hashPublicToken(token) {
-    return crypto
-        .createHash('sha256')
-        .update(`${TOKEN_HASH_PEPPER}:${String(token || '')}`)
-        .digest('hex');
-}
 
 function buildPublicValidationLink(baseUrl, pedidoId, token) {
     const normalizedBase = String(baseUrl || '').replace(/\/+$/, '');
     const safePedidoId = encodeURIComponent(String(pedidoId || ''));
     const safeToken = encodeURIComponent(String(token || ''));
     return `${normalizedBase}/validar?pedidoId=${safePedidoId}#token=${safeToken}`;
-}
-
-function tokenMatches(storedToken, rawToken) {
-    if (!storedToken || !rawToken) return false;
-    const stored = String(storedToken);
-    const provided = String(rawToken);
-
-    // Compatibilidade: registros antigos podem estar em texto puro.
-    if (/^[a-f0-9]{64}$/i.test(stored)) {
-        return safeStringEquals(stored.toLowerCase(), hashPublicToken(provided));
-    }
-    return safeStringEquals(stored, provided);
 }
 
 async function buildPedidoPublicPayload(pedido) {
@@ -114,6 +95,10 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ error: 'Nome do cliente e CNPJ são obrigatórios' });
         }
 
+        if (!validaCnpj(cnpj)) {
+            return res.status(400).json({ error: 'CNPJ inválido' });
+        }
+
         let validRevendas = [];
         if (Array.isArray(revendaIds) && revendaIds.length > 0) {
             const placeholders = revendaIds.map(() => '?').join(',');
@@ -175,7 +160,7 @@ router.post('/', async (req, res) => {
 
         await dbRun(
             'INSERT INTO pedidos (pedido_id, token, cliente, cnpj, revenda, revenda_nome, gdap_link, gdap_relationship_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [pedidoId, tokenToStore, cliente.trim(), cnpj.trim(), revendaVal, revendaNome, gdapLink, gdapRelationshipId]
+            [pedidoId, tokenToStore, cliente.trim(), String(cnpj).replace(/[^\d]/g, ''), revendaVal, revendaNome, gdapLink, gdapRelationshipId]
         );
 
         for (const rv of validRevendas) {
@@ -221,15 +206,14 @@ router.post('/batch', async (req, res) => {
         const results = [];
 
         for (const item of pedidos) {
-            const cnpjRaw = String(item.cnpj || '').replace(/[.\-\/]/g, '').replace(/\D/g, '');
-
-            if (!/^\d{14}$/.test(cnpjRaw)) {
+            if (!validaCnpj(item.cnpj)) {
                 results.push({
                     pedidoId: item.pedidoId || null,
                     erro: `CNPJ inválido: ${item.cnpj || '(vazio)'}`
                 });
                 continue;
             }
+            const cnpjRaw = String(item.cnpj).replace(/[.\-\/]/g, '');
 
             let cliente = '';
             let situacao = '';
