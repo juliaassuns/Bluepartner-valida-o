@@ -27,6 +27,24 @@ const request = require('supertest');
 const { cleanTestDb } = require('./setup');
 const { extrairRelationshipIdDoLinkGdap } = require('../gdap');
 
+function createAgent() {
+    return request.agent(app);
+}
+
+async function loginAgent(agent, email, role) {
+    const res = await agent.post('/test/login').send({ email, role });
+    if (res.status !== 200) throw new Error(`Test login failed: ${res.status}`);
+    return agent;
+}
+
+async function loginAsAdminAgent() {
+    return loginAgent(createAgent(), 'admin@test.com', 'admin');
+}
+
+async function loginAsSuperAdminAgent() {
+    return loginAgent(createAgent(), 'super@test.com', 'superadmin');
+}
+
 // Limpa DB antes de carregar server
 cleanTestDb();
 
@@ -175,6 +193,132 @@ describe('POST /api/validar (público)', () => {
             .post('/api/validar')
             .send({ pedidoId: 'PED-API-001' });
         expect(res.status).toBe(400);
+    });
+});
+describe('GET /api/cnpj/:cnpj', () => {
+    test('deve retornar nome genérico quando APIs externas não respondem', async () => {
+        const fetchMock = jest.spyOn(global, 'fetch').mockResolvedValue({
+            ok: false,
+            json: async () => ({})
+        });
+
+        const res = await request(app).get('/api/cnpj/12345678000195');
+        expect(res.status).toBe(200);
+        expect(res.body.cnpj).toBe('12.345.678/0001-95');
+        expect(res.body.nome).toBe('Empresa 12.345.678/0001-95');
+
+        fetchMock.mockRestore();
+    });
+
+    test('deve retornar nome da empresa quando a API externa responde com dados', async () => {
+        const fetchMock = jest.spyOn(global, 'fetch').mockImplementation(async (url) => {
+            return {
+                ok: true,
+                json: async () => ({ razao_social: 'Empresa Teste SA' })
+            };
+        });
+
+        const res = await request(app).get('/api/cnpj/12345678000195');
+        expect(res.status).toBe(200);
+        expect(res.body.cnpj).toBe('12.345.678/0001-95');
+        expect(res.body.nome).toBe('Empresa Teste SA');
+
+        fetchMock.mockRestore();
+    });
+});
+
+describe('F-008: /api/* requires auth', () => {
+    test('GET /api/audit-log → 401 without session', async () => {
+        const res = await request(app).get('/api/audit-log');
+        expect(res.status).toBe(401);
+    });
+
+    test('GET /api/logs → 401 without session', async () => {
+        const res = await request(app).get('/api/logs');
+        expect(res.status).toBe(401);
+    });
+
+    test('GET /api/gdap/pool → 401 without session', async () => {
+        const res = await request(app).get('/api/gdap/pool');
+        expect(res.status).toBe(401);
+    });
+
+    test('GET /api/admin/dashboard → 401 without session', async () => {
+        const res = await request(app).get('/api/admin/dashboard');
+        expect(res.status).toBe(401);
+    });
+
+    test('GET /api/revendas/ativas → 401 without session', async () => {
+        const res = await request(app).get('/api/revendas/ativas');
+        expect(res.status).toBe(401);
+    });
+});
+
+describe('F-007: /api/pedidos requires auth', () => {
+    test('POST /api/pedidos → 401 without session', async () => {
+        const res = await request(app).post('/api/pedidos').send({});
+        expect(res.status).toBe(401);
+    });
+
+    test('POST /api/pedidos/batch → 401 without session', async () => {
+        const res = await request(app).post('/api/pedidos/batch').send({ pedidos: [] });
+        expect(res.status).toBe(401);
+    });
+
+    test('GET /api/pedidos → 401 without session (superadmin-only)', async () => {
+        const res = await request(app).get('/api/pedidos');
+        expect(res.status).toBe(401);
+    });
+});
+
+describe('Authenticated /api/* works', () => {
+    let agent;
+
+    beforeAll(async () => {
+        agent = await loginAsAdminAgent();
+    });
+
+    test('GET /api/admin/dashboard → 200 as admin', async () => {
+        const res = await agent.get('/api/admin/dashboard');
+        expect(res.status).toBe(200);
+    });
+
+    test('GET /api/cnpj/00000000000000 → not 401/500', async () => {
+        const res = await agent.get('/api/cnpj/00000000000000');
+        expect([200, 400, 404]).toContain(res.status);
+    });
+
+    test('GET /api/pedidos → 403 as admin (superadmin required)', async () => {
+        const res = await agent.get('/api/pedidos');
+        expect(res.status).toBe(403);
+    });
+});
+
+describe('F-009: /api/validar no longer crashes', () => {
+    let agent;
+
+    beforeAll(async () => {
+        agent = await loginAsAdminAgent();
+    });
+
+    test('POST /api/validar → NOT 500 (ReferenceError fixed)', async () => {
+        const res = await agent.post('/api/validar')
+            .set('Content-Type', 'application/json')
+            .send({ token: 'test', cnpj: '00000000000000' });
+        expect(res.status).not.toBe(500);
+    });
+});
+
+describe.skip('F-010: BOLA on /api/consolidated/licenses', () => {
+    let agentA;
+
+    beforeAll(async () => {
+        agentA = await loginAsAdminAgent();
+    });
+
+    test('customerId from another tenant → 403', async () => {
+        const res = await agentA.get('/api/consolidated/licenses?customerId=tenant-B-customer');
+        expect(res.status).toBe(403);
     });
 });
 

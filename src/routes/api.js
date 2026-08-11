@@ -71,96 +71,81 @@ router.get('/admin/dashboard', async (req, res) => {
     }
 });
 
+async function fetchJsonWithTimeout(url, opts = {}) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    try {
+        const res = await fetch(url, { signal: controller.signal, ...opts });
+        if (!res.ok) return null;
+        return await res.json();
+    } catch (err) {
+        if (err.name === 'AbortError') {
+            console.warn('[CNPJ Lookup] Timeout for', url);
+        } else {
+            console.warn('[CNPJ Lookup] Fetch failed for', url, err.message || err);
+        }
+        return null;
+    } finally {
+        clearTimeout(timeoutId);
+    }
+}
+
+function extractCnpjName(data) {
+    if (!data || typeof data !== 'object') return null;
+    return (
+        data.razao_social ||
+        data.razaoSocial ||
+        data.nome ||
+        data.company_name ||
+        data.name ||
+        data.fantasia ||
+        data.nome_fantasia ||
+        data.trade_name ||
+        null
+    );
+}
+
 // ===== CNPJ LOOKUP =====
 router.get('/cnpj/:cnpj', async (req, res) => {
     try {
         let cnpj = String(req.params.cnpj || '').trim();
-        
-        // Remove formatting
-        cnpj = cnpj.replace(/[.\-\/]/g, '').replace(/\D/g, '');
-        
-        // Validate CNPJ format (must be 14 digits)
+        cnpj = cnpj.replace(/[.\-/]/g, '').replace(/\D/g, '');
+
         if (!/^\d{14}$/.test(cnpj)) {
             return res.status(400).json({ error: 'CNPJ inválido' });
         }
-        
-        // Format CNPJ for display
-        const cnpjFormatted = `${cnpj.slice(0,2)}.${cnpj.slice(2,5)}.${cnpj.slice(5,8)}/${cnpj.slice(8,12)}-${cnpj.slice(12)}`;
-        
-        // Call external API
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
-            
-            let externalRes;
-            let data = null;
-            
-            try {
-                // Try first API
-                externalRes = await fetch(`https://api.opencnpj.org/v1/${cnpj}`, {
-                    signal: controller.signal,
-                    headers: { 'User-Agent': 'BluePartner/1.0' }
-                });
-                
-                if (externalRes.ok) {
-                    data = await externalRes.json();
-                }
-            } catch (e) {
-                console.warn('[CNPJ Lookup] First API failed:', e.message);
-            } finally {
-                clearTimeout(timeoutId);
-            }
-            
-            // Try second API if first failed
-            if (!data) {
-                try {
-                    const controller2 = new AbortController();
-                    const timeoutId2 = setTimeout(() => controller2.abort(), 5000);
-                    
-                    let altRes;
-                    try {
-                        altRes = await fetch(`https://api.cnpja.com.br/office/${cnpj}`, {
-                            signal: controller2.signal,
-                            headers: { 'User-Agent': 'BluePartner/1.0' }
-                        });
-                        
-                        if (altRes && altRes.ok) {
-                            data = await altRes.json();
-                        }
-                    } finally {
-                        clearTimeout(timeoutId2);
-                    }
-                } catch (e) {
-                    console.warn('[CNPJ Lookup] Second API failed:', e.message);
-                }
-            }
-            
-            // If got data from external API, return it
-            if (data) {
-                const nome = data.name || data.company_name || data.razao_social || data.nome || `Empresa ${cnpjFormatted}`;
-                return res.json({
-                    nome: nome.trim() || `Empresa ${cnpjFormatted}`,
-                    cnpj: cnpjFormatted
-                });
-            }
-            
-            // Fallback: return generic name for valid CNPJ
-            // This allows users to proceed even if external APIs fail
-            res.json({
-                nome: `Empresa ${cnpjFormatted}`,
-                cnpj: cnpjFormatted
+
+        const cnpjFormatted = `${cnpj.slice(0, 2)}.${cnpj.slice(2, 5)}.${cnpj.slice(5, 8)}/${cnpj.slice(8, 12)}-${cnpj.slice(12)}`;
+
+        const providers = [
+            `https://brasilapi.com.br/api/cnpj/v1/${cnpj}`,
+            `https://api.opencnpj.org/v1/${cnpj}`,
+            `https://api.cnpja.com.br/office/${cnpj}`
+        ];
+
+        let nome = null;
+        for (const url of providers) {
+            const data = await fetchJsonWithTimeout(url, {
+                headers: { 'User-Agent': 'BluePartner/1.0' }
             });
-            
-        } catch (apiErr) {
-            console.error('[CNPJ Lookup External API Error]', apiErr.message);
-            // Still return generic fallback instead of error
-            res.json({
-                nome: `Empresa ${cnpjFormatted}`,
-                cnpj: cnpjFormatted
-            });
+            if (!data) continue;
+            const parsedName = extractCnpjName(data);
+            if (parsedName) {
+                nome = String(parsedName).trim();
+                break;
+            }
         }
+
+        if (!nome) {
+            nome = `Empresa ${cnpjFormatted}`;
+        }
+
+        return res.json({
+            nome,
+            cnpj: cnpjFormatted
+        });
     } catch (err) {
-        console.error('[CNPJ Lookup]', err.message);
+        console.error('[CNPJ Lookup]', err.message || err);
         res.status(500).json({ error: 'Erro ao buscar CNPJ' });
     }
 });
@@ -224,6 +209,19 @@ router.get('/logs', async (req, res) => {
 });
 
 // ===== AUDIT LOG =====
+// ===== INTEGRATIONS STATUS (com testes reais) =====
+const { runAll } = require('../lib/integration-health');
+
+router.get('/integrations/status', async (req, res) => {
+    try {
+        const result = await runAll();
+        res.json(result);
+    } catch (err) {
+        console.error('[Integrations Status]', err.message);
+        res.status(500).json({ error: 'Erro ao verificar status das integra\u00e7\u00f5es' });
+    }
+});
+
 router.get('/audit-log', async (req, res) => {
     try {
         const limit = Math.min(parseInt(req.query.limit || 100), 1000);

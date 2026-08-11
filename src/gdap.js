@@ -53,17 +53,25 @@ function getMsalClient() {
 
 // ===== OBTER TOKEN =====
 async function getAccessToken() {
-    const client = getMsalClient();
+    console.log('[GDAP] getAccessToken: Iniciando obtenção de token...');
+    try {
+        const client = getMsalClient();
 
-    const result = await client.acquireTokenByClientCredential({
-        scopes: [GRAPH_SCOPE],
-    });
+        const result = await client.acquireTokenByClientCredential({
+            scopes: [GRAPH_SCOPE],
+        });
 
-    if (!result || !result.accessToken) {
-        throw new Error('Falha ao obter token de acesso do Entra ID');
+        if (!result || !result.accessToken) {
+            console.error('[GDAP] getAccessToken: Falha ao obter token. Resposta não contém accessToken.');
+            throw new Error('Falha ao obter token de acesso do Entra ID');
+        }
+
+        console.log('[GDAP] getAccessToken: Token obtido com sucesso.');
+        return result.accessToken;
+    } catch (err) {
+        console.error(`[GDAP] getAccessToken: Erro ao obter token: ${err.message}`);
+        throw err; // Re-lança o erro original para o chamador
     }
-
-    return result.accessToken;
 }
 
 // ===== CRIAR CONVITE GDAP (fluxo completo) =====
@@ -155,12 +163,25 @@ async function criarConviteGDAP({ displayName, duration } = {}) {
  * Retorna array com { id, displayName, status, customer.tenantId, customer.displayName }
  */
 async function listarRelacoesAtivas() {
-    const token = await getAccessToken();
-    const headers = { Authorization: `Bearer ${token}` };
+    console.log('[GDAP] listarRelacoesAtivas: Iniciando listagem de relações ativas...');
+    try {
+        const token = await getAccessToken();
+        const headers = { Authorization: `Bearer ${token}` };
 
-    const url = `${GRAPH_BASE_URL}/tenantRelationships/delegatedAdminRelationships?$filter=status eq 'active'&$select=id,displayName,status,customer,duration,createdDateTime`;
-    const resp = await axios.get(url, { headers, timeout: GRAPH_TIMEOUT });
-    return resp.data.value || [];
+        const url = `${GRAPH_BASE_URL}/tenantRelationships/delegatedAdminRelationships?$filter=status eq 'active'&$select=id,displayName,status,customer,duration,createdDateTime`;
+        
+        console.log('[GDAP] listarRelacoesAtivas: Chamando GET /tenantRelationships/delegatedAdminRelationships...');
+        const resp = await axios.get(url, { headers, timeout: GRAPH_TIMEOUT });
+        
+        const relacoes = resp.data.value || [];
+        console.log(`[GDAP] listarRelacoesAtivas: Sucesso! ${relacoes.length} relações ativas recebidas.`);
+        return relacoes;
+    } catch (err) {
+        const graphError = err.response?.data?.error;
+        const errorMessage = `[GDAP] listarRelacoesAtivas: Erro ao listar relações: [${graphError?.code || err.code}] ${graphError?.message || err.message}`;
+        console.error(errorMessage);
+        throw new Error(errorMessage);
+    }
 }
 
 // ===== CONSULTAR STATUS DE UMA RELAÇÃO GDAP =====
@@ -334,6 +355,32 @@ function parseSubscribedSkus(skusRaw) {
     }));
 }
 
+// ===== LISTAR USUÁRIOS (Graph API) =====
+/**
+ * Lista todos os usuários do tenant.
+ * Retorna array com os objetos de usuário do Graph.
+ */
+async function listarUsuarios() {
+    console.log('[Graph] listarUsuarios: Iniciando listagem de usuários...');
+    try {
+        const token = await getAccessToken();
+        const headers = { Authorization: `Bearer ${token}` };
+
+        const url = `${GRAPH_BASE_URL}/users`;
+        console.log('[Graph] listarUsuarios: Chamando GET /users...');
+        const resp = await axios.get(url, { headers, timeout: GRAPH_TIMEOUT });
+        
+        const users = resp.data.value || [];
+        console.log(`[Graph] listarUsuarios: Sucesso! ${users.length} usuários recebidos.`);
+        return users;
+    } catch (err) {
+        const graphError = err.response?.data?.error;
+        const errorMessage = `[Graph] listarUsuarios: Erro ao listar usuários: [${graphError?.code || err.code}] ${graphError?.message || err.message}`;
+        console.error(errorMessage);
+        throw new Error(errorMessage);
+    }
+}
+
 // ===== VERIFICAR CONFIGURAÇÃO =====
 function isGdapConfigured() {
     return !!(
@@ -352,4 +399,5 @@ module.exports = {
     consultarRelacaoComFallback,
     lerLicencasCliente,
     extrairRelationshipIdDoLinkGdap,
+    listarUsuarios,
 };

@@ -1,41 +1,29 @@
 const express = require('express');
 const { dbGet, dbRun } = require('../db');
+const { validaCnpj } = require('../lib/validation');
+const { hashPublicToken, tokenMatches } = require('../lib/crypto');
 const crypto = require('crypto');
 
 const router = express.Router();
 
-const TOKEN_HASH_PEPPER = process.env.TOKEN_HASH_PEPPER || process.env.SESSION_SECRET;
-
-function hashPublicToken(token) {
-    return crypto
-        .createHash('sha256')
-        .update(`${TOKEN_HASH_PEPPER}:${String(token || '')}`)
-        .digest('hex');
-}
-
-function tokenMatches(storedToken, rawToken) {
-    if (!storedToken || !rawToken) return false;
-    const stored = String(storedToken);
-    const provided = String(rawToken);
-
-    // Compatibilidade: registros antigos podem estar em texto puro.
-    if (/^[a-f0-9]{64}$/i.test(stored)) {
-        return safeStringEquals(stored.toLowerCase(), hashPublicToken(provided));
-    }
-    return safeStringEquals(stored, provided);
-}
-
 router.post('/', async (req, res) => {
     try {
-        const { pedidoId, token, revenda, timestamp, status } = req.body;
+        const { pedidoId, token, revenda, timestamp, status, cnpj } = req.body;
 
-        if (!pedidoId || !token) {
-            return res.status(400).json({ error: 'pedidoId e token são obrigatórios' });
+        if (!pedidoId || !token || !cnpj) {
+            return res.status(400).json({ error: 'pedidoId, token e cnpj são obrigatórios' });
         }
 
-        const pedido = await dbGet('SELECT pedido_id, token FROM pedidos WHERE pedido_id = ?', [pedidoId]);
+        const pedido = await dbGet('SELECT * FROM pedidos WHERE pedido_id = ?', [pedidoId]);
         if (!pedido || !tokenMatches(pedido.token, token)) {
             return res.status(404).json({ error: 'Pedido não encontrado ou token inválido' });
+        }
+
+        const cnpjLimpoReq = String(cnpj).replace(/[^\d]/g, '');
+        const cnpjLimpoPedido = String(pedido.cnpj).replace(/[^\d]/g, '');
+
+        if (!validaCnpj(cnpjLimpoReq) || cnpjLimpoReq !== cnpjLimpoPedido) {
+            return res.status(400).json({ error: 'O CNPJ informado não corresponde ao do pedido original.' });
         }
 
         const ip = req.headers['x-forwarded-for']
@@ -61,6 +49,11 @@ router.post('/', async (req, res) => {
         );
 
         console.log(`✅ Validação registrada: ${pedidoId} via ${revenda} | IP: ${ip}`);
+
+        await dbRun(
+            'INSERT INTO audit_log (acao, pedido_id, cnpj, origem, timestamp) VALUES (?, ?, ?, ?, ?)',
+            ['VALIDAR_PEDIDO', pedidoId, cnpjLimpoReq, 'validacao_publica', new Date().toISOString()]
+        );
 
         res.json({
             success: true,
