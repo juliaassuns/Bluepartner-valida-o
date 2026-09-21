@@ -85,7 +85,7 @@ beforeAll(async () => {
     );
     await dbRun(
         'INSERT INTO pedidos (pedido_id, token, cliente, cnpj, revenda, revenda_nome, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        ['PED-API-001', 'validtoken123', 'Empresa Teste SA', '12.345.678/0001-90', 'ingram_micro_test', 'Ingram Micro Test', 'PENDENTE']
+        ['PED-API-001', 'validtoken123', 'Empresa Teste SA', '11.222.333/0001-81', 'ingram_micro_test', 'Ingram Micro Test', 'PENDENTE']
     );
     await dbRun(
         'INSERT INTO licencas (pedido_id, produto, qtd, duracao, preco) VALUES (?, ?, ?, ?, ?)',
@@ -110,12 +110,12 @@ afterAll(async () => {
 // ROTAS PÚBLICAS
 // =============================================
 
-describe('GET /api/pedido/:pedidoId/:token (público)', () => {
+describe('GET /api/pedidos/:pedidoId/:token (público)', () => {
     test('deve retornar pedido com token válido', async () => {
-        const res = await request(app).get('/api/pedido/PED-API-001/validtoken123');
+        const res = await request(app).get('/api/pedidos/PED-API-001/validtoken123');
         expect(res.status).toBe(200);
         expect(res.body.cliente).toBe('Empresa Teste SA');
-        expect(res.body.cnpj).toBe('12.345.678/0001-90');
+        expect(res.body.cnpj).toBe('11.222.333/0001-81');
         expect(res.body.pedidoId).toBe('PED-API-001');
         expect(res.body.status).toBe('PENDENTE');
         expect(res.body.licencas).toHaveLength(2);
@@ -123,7 +123,7 @@ describe('GET /api/pedido/:pedidoId/:token (público)', () => {
     });
 
     test('deve retornar licenças com campos corretos', async () => {
-        const res = await request(app).get('/api/pedido/PED-API-001/validtoken123');
+        const res = await request(app).get('/api/pedidos/PED-API-001/validtoken123');
         const lic = res.body.licencas.find(l => l.produto === 'Microsoft 365 E3');
         expect(lic).toBeTruthy();
         expect(lic.qtd).toBe(50);
@@ -131,18 +131,18 @@ describe('GET /api/pedido/:pedidoId/:token (público)', () => {
     });
 
     test('deve retornar 404 com token inválido', async () => {
-        const res = await request(app).get('/api/pedido/PED-API-001/tokeninvalido');
+        const res = await request(app).get('/api/pedidos/PED-API-001/tokeninvalido');
         expect(res.status).toBe(404);
         expect(res.body.error).toBeTruthy();
     });
 
     test('deve retornar 404 com pedidoId inexistente', async () => {
-        const res = await request(app).get('/api/pedido/PED-INEXISTENTE/validtoken123');
+        const res = await request(app).get('/api/pedidos/PED-INEXISTENTE/validtoken123');
         expect(res.status).toBe(404);
     });
 
     test('deve retornar 400 com formato inválido', async () => {
-        const res = await request(app).get('/api/pedido/PED WITH SPACES/tok en');
+        const res = await request(app).get('/api/pedidos/PED WITH SPACES/tok en');
         expect(res.status).toBe(400);
     });
 });
@@ -155,6 +155,7 @@ describe('POST /api/validar (público)', () => {
                 pedidoId: 'PED-API-001',
                 token: 'validtoken123',
                 revenda: 'ingram',
+                cnpj: '11.222.333/0001-81',
                 status: 'VALIDADO'
             });
         expect(res.status).toBe(200);
@@ -170,14 +171,14 @@ describe('POST /api/validar (público)', () => {
     test('deve retornar 404 com token inválido no body', async () => {
         const res = await request(app)
             .post('/api/validar')
-            .send({ pedidoId: 'PED-API-001', token: 'token_errado', revenda: 'ingram' });
+            .send({ pedidoId: 'PED-API-001', token: 'token_errado', revenda: 'ingram', cnpj: '11.222.333/0001-81' });
         expect(res.status).toBe(404);
     });
 
     test('deve retornar 404 com pedidoId inexistente', async () => {
         const res = await request(app)
             .post('/api/validar')
-            .send({ pedidoId: 'PED-NOPE', token: 'qualquer', revenda: 'ingram' });
+            .send({ pedidoId: 'PED-NOPE', token: 'qualquer', revenda: 'ingram', cnpj: '11.222.333/0001-81' });
         expect(res.status).toBe(404);
     });
 
@@ -196,6 +197,8 @@ describe('POST /api/validar (público)', () => {
     });
 });
 describe('GET /api/cnpj/:cnpj', () => {
+    beforeAll(() => loginAsAdmin());
+
     test('deve retornar nome genérico quando APIs externas não respondem', async () => {
         const fetchMock = jest.spyOn(global, 'fetch').mockResolvedValue({
             ok: false,
@@ -228,6 +231,8 @@ describe('GET /api/cnpj/:cnpj', () => {
 });
 
 describe('F-008: /api/* requires auth', () => {
+    beforeAll(() => logout());
+
     test('GET /api/audit-log → 401 without session', async () => {
         const res = await request(app).get('/api/audit-log');
         expect(res.status).toBe(401);
@@ -255,6 +260,8 @@ describe('F-008: /api/* requires auth', () => {
 });
 
 describe('F-007: /api/pedidos requires auth', () => {
+    beforeAll(() => logout());
+
     test('POST /api/pedidos → 401 without session', async () => {
         const res = await request(app).post('/api/pedidos').send({});
         expect(res.status).toBe(401);
@@ -416,7 +423,7 @@ describe('POST /api/pedidos (admin)', () => {
             .post('/api/pedidos')
             .send({
                 cliente: 'Novo Cliente Ltda',
-                cnpj: '99.888.777/0001-66',
+                cnpj: '11.444.777/0001-61',
                 revendas: [rv.id]
             });
         expect(res.status).toBe(200);
@@ -971,7 +978,7 @@ describe('POST /api/pedidos/batch (admin)', () => {
                 pedidos: [{ cnpj: '123' }]
             });
         expect(res.status).toBe(200);
-        expect(res.body.links[0].erro).toContain('CNPJ inválido');
+        expect(res.body.results[0].erro).toContain('CNPJ inválido');
     });
 });
 

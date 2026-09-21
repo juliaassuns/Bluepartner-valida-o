@@ -8,6 +8,8 @@ const { criarConviteGDAP, isGdapConfigured, extrairRelationshipIdDoLinkGdap } = 
 
 const router = express.Router();
 
+const requireAdminOrSuperadmin = requireRole(['admin', 'superadmin']);
+
 function buildPublicValidationLink(baseUrl, pedidoId, token) {
     const normalizedBase = String(baseUrl || '').replace(/\/+$/, '');
     const safePedidoId = encodeURIComponent(String(pedidoId || ''));
@@ -87,7 +89,7 @@ router.post('/resolve', async (req, res) => {
     }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', requireAdminOrSuperadmin, async (req, res) => {
     try {
         const { cliente, cnpj, revendas: revendaIds } = req.body;
 
@@ -190,7 +192,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-router.post('/batch', async (req, res) => {
+router.post('/batch', requireAdminOrSuperadmin, async (req, res) => {
     try {
         const { pedidos } = req.body;
 

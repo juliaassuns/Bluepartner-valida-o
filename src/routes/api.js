@@ -150,22 +150,6 @@ router.get('/cnpj/:cnpj', async (req, res) => {
     }
 });
 
-// ===== REVENDAS =====
-router.get('/revendas/ativas', async (req, res) => {
-    try {
-        const revendas = await dbAll(`
-            SELECT id, nome, partner_id, link_base, categoria
-            FROM revendas
-            WHERE ativo = 1
-            ORDER BY nome ASC
-        `);
-        res.json(revendas || []);
-    } catch (err) {
-        console.error('[Revendas]', err.message);
-        res.status(500).json({ error: 'Erro ao carregar revendas' });
-    }
-});
-
 // ===== LOGS =====
 router.get('/logs', async (req, res) => {
     try {

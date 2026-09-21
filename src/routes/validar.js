@@ -51,8 +51,8 @@ router.post('/', async (req, res) => {
         console.log(`✅ Validação registrada: ${pedidoId} via ${revenda} | IP: ${ip}`);
 
         await dbRun(
-            'INSERT INTO audit_log (acao, pedido_id, cnpj, origem, timestamp) VALUES (?, ?, ?, ?, ?)',
-            ['VALIDAR_PEDIDO', pedidoId, cnpjLimpoReq, 'validacao_publica', new Date().toISOString()]
+            'INSERT INTO audit_log (acao, entidade, entidade_id, usuario, detalhes, ip) VALUES (?, ?, ?, ?, ?, ?)',
+            ['VALIDAR_PEDIDO', 'pedido', pedidoId, 'sistema', JSON.stringify({ cnpj: cnpjLimpoReq, origem: 'validacao_publica' }), ip]
         );
 
         res.json({

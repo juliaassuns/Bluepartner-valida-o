@@ -1,10 +1,3 @@
-/**
- * Rota opcional de gestão de licenças.
- *
- * Este módulo não está montado no servidor principal em src/server.js,
- * então funciona como extensão administrativa futura e não integra o fluxo
- * principal em execução no runtime atual.
- */
 const express = require('express');
 const { dbGet, dbAll, dbRun } = require('../db');
 const { requireRole } = require('../middlewares/auth');
