@@ -25,6 +25,8 @@ const gdapRouter = require('./routes/gdapRoutes');
 const usuariosRouter = require('./routes/usuariosRoutes');
 const revendasRouter = require('./routes/revendasRoutes');
 const licencasRouter = require('./routes/licencasRoutes');
+const fabricRouter = require('./routes/fabricRoutes');
+const onelakeRouter = require('./routes/onelakeRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -160,11 +162,14 @@ app.use('/api/gdap', gdapRouter);
 app.use('/api/usuarios', usuariosRouter);
 app.use('/api/revendas', revendasRouter);
 app.use('/api/licencas', licencasRouter);
+// fabricRoutes e onelakeRoutes aplicam requireRole('superadmin') por rota.
+app.use('/api/fabric', fabricRouter);
+app.use('/api/onelake', onelakeRouter);
 
 // ===== MÓDULOS OPCIONAIS / LEGADOS =====
-// Os módulos abaixo podem continuar presentes no repositório para extensão futura,
-// mas não fazem parte do fluxo principal em execução.
-// Ex.: fabricRoutes, onelakeRoutes, etc.
+// consolidated.js e distributors.js seguem arquivados: não há evidência de
+// uso pelo frontend atual (buscado em public/), diferente dos demais
+// módulos acima, que foram remontados após confirmação de uso real.
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'login.html'));
 });

@@ -86,17 +86,19 @@ O fluxo principal é:
   - integrações (integration-health)
 
 - [src/routes/licencasRoutes.js](../src/routes/licencasRoutes.js)
-  - CRUD de licenças por pedido
-  - listagem, criação e remoção
-  - porém não está montado no servidor principal em [src/server.js](../src/server.js)
+  - CRUD de licenças por pedido (listagem, criação, remoção)
 
 - [src/routes/usuariosRoutes.js](../src/routes/usuariosRoutes.js)
-  - gestão de usuários
-  - útil para admin/superadmin, mas não montada no runtime atual
+  - CRUD de usuários (listar, criar, editar role/ativo, deletar) — usado pelo painel superadmin
 
 - [src/routes/revendasRoutes.js](../src/routes/revendasRoutes.js)
-  - gestão de revendas
-  - útil para administração, mas não montada no runtime atual
+  - CRUD de revendas (listar, ativas, criar, editar, deletar, importar, dashboard) — usado pelos painéis admin e superadmin
+
+- [src/routes/gdapRoutes.js](../src/routes/gdapRoutes.js)
+  - status e comparação de licenças GDAP, gestão do pool GDAP (usado pelos painéis admin e superadmin)
+
+- [src/routes/fabricRoutes.js](../src/routes/fabricRoutes.js) e [src/routes/onelakeRoutes.js](../src/routes/onelakeRoutes.js)
+  - integração Microsoft Fabric/OneLake (status, sync de revendas, exploração de workspaces/lakehouses) — usado pelo painel superadmin
 
 ### 6) Frontend
 
@@ -151,6 +153,12 @@ Atualmente, o runtime principal do projeto é composto por:
 - [src/routes/pedidos.js](../src/routes/pedidos.js)
 - [src/routes/validar.js](../src/routes/validar.js)
 - [src/routes/api.js](../src/routes/api.js)
+- [src/routes/gdapRoutes.js](../src/routes/gdapRoutes.js)
+- [src/routes/usuariosRoutes.js](../src/routes/usuariosRoutes.js)
+- [src/routes/revendasRoutes.js](../src/routes/revendasRoutes.js)
+- [src/routes/licencasRoutes.js](../src/routes/licencasRoutes.js)
+- [src/routes/fabricRoutes.js](../src/routes/fabricRoutes.js)
+- [src/routes/onelakeRoutes.js](../src/routes/onelakeRoutes.js)
 - [public/index.html](../public/index.html)
 - [public/login.html](../public/login.html)
 - [public/admin.html](../public/admin.html)
@@ -158,22 +166,21 @@ Atualmente, o runtime principal do projeto é composto por:
 
 Esses módulos formam o núcleo funcional que realmente roda.
 
+> **Nota (2026-09-21):** uma limpeza anterior havia arquivado gdapRoutes, usuariosRoutes,
+> revendasRoutes, licencasRoutes, fabricRoutes e onelakeRoutes por parecerem "não montados",
+> mas admin.js/superadmin.html já chamavam esses endpoints em produção — as telas
+> correspondentes estavam quebradas (404) sem que isso fosse percebido. Todos foram
+> remontados após confirmar uso real pelo frontend. Ver commits `1cf5e17` e `e1bcabf`.
+
 ---
 
 ## O que está inativo ou auxiliar
 
-Há uma série de arquivos e rotas que parecem úteis, mas não estão montados no runtime atual. Exemplos:
+Estas rotas não têm nenhuma chamada correspondente em `public/` (verificado por busca no
+frontend) e continuam arquivadas em `archive/legacy/`:
 
-- [src/routes/licencasRoutes.js](../src/routes/licencasRoutes.js)
-- [src/routes/usuariosRoutes.js](../src/routes/usuariosRoutes.js)
-- [src/routes/revendasRoutes.js](../src/routes/revendasRoutes.js)
-- [src/routes/gdapRoutes.js](../src/routes/gdapRoutes.js)
-- [src/routes/fabricRoutes.js](../src/routes/fabricRoutes.js)
-- [src/routes/onelakeRoutes.js](../src/routes/onelakeRoutes.js)
-- [src/routes/consolidated.js](../src/routes/consolidated.js)
-- [src/routes/distributors.js](../src/routes/distributors.js)
-
-Essas rotas podem representar um segundo nível de desenvolvimento ou módulos de expansão, mas no estado atual não fazem parte do caminho principal do sistema.
+- [archive/legacy/consolidated.js](../archive/legacy/consolidated.js)
+- [archive/legacy/distributors.js](../archive/legacy/distributors.js)
 
 ---
 
@@ -190,12 +197,6 @@ Manter como foco principal:
 - src/routes/pedidos.js
 - src/routes/validar.js
 - src/routes/api.js
-- public/
-
-### Módulos complementares
-
-Mover ou arquivar em uma pasta separada apenas se a intenção for manter funcionalidade futura:
-
 - src/routes/usuariosRoutes.js
 - src/routes/revendasRoutes.js
 - src/routes/licencasRoutes.js
@@ -205,6 +206,10 @@ Mover ou arquivar em uma pasta separada apenas se a intenção for manter funcio
 - src/lib/integration-health.js
 - src/gdap.js
 - src/fabric.js
+- public/
+
+### Módulos complementares (sem uso confirmado no frontend)
+
 - src/ingram.js
 - src/tds.js
 
@@ -229,10 +234,16 @@ Mover ou arquivar em uma pasta separada apenas se a intenção for manter funcio
 
 ### Pontos de melhoria
 
-- Há excesso de módulos paralelos que não entram no runtime atual.
-- Algumas rotas ficam “prontas” mas não montadas.
 - A estrutura se parece com um projeto em expansão, mas sem uma separação formal entre núcleo e extensões.
 - Há duplicação de papéis e integração em arquivos que poderiam ser classificados melhor.
+- Uma limpeza anterior (2026-08-11) arquivou rotas achando que não tinham uso, sem checar
+  se o frontend já as chamava — isso quebrou telas em produção silenciosamente (ver nota acima).
+  Antes de arquivar qualquer rota, sempre confirmar com uma busca em `public/` por chamadas
+  ao endpoint correspondente.
+- A suíte de testes (`tests/api.test.js`) cobre alguns endpoints que nunca foram implementados
+  neste repositório (paginação/busca em `/api/pedidos`, `/api/pedido-completo`, `/historico`,
+  `/exportar`, `PUT`/`DELETE` de pedidos, `/api/bi/status`) — não é dívida técnica recente,
+  é escopo pendente de decisão.
 
 ---
 
