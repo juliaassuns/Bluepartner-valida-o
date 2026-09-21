@@ -1,5 +1,6 @@
 const express = require('express');
 const { dbGet, dbAll, dbRun } = require('../db');
+const { isBiConfigured, getSugestoes } = require('../bi');
 
 const router = express.Router();
 
@@ -214,6 +215,22 @@ router.get('/audit-log', async (req, res) => {
     } catch (err) {
         console.error('[Audit Log]', err.message);
         res.status(500).json({ error: 'Erro ao carregar auditoria' });
+    }
+});
+
+// ===== BI SUGESTÕES =====
+router.get('/bi/sugestoes', async (req, res) => {
+    try {
+        const status = isBiConfigured();
+        if (!status.configured) {
+            return res.json({ configured: false });
+        }
+
+        const { sugestoes, resumo } = await getSugestoes();
+        res.json({ configured: true, sugestoes, resumo });
+    } catch (err) {
+        console.error('[BI Sugestões]', err.message);
+        res.status(500).json({ configured: false, error: 'Erro ao carregar sugestões BI' });
     }
 });
 
