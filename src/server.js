@@ -154,7 +154,6 @@ app.use('/api/validar', validarRouter);
 // pedidosRoutes aplica auth por rota: /resolve e /:pedidoId/:token são
 // públicas de propósito (fluxo de validação do cliente final).
 app.use('/api/pedidos', pedidosRouter);
-app.use('/api', requireAuth, requireRole(['admin', 'superadmin']), apiRouter);
 // gdapRoutes, usuariosRoutes e revendasRoutes aplicam auth por rota
 // (admin/superadmin), exceto /api/gdap/pool/auto-trigger, que é um webhook
 // externo autenticado por ADMIN_TRIGGER_TOKEN.
@@ -165,6 +164,11 @@ app.use('/api/licencas', licencasRouter);
 // fabricRoutes e onelakeRoutes aplicam requireRole('superadmin') por rota.
 app.use('/api/fabric', fabricRouter);
 app.use('/api/onelake', onelakeRouter);
+// Mount genérico por último: precisa vir depois dos mounts específicos acima,
+// senão intercepta (como prefixo) requests como /api/gdap/pool/auto-trigger
+// antes deles chegarem nas rotas que têm sua própria auth (ou nenhuma, de
+// propósito, no caso do webhook).
+app.use('/api', requireAuth, requireRole(['admin', 'superadmin']), apiRouter);
 
 // ===== MÓDULOS OPCIONAIS / LEGADOS =====
 // consolidated.js e distributors.js seguem arquivados: não há evidência de
