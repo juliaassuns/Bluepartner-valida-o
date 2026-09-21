@@ -21,8 +21,6 @@ const authRouter = require('./routes/auth');
 const pedidosRouter = require('./routes/pedidos');
 const validarRouter = require('./routes/validar');
 const apiRouter = require('./routes/api');
-const usuariosRouter = require('./routes/usuariosRoutes');
-const revendasRouter = require('./routes/revendasRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -131,6 +129,8 @@ app.use((req, res, next) => {
     console.log(`[${ts}] ${req.method} ${sanitizeRequestUrl(req.originalUrl || req.url)}`);
     next();
 });
+
+// ===== ROTAS PÚBLICAS =====
 app.use('/', authRouter);
 if (process.env.NODE_ENV === 'test') {
     app.post('/test/login', (req, res) => {
@@ -142,11 +142,16 @@ if (process.env.NODE_ENV === 'test') {
 }
 // /api/health stays public for Azure App Service monitoring
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
-app.use('/api/pedidos', requireAuth, requireRole(['admin', 'superadmin']), pedidosRouter);
 app.use('/api/validar', validarRouter);
-app.use('/api/usuarios', requireAuth, requireRole(['admin', 'superadmin']), usuariosRouter);
-app.use('/api/revendas', requireAuth, requireRole(['admin', 'superadmin']), revendasRouter);
+
+// ===== ROTAS ADMIN / PRODUÇÃO =====
+app.use('/api/pedidos', requireAuth, requireRole(['admin', 'superadmin']), pedidosRouter);
 app.use('/api', requireAuth, requireRole(['admin', 'superadmin']), apiRouter);
+
+// ===== MÓDULOS OPCIONAIS / LEGADOS =====
+// Os módulos abaixo podem continuar presentes no repositório para extensão futura,
+// mas não fazem parte do fluxo principal em execução.
+// Ex.: licencasRoutes, gdapRoutes, fabricRoutes, onelakeRoutes, etc.
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'login.html'));
 });
