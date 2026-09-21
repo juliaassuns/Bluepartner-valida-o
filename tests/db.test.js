@@ -179,6 +179,12 @@ describe('Database - Logs e Audit', () => {
 });
 
 describe('Database - GDAP Pool', () => {
+    beforeAll(async () => {
+        // Garante isolamento: outra suíte (api.test.js) pode ter inserido
+        // links no mesmo arquivo de banco de teste compartilhado.
+        await dbRun("DELETE FROM gdap_pool");
+    });
+
     test('deve inserir link no pool GDAP', async () => {
         const result = await dbRun(
             "INSERT INTO gdap_pool (link, label, status) VALUES (?, ?, ?)",

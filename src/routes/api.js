@@ -166,21 +166,6 @@ router.get('/revendas/ativas', async (req, res) => {
     }
 });
 
-// ===== GDAP POOL =====
-router.get('/gdap/pool', async (req, res) => {
-    try {
-        const pool = await dbAll(`
-            SELECT id, link, label, status, pedido_id, criado_em, usado_em
-            FROM gdap_pool
-            ORDER BY criado_em DESC
-        `);
-        res.json(pool || []);
-    } catch (err) {
-        console.error('[GDAP Pool]', err.message);
-        res.status(500).json({ error: 'Erro ao carregar pool GDAP' });
-    }
-});
-
 // ===== LOGS =====
 router.get('/logs', async (req, res) => {
     try {

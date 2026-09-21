@@ -21,6 +21,7 @@ const authRouter = require('./routes/auth');
 const pedidosRouter = require('./routes/pedidos');
 const validarRouter = require('./routes/validar');
 const apiRouter = require('./routes/api');
+const gdapRouter = require('./routes/gdapRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -147,11 +148,14 @@ app.use('/api/validar', validarRouter);
 // ===== ROTAS ADMIN / PRODUÇÃO =====
 app.use('/api/pedidos', requireAuth, requireRole(['admin', 'superadmin']), pedidosRouter);
 app.use('/api', requireAuth, requireRole(['admin', 'superadmin']), apiRouter);
+// gdapRoutes aplica auth por rota (admin/superadmin), exceto /pool/auto-trigger,
+// que é um webhook externo autenticado por ADMIN_TRIGGER_TOKEN.
+app.use('/api/gdap', gdapRouter);
 
 // ===== MÓDULOS OPCIONAIS / LEGADOS =====
 // Os módulos abaixo podem continuar presentes no repositório para extensão futura,
 // mas não fazem parte do fluxo principal em execução.
-// Ex.: licencasRoutes, gdapRoutes, fabricRoutes, onelakeRoutes, etc.
+// Ex.: licencasRoutes, fabricRoutes, onelakeRoutes, etc.
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'login.html'));
 });
