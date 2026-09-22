@@ -216,8 +216,22 @@ async function consultarRelacaoComFallback(relationshipId) {
 function extrairRelationshipIdDoLinkGdap(link) {
     if (!link || typeof link !== 'string') return null;
 
-    const relationshipMatch = link.match(/granularAdminRelationships\/([0-9a-fA-F-]{36})/);
-    if (relationshipMatch) return relationshipMatch[1];
+    const relationshipMatch = link.match(/granularAdminRelationships\/([0-9a-fA-F-]{36})(-[0-9a-fA-F-]+)?/);
+    if (relationshipMatch) {
+        if (relationshipMatch[2]) {
+            // Link contém um sufixo extra após o primeiro GUID (ex.: formato novo do
+            // admin.cloud.microsoft, que parece colar um segundo identificador).
+            // Assumimos que o relationshipId é o primeiro GUID (é o formato que o Graph
+            // API sempre usa em delegatedAdminRelationships.id), mas isso não foi
+            // confirmado contra o Graph real — verificar com consultarRelacao() antes de
+            // confiar cegamente na leitura de licenças para pedidos criados com esse link.
+            console.warn(
+                `[GDAP] Link com sufixo não reconhecido após o relationshipId: "${relationshipMatch[2]}". ` +
+                `Usando "${relationshipMatch[1]}" como relationshipId. Link completo: ${link}`
+            );
+        }
+        return relationshipMatch[1];
+    }
 
     const guidMatch = link.match(/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/);
     return guidMatch ? guidMatch[0] : null;
