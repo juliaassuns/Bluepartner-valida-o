@@ -96,6 +96,11 @@ O fluxo principal é:
 
 - [src/routes/gdapRoutes.js](../src/routes/gdapRoutes.js)
   - status e comparação de licenças GDAP, gestão do pool GDAP (usado pelos painéis admin e superadmin)
+  - `/comparar-completo/:pedidoId` é uma verificação manual opcional (proposta vs Graph via app GDAP vs
+    distribuidor Ingram/TDS) para conferência no painel admin. Não bloqueia nem altera o status do
+    pedido — a validação real do pedido é o aceite do link de GDAP pelo cliente (fluxo público,
+    ver seção "Fluxo público de validação"). Falha ou ausência de configuração do Ingram/TDS/Graph
+    aqui não deve ser tratada como pedido inválido.
 
 - [src/routes/fabricRoutes.js](../src/routes/fabricRoutes.js) e [src/routes/onelakeRoutes.js](../src/routes/onelakeRoutes.js)
   - integração Microsoft Fabric/OneLake (status, sync de revendas, exploração de workspaces/lakehouses) — usado pelo painel superadmin
