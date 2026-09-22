@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Login de dev (temporário)</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 480px; margin: 60px auto; padding: 0 20px; }
+  button { font-size: 16px; padding: 12px 20px; margin: 8px 0; width: 100%; cursor: pointer; }
+  #status { margin-top: 16px; padding: 12px; border-radius: 6px; white-space: pre-wrap; }
+  .ok { background: #d1fae5; color: #065f46; }
+  .err { background: #fee2e2; color: #991b1b; }
+</style>
+</head>
+<body>
+  <h2>Login de dev (só funciona com NODE_ENV=test)</h2>
+  <p>Clica no botão, espera o "ok" aparecer, depois clica no link do painel que quer testar.</p>
+
+  <button onclick="login('julia.silva@bluepartner.com.br','superadmin')">Entrar como superadmin (julia.silva)</button>
+  <button onclick="login('admin.teste@bluepartner.com.br','admin')">Entrar como admin (fake, sem cadastro)</button>
+
+  <div id="status"></div>
+
+  <p><a href="/superadmin">Ir para /superadmin</a> · <a href="/admin">Ir para /admin</a></p>
+
+<script>
+async function login(email, role) {
+  const status = document.getElementById('status');
+  status.className = '';
+  status.textContent = 'Entrando...';
+  try {
+    const res = await fetch('/test/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ email, role })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      status.className = 'ok';
+      status.textContent = 'OK! Sessão criada como ' + role + ' (' + email + '). Agora clica no link do painel abaixo.';
+    } else {
+      status.className = 'err';
+      status.textContent = 'Erro (' + res.status + '): ' + JSON.stringify(data);
+    }
+  } catch (e) {
+    status.className = 'err';
+    status.textContent = 'Falha de rede: ' + e.message;
+  }
+}
+</script>
+</body>
+</html>
