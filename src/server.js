@@ -16,6 +16,8 @@ const session = require('express-session');
 const FileStore = require('session-file-store')(session);
 
 const { initDatabase, dbGet, dbRun } = require('./db.js');
+const { isGdapConfigured } = require('./gdap');
+const { autoGeneratePool } = require('./lib/gdap-pool');
 const { requireAuth, requireRole } = require('./middlewares/auth');
 const authRouter = require('./routes/auth');
 const pedidosRouter = require('./routes/pedidos');
@@ -252,10 +254,44 @@ async function startServer() {
             console.error('⚠️  [WARN] Erro ao inicializar banco de dados:', dbErr.message);
             console.log('   App iniciada, mas database pode estar indisponível');
         }
+
+        startGdapPoolScheduler();
     } catch (err) {
         console.error('Erro crítico ao inicializar o servidor:', err);
         process.exit(1);
     }
+}
+
+// ===== AGENDADOR: repõe o pool de links GDAP automaticamente =====
+// Roda em background enquanto o processo estiver de pé (não depende de nenhum
+// cron externo). Reaproveita a mesma lógica usada pelos endpoints manuais
+// /api/gdap/pool/auto e /api/gdap/pool/auto-trigger.
+const GDAP_POOL_CHECK_INTERVAL_MS = Number(process.env.GDAP_POOL_CHECK_INTERVAL_MS) || 6 * 60 * 60 * 1000; // 6h
+const GDAP_POOL_MIN_DISPONIVEIS = Number(process.env.GDAP_POOL_MIN_DISPONIVEIS) || 3;
+const GDAP_POOL_MAX_NOVOS = Number(process.env.GDAP_POOL_MAX_NOVOS) || 3;
+
+async function checkAndFillGdapPool() {
+    if (!isGdapConfigured()) return; // sem credenciais Graph, nada a fazer
+
+    try {
+        const result = await autoGeneratePool({
+            minDisponiveis: GDAP_POOL_MIN_DISPONIVEIS,
+            maxNovos: GDAP_POOL_MAX_NOVOS
+        });
+        if (result?.error) {
+            console.error('[GDAP Pool Scheduler] Falha ao repor pool:', result.details || result.error);
+        } else if (result?.added > 0) {
+            console.log(`[GDAP Pool Scheduler] +${result.added} link(s) gerado(s). Disponíveis: ${result.disponiveisDepois}/${result.target}`);
+        }
+    } catch (err) {
+        console.error('[GDAP Pool Scheduler] Erro inesperado:', err.message);
+    }
+}
+
+function startGdapPoolScheduler() {
+    if (process.env.NODE_ENV === 'test') return;
+    checkAndFillGdapPool();
+    setInterval(checkAndFillGdapPool, GDAP_POOL_CHECK_INTERVAL_MS).unref();
 }
 
 if (require.main === module) {

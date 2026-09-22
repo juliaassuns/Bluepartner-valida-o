@@ -3,7 +3,6 @@ const { dbGet, dbAll, dbRun } = require('../db');
 const { requireRole } = require('../middlewares/auth');
 const {
     isGdapConfigured,
-    criarConviteGDAP,
     lerLicencasCliente,
     consultarRelacaoComFallback,
     extrairRelationshipIdDoLinkGdap,
@@ -13,6 +12,7 @@ const { getIngramLicencasNormalizadas, isIngramConfigured } = require('../ingram
 const { getTdsLicencasNormalizadas, isTdsConfigured } = require('../tds');
 const { buildComparisonRows } = require('../lib/license-compare-3way');
 const { safeStringEquals } = require('../lib/crypto');
+const { autoGeneratePool } = require('../lib/gdap-pool');
 
 const router = express.Router();
 
@@ -409,84 +409,6 @@ router.post('/pool/auto', requireAdminOrSuperadmin, async (req, res) => {
         res.status(500).json({ error: 'Erro ao auto-gerar pool GDAP' });
     }
 });
-
-/**
- * Helper: auto-generate GDAP pool links.
- * Returns an object with keys: added, disponiveisAntes, disponiveisDepois, target, maxNovos
- * On error returns { error, status, details }
- */
-async function autoGeneratePool({ minDisponiveis = 3, maxNovos = 3 } = {}) {
-    try {
-        const partnerName = process.env.GDAP_PARTNER_NAME || 'Blue Partner';
-
-        const disponiveisRow = await dbGet(
-            `SELECT COUNT(*) as disponiveis FROM gdap_pool WHERE status = 'disponivel'`
-        );
-        const disponiveisAtuais = disponiveisRow?.disponiveis || 0;
-
-        if (disponiveisAtuais >= minDisponiveis) {
-            return {
-                added: 0,
-                disponiveisAntes: disponiveisAtuais,
-                disponiveisDepois: disponiveisAtuais,
-                target: minDisponiveis,
-                maxNovos,
-            };
-        }
-
-        const maxAdd = Math.min(maxNovos, minDisponiveis - disponiveisAtuais);
-
-        let added = 0;
-
-        for (let i = 0; i < maxAdd; i++) {
-            const label = `Visualizador de Licenças - ${partnerName}`;
-            let gdapResult;
-            try {
-                gdapResult = await criarConviteGDAP({ displayName: label });
-            } catch (e) {
-                return {
-                    error: 'Falha ao gerar convite GDAP',
-                    status: 500,
-                    added,
-                    disponiveisAntes: disponiveisAtuais,
-                    target: minDisponiveis,
-                    maxNovos,
-                    details: e?.message || String(e),
-                };
-            }
-
-            const inviteLink = gdapResult?.inviteLink;
-            const displayName = gdapResult?.displayName || label;
-
-            if (!inviteLink) continue;
-
-            const existing = await dbGet('SELECT id FROM gdap_pool WHERE link = ?', [inviteLink]);
-            if (existing) continue;
-
-            await dbRun(
-                'INSERT INTO gdap_pool (link, label, status) VALUES (?, ?, ?)',
-                [inviteLink, displayName, 'disponivel']
-            );
-
-            added++;
-        }
-
-        const disponiveisDepoisRow = await dbGet(
-            `SELECT COUNT(*) as disponiveis FROM gdap_pool WHERE status = 'disponivel'`
-        );
-        const disponiveisDepois = disponiveisDepoisRow?.disponiveis || 0;
-
-        return {
-            added,
-            disponiveisAntes: disponiveisAtuais,
-            disponiveisDepois,
-            target: minDisponiveis,
-            maxNovos,
-        };
-    } catch (err) {
-        return { error: 'Erro interno', status: 500, details: err?.message || String(err) };
-    }
-}
 
 // ===== TEMPORARY TRIGGER (ADMIN TOKEN) =====
 // Endpoint to trigger auto-generation without session (for operators). Protected by ADMIN_TRIGGER_TOKEN env var.
