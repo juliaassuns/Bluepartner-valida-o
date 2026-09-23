@@ -68,6 +68,14 @@ O fluxo principal é:
   - grava log em logs
   - atualiza status do pedido para VALIDADO
 
+  > **Nota:** `status = 'VALIDADO'` significa apenas que o cliente confirmou o CNPJ
+  > e recebeu os links — é gravado antes mesmo dele clicar em GDAP ou na revenda.
+  > O aceite real do GDAP é confirmado separadamente e de forma assíncrona por
+  > [src/lib/gdap-relationship-check.js](../src/lib/gdap-relationship-check.js),
+  > que consulta o Graph em background e grava `pedidos.gdap_ativo_em` só quando a
+  > relação vira `active`. Não existe hoje uma confirmação equivalente para o
+  > aceite da revenda (Ingram/TDS não expõem esse dado via API).
+
 - [src/lib/crypto.js](../src/lib/crypto.js)
   - hash e comparação segura de tokens públicos
 

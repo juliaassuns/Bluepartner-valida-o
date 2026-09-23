@@ -903,6 +903,21 @@ function renderPedidoStatusBadge(status){
   return `<span class="badge pending">PENDENTE</span>`;
 }
 
+// "VALIDADO" só significa que o cliente confirmou os dados e recebeu os
+// links — não confirma que o GDAP foi de fato aceito. gdap_ativo_em é
+// preenchido pelo agendador em background (src/lib/gdap-relationship-check.js)
+// só quando a relação realmente vira 'active' no Graph.
+function renderGdapConfirmadoBadge(pedido){
+  if (pedido.gdap_ativo_em) {
+    const dt = new Date(pedido.gdap_ativo_em).toLocaleString('pt-BR');
+    return `<span class="badge active" title="Confirmado via Graph em ${dt}">GDAP ativo</span>`;
+  }
+  if (!pedido.gdap_relationship_id) {
+    return `<span class="badge gray" title="Pedido sem link de GDAP vinculado">—</span>`;
+  }
+  return `<span class="badge pending" title="Cliente ainda não aceitou, ou aceite ainda não confirmado via Graph">GDAP pendente</span>`;
+}
+
 function renderPedidosTable(){
   const q = (document.getElementById('pedidosSearch').value || '').toLowerCase().trim();
   let rows = [...pedidosCache];
@@ -919,7 +934,7 @@ function renderPedidosTable(){
 
   const tbody = document.getElementById('pedidosBody');
   if (!rows.length){
-    tbody.innerHTML = `<tr><td colspan="7">
+    tbody.innerHTML = `<tr><td colspan="8">
           <div class="empty-state">
             <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
             <div class="empty-title">Nenhum pedido encontrado</div>
@@ -933,6 +948,7 @@ function renderPedidosTable(){
     const dt = p.criado_em ? new Date(p.criado_em).toLocaleString('pt-BR') : '—';
     const rev = (p.revendas || []).map(r => r.nome).join(', ') || (p.revenda_nome || p.revenda || '—');
     const st = renderPedidoStatusBadge(p.status);
+    const gdapSt = renderGdapConfirmadoBadge(p);
     return `
           <tr>
             <td><strong style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;">${esc(p.pedido_id)}</strong></td>
@@ -940,6 +956,7 @@ function renderPedidosTable(){
             <td>${esc(p.cnpj)}</td>
             <td>${esc(rev)}</td>
             <td>${st}</td>
+            <td>${gdapSt}</td>
             <td>${dt}</td>
             <td>
               <div class="table-actions">

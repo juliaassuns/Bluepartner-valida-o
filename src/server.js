@@ -18,6 +18,7 @@ const FileStore = require('session-file-store')(session);
 const { initDatabase, dbGet, dbRun } = require('./db.js');
 const { isGdapConfigured } = require('./gdap');
 const { autoGeneratePool } = require('./lib/gdap-pool');
+const { checkPendingGdapRelationships } = require('./lib/gdap-relationship-check');
 const { requireAuth, requireRole } = require('./middlewares/auth');
 const authRouter = require('./routes/auth');
 const pedidosRouter = require('./routes/pedidos');
@@ -256,6 +257,7 @@ async function startServer() {
         }
 
         startGdapPoolScheduler();
+        startGdapRelationshipScheduler();
     } catch (err) {
         console.error('Erro crítico ao inicializar o servidor:', err);
         process.exit(1);
@@ -292,6 +294,33 @@ function startGdapPoolScheduler() {
     if (process.env.NODE_ENV === 'test') return;
     checkAndFillGdapPool();
     setInterval(checkAndFillGdapPool, GDAP_POOL_CHECK_INTERVAL_MS).unref();
+}
+
+// ===== AGENDADOR: confirma relações GDAP aceitas pelo cliente =====
+// O pedido vira "VALIDADO" assim que o cliente confirma o CNPJ, antes mesmo
+// de clicar no link de GDAP — aquele clique nunca foi verificado de fato.
+// Este agendador consulta o Graph periodicamente e grava em
+// pedidos.gdap_ativo_em quando a relação realmente virar 'active', dando um
+// sinal honesto e separado de "cliente confirmou os dados".
+const GDAP_RELATIONSHIP_CHECK_INTERVAL_MS = Number(process.env.GDAP_RELATIONSHIP_CHECK_INTERVAL_MS) || 30 * 60 * 1000; // 30min
+
+async function checkGdapRelationships() {
+    if (!isGdapConfigured()) return;
+
+    try {
+        const result = await checkPendingGdapRelationships();
+        if (result?.confirmed > 0) {
+            console.log(`[GDAP Relationship Scheduler] ${result.confirmed}/${result.checked} pedido(s) confirmado(s) como GDAP ativo.`);
+        }
+    } catch (err) {
+        console.error('[GDAP Relationship Scheduler] Erro inesperado:', err.message);
+    }
+}
+
+function startGdapRelationshipScheduler() {
+    if (process.env.NODE_ENV === 'test') return;
+    checkGdapRelationships();
+    setInterval(checkGdapRelationships, GDAP_RELATIONSHIP_CHECK_INTERVAL_MS).unref();
 }
 
 if (require.main === module) {
