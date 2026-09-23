@@ -112,9 +112,10 @@ Write-Host "
 NEXT STEPS (manual or deliberate):
 - Upload certificate to App Registration (Portal: App registrations → Certificates & secrets → Upload certificate) OR use Graph to add keyCredentials.
 - Remove plain-text client secret from App Registration after switching to certificate or Key Vault reference.
-- Ask Global Admin to add Application permission 'TenantRelationships.ReadWrite.All' in App Registration and grant admin consent.
+- Ask Global Admin to add Application permission 'DelegatedAdminRelationship.ReadWrite.All' (Microsoft Graph) in App Registration and grant admin consent.
+- Add the App Registration's service principal to the tenant's 'AdminAgents' security group (see setup-adminagents.js at the repo root) — required by Partner Center for GDAP relationship creation, separate from the Graph permission above.
 - Optionally enable App Service 'Key Vault references' feature and verify access.
-- Test the /api/gdap/pool/auto-trigger endpoint after admin consent is granted.
+- Run `node diagnostico-gdap.js` (repo root) to verify all three requirements (credentials, permission, AdminAgents membership) before relying on the /api/gdap/pool/auto-trigger endpoint.
 "
 
 Write-Host "Done. Review output for errors and follow NEXT STEPS."
