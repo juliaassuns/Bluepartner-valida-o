@@ -666,6 +666,7 @@
                         <button class="tab active" onclick="filterPool('todos')">Todos</button>
                         <button class="tab" onclick="filterPool('disponivel')">Disponíveis</button>
                         <button class="tab" onclick="filterPool('usado')">Usados</button>
+                        <button class="tab" onclick="filterPool('expirado')">Expirados</button>
                     </div>
                 </div>
             </div>
@@ -789,13 +790,16 @@
 
         if (currentFilter === 'disponivel') filtered = allPoolLinks.filter(l => l.status === 'disponivel');
         if (currentFilter === 'usado') filtered = allPoolLinks.filter(l => l.status === 'usado');
+        if (currentFilter === 'expirado') filtered = allPoolLinks.filter(l => l.status === 'expirado');
 
         if (!filtered.length) {
             const msg = currentFilter === 'todos'
                 ? 'Nenhum link no banco. Adicione links GDAP acima.'
                 : currentFilter === 'disponivel'
                     ? 'Nenhum link disponível.'
-                    : 'Nenhum link usado.';
+                    : currentFilter === 'expirado'
+                        ? 'Nenhum link expirado.'
+                        : 'Nenhum link usado.';
             list.innerHTML = `<div class="empty-state"><i data-lucide="inbox"></i><p>${msg}</p></div>`;
             reinitIcons();
             return;
@@ -803,9 +807,12 @@
 
         list.innerHTML = filtered.map(l => {
             const isUsed = l.status === 'usado';
+            const isExpired = l.status === 'expirado';
             const statusBadge = isUsed
                 ? `<span class="badge badge-pending" style="font-size:10px">Usado${l.pedido_id ? ' — Pedido ' + esc(String(l.pedido_id)) : ''}</span>`
-                : `<span class="badge badge-done" style="font-size:10px">Disponível</span>`;
+                : isExpired
+                    ? `<span class="badge badge-error" style="font-size:10px" title="Status no Graph: ${esc(l.relationship_status || '')}">Expirado</span>`
+                    : `<span class="badge badge-done" style="font-size:10px">Disponível</span>`;
             const date = new Date(l.criado_em).toLocaleDateString('pt-BR');
             const usedDate = l.usado_em ? ' | Usado em: ' + new Date(l.usado_em).toLocaleDateString('pt-BR') : '';
             const shortLink = l.link.length > 90 ? l.link.slice(0, 90) + '...' : l.link;

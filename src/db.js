@@ -127,6 +127,8 @@ const MIGRATION_STATEMENTS = [
     `ALTER TABLE pedidos ADD COLUMN gdap_relationship_id TEXT`,
     `ALTER TABLE pedidos ADD COLUMN revenda_nome TEXT DEFAULT ''`,
     `ALTER TABLE pedidos ADD COLUMN gdap_ativo_em DATETIME`,
+    `ALTER TABLE pedidos ADD COLUMN gdap_status TEXT`,
+    `ALTER TABLE gdap_pool ADD COLUMN relationship_status TEXT`,
     `ALTER TABLE revendas ADD COLUMN partner_id TEXT DEFAULT ''`,
     `ALTER TABLE revendas ADD COLUMN link_base TEXT DEFAULT ''`,
     `ALTER TABLE revendas ADD COLUMN categoria TEXT DEFAULT ''`,

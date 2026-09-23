@@ -904,13 +904,19 @@ function renderPedidoStatusBadge(status){
 }
 
 // "VALIDADO" só significa que o cliente confirmou os dados e recebeu os
-// links — não confirma que o GDAP foi de fato aceito. gdap_ativo_em é
-// preenchido pelo agendador em background (src/lib/gdap-relationship-check.js)
-// só quando a relação realmente vira 'active' no Graph.
+// links — não confirma que o GDAP foi de fato aceito. gdap_ativo_em/gdap_status
+// são preenchidos pelo agendador em background
+// (src/lib/gdap-relationship-check.js) a partir do status real no Graph.
+const GDAP_STATUS_MORTO = ['expired', 'terminated', 'rejected'];
+
 function renderGdapConfirmadoBadge(pedido){
   if (pedido.gdap_ativo_em) {
     const dt = new Date(pedido.gdap_ativo_em).toLocaleString('pt-BR');
     return `<span class="badge active" title="Confirmado via Graph em ${dt}">GDAP ativo</span>`;
+  }
+  const status = String(pedido.gdap_status || '').toLowerCase();
+  if (GDAP_STATUS_MORTO.includes(status)) {
+    return `<span class="badge expired" title="Status no Graph: ${esc(status)}. Cliente não aceitou a tempo — gere um novo link.">GDAP expirado</span>`;
   }
   if (!pedido.gdap_relationship_id) {
     return `<span class="badge gray" title="Pedido sem link de GDAP vinculado">—</span>`;

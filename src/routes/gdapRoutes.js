@@ -299,7 +299,7 @@ router.get('/pool', requireAdminOrSuperadmin, async (req, res) => {
         const usadosRow = await dbGet(`SELECT COUNT(*) as usados FROM gdap_pool WHERE status = 'usado'`);
 
         const links = await dbAll(
-            `SELECT id, link, label, status, pedido_id, criado_em, usado_em
+            `SELECT id, link, label, status, relationship_status, pedido_id, criado_em, usado_em
              FROM gdap_pool
              ORDER BY criado_em DESC`
         );

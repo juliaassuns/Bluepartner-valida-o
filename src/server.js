@@ -276,6 +276,8 @@ async function checkAndFillGdapPool() {
     if (!isGdapConfigured()) return; // sem credenciais Graph, nada a fazer
 
     try {
+        // autoGeneratePool() já purga links expirados antes de contar
+        // disponíveis (ver src/lib/gdap-pool.js).
         const result = await autoGeneratePool({
             minDisponiveis: GDAP_POOL_MIN_DISPONIVEIS,
             maxNovos: GDAP_POOL_MAX_NOVOS
